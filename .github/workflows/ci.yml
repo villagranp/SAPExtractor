@@ -1,0 +1,119 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend (lint, tipos, pruebas, seguridad)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv sync --locked
+      - run: uv run ruff format --check .
+      - run: uv run ruff check .
+      - run: uv run mypy
+      - name: Pruebas (unitarias + integración con testcontainers)
+        run: uv run pytest --cov --cov-report=xml
+      - name: Auditoría de dependencias
+        run: uv run pip-audit --strict --skip-editable
+      - name: Análisis estático de seguridad
+        run: uv run bandit -q -r src -x src/sapextract/migrations
+
+  contract:
+    name: Contrato OpenAPI ↔ tipos del frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - run: uv sync --locked
+        working-directory: backend
+      - run: uv run sapextract export-openapi --output openapi.json
+        working-directory: backend
+      - run: pnpm install --frozen-lockfile && pnpm gen:api
+        working-directory: frontend
+      - name: El contrato generado debe estar versionado
+        run: git diff --exit-code -- backend/openapi.json frontend/src/shared/api/schema.d.ts
+
+  frontend:
+    name: Frontend (lint, tipos, pruebas, build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm format:check
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+      - run: pnpm audit --prod --audit-level high
+
+  sap-mock:
+    name: Mock de SAP
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools/sap-mock
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked
+      - run: uv run ruff format --check . && uv run ruff check .
+      - run: uv run mypy
+      - run: uv run pytest
+
+  hygiene:
+    name: Higiene del repositorio (pre-commit + secretos)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v6
+      - run: uvx pre-commit run --all-files --hook-stage manual check-yaml
+      - run: uvx pre-commit run --all-files end-of-file-fixer
+      - run: uvx pre-commit run --all-files gitleaks
+
+  images:
+    name: Imágenes Docker
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Backend
+        run: docker build -f deploy/docker/backend.Dockerfile --target runtime --build-arg BUILD_COMMIT=${{ github.sha }} -t sapextract-backend:ci .
+      - name: Frontend
+        run: docker build -f deploy/docker/frontend.Dockerfile -t sapextract-frontend:ci .
+      - name: Mock SAP
+        run: docker build -t sapextract-sap-mock:ci tools/sap-mock

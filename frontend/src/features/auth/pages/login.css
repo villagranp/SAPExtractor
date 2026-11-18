@@ -1,0 +1,9 @@
+.sx-login {
+  display: grid;
+  place-items: center;
+  min-height: 100%;
+  padding: var(--sx-space-4);
+}
+.sx-login__card {
+  width: min(400px, 100%);
+}

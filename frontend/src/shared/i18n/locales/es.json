@@ -1,0 +1,52 @@
+{
+  "app": {
+    "name": "SAPExtract",
+    "tagline": "Orquestador de extracciones SAP",
+    "skipToContent": "Saltar al contenido"
+  },
+  "nav": {
+    "home": "Inicio",
+    "pipelines": "Pipelines",
+    "runs": "Ejecuciones",
+    "sapSystems": "Sistemas SAP",
+    "sources": "Orígenes",
+    "destinations": "Destinos",
+    "alerts": "Alertas",
+    "users": "Usuarios y roles",
+    "audit": "Auditoría",
+    "settings": "Ajustes",
+    "sectionData": "Datos",
+    "sectionOperation": "Operación",
+    "sectionAdmin": "Administración",
+    "soon": "Iteración {{it}}"
+  },
+  "home": {
+    "title": "Estado de la plataforma",
+    "description": "Iteración 0: base técnica en marcha. Los módulos se habilitan según el roadmap.",
+    "api": "API",
+    "database": "Base de metadatos",
+    "migrations": "Migraciones",
+    "version": "Versión",
+    "environment": "Entorno",
+    "commit": "Commit",
+    "ok": "Operativa",
+    "fail": "Con fallos",
+    "checking": "Comprobando…",
+    "unreachable": "Sin conexión con la API",
+    "nextSteps": "Próximos pasos",
+    "nextStepsBody": "Iteración 1: usuarios, roles y auditoría. Iteración 2: conexiones SAP."
+  },
+  "login": {
+    "title": "Iniciar sesión",
+    "username": "Usuario",
+    "password": "Contraseña",
+    "submit": "Entrar",
+    "microsoft": "Entrar con Microsoft",
+    "pending": "El inicio de sesión se habilita en la iteración 1."
+  },
+  "notFound": {
+    "title": "Página no encontrada",
+    "body": "La dirección no existe o fue movida.",
+    "back": "Volver al inicio"
+  }
+}

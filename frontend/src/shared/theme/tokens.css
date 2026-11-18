@@ -1,0 +1,80 @@
+/*
+ * Tokens de diseño PROVISIONALES.
+ * Al integrar la plantilla corporativa se sustituyen aquí (ver docs/plan/10-frontend-y-ux.md §1);
+ * los componentes de shared/ui y las pantallas solo usan estas variables.
+ */
+:root {
+  color-scheme: light;
+
+  --sx-font-sans: 'Segoe UI', system-ui, -apple-system, Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --sx-font-mono: 'Cascadia Code', Consolas, 'SFMono-Regular', monospace;
+
+  --sx-color-bg: #f4f6f9;
+  --sx-color-surface: #ffffff;
+  --sx-color-surface-alt: #eef1f6;
+  --sx-color-border: #d9dee7;
+  --sx-color-text: #1c2430;
+  --sx-color-text-muted: #5b6676;
+  --sx-color-primary: #1f5fae;
+  --sx-color-primary-hover: #194f91;
+  --sx-color-primary-contrast: #ffffff;
+  --sx-color-focus: #3b82f6;
+
+  --sx-color-success: #1e7d4f;
+  --sx-color-success-bg: #e3f4ea;
+  --sx-color-warning: #9a6200;
+  --sx-color-warning-bg: #fdf1d8;
+  --sx-color-danger: #b42318;
+  --sx-color-danger-bg: #fde7e5;
+  --sx-color-info: #1f5fae;
+  --sx-color-info-bg: #e2ecf8;
+  --sx-color-neutral-bg: #eceff3;
+
+  --sx-sidebar-bg: #16202e;
+  --sx-sidebar-text: #c7d0dc;
+  --sx-sidebar-active: #ffffff;
+  --sx-sidebar-active-bg: #24344a;
+
+  --sx-radius-sm: 4px;
+  --sx-radius-md: 8px;
+  --sx-radius-lg: 12px;
+  --sx-shadow-sm: 0 1px 2px rgb(16 24 40 / 6%), 0 1px 3px rgb(16 24 40 / 10%);
+
+  --sx-space-1: 4px;
+  --sx-space-2: 8px;
+  --sx-space-3: 12px;
+  --sx-space-4: 16px;
+  --sx-space-5: 24px;
+  --sx-space-6: 32px;
+
+  --sx-text-xs: 0.75rem;
+  --sx-text-sm: 0.875rem;
+  --sx-text-md: 1rem;
+  --sx-text-lg: 1.25rem;
+  --sx-text-xl: 1.5rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --sx-color-bg: #0f151e;
+    --sx-color-surface: #172130;
+    --sx-color-surface-alt: #1d2a3b;
+    --sx-color-border: #2b3a4f;
+    --sx-color-text: #e6ebf2;
+    --sx-color-text-muted: #9aa7b8;
+    --sx-color-primary: #5b9be6;
+    --sx-color-primary-hover: #77ade9;
+    --sx-color-primary-contrast: #0b1320;
+    --sx-color-success: #5fd39a;
+    --sx-color-success-bg: #133525;
+    --sx-color-warning: #f0b55a;
+    --sx-color-warning-bg: #3a2a0e;
+    --sx-color-danger: #ff8a80;
+    --sx-color-danger-bg: #3d1714;
+    --sx-color-info: #8cbcf0;
+    --sx-color-info-bg: #17304d;
+    --sx-color-neutral-bg: #233044;
+    --sx-sidebar-bg: #0b1119;
+  }
+}

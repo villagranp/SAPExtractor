@@ -1,0 +1,3 @@
+# Atajo para desarrollo: `docker compose up --build` desde la raíz del repositorio.
+include:
+  - deploy/compose/docker-compose.dev.yml

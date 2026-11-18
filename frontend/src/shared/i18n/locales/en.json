@@ -1,0 +1,52 @@
+{
+  "app": {
+    "name": "SAPExtract",
+    "tagline": "SAP extraction orchestrator",
+    "skipToContent": "Skip to content"
+  },
+  "nav": {
+    "home": "Home",
+    "pipelines": "Pipelines",
+    "runs": "Runs",
+    "sapSystems": "SAP systems",
+    "sources": "Sources",
+    "destinations": "Destinations",
+    "alerts": "Alerts",
+    "users": "Users & roles",
+    "audit": "Audit",
+    "settings": "Settings",
+    "sectionData": "Data",
+    "sectionOperation": "Operations",
+    "sectionAdmin": "Administration",
+    "soon": "Iteration {{it}}"
+  },
+  "home": {
+    "title": "Platform status",
+    "description": "Iteration 0: technical foundation running. Modules are enabled per the roadmap.",
+    "api": "API",
+    "database": "Metadata database",
+    "migrations": "Migrations",
+    "version": "Version",
+    "environment": "Environment",
+    "commit": "Commit",
+    "ok": "Operational",
+    "fail": "Failing",
+    "checking": "Checking…",
+    "unreachable": "API unreachable",
+    "nextSteps": "Next steps",
+    "nextStepsBody": "Iteration 1: users, roles and audit. Iteration 2: SAP connections."
+  },
+  "login": {
+    "title": "Sign in",
+    "username": "Username",
+    "password": "Password",
+    "submit": "Sign in",
+    "microsoft": "Sign in with Microsoft",
+    "pending": "Sign-in is enabled in iteration 1."
+  },
+  "notFound": {
+    "title": "Page not found",
+    "body": "The address does not exist or was moved.",
+    "back": "Back to home"
+  }
+}

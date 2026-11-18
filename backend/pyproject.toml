@@ -1,0 +1,88 @@
+[project]
+name = "sapextract"
+version = "0.1.0"
+description = "Orquestador de extracciones SAP (ODP/CDS vía OData) con gestión de deltas"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+    "sqlalchemy>=2.0.36",
+    "psycopg[binary]>=3.2",
+    "alembic>=1.14",
+    "structlog>=24.4",
+    "cryptography>=43",
+    "httpx>=0.27",
+]
+
+[project.scripts]
+sapextract = "sapextract.cli:main"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.8",
+    "mypy>=1.13",
+    "pytest>=8.3",
+    "pytest-cov>=6.0",
+    "testcontainers[postgres]>=4.8",
+    "bandit>=1.8",
+    "pip-audit>=2.7",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sapextract"]
+
+# ---------------------------------------------------------------- ruff
+[tool.ruff]
+line-length = 100
+target-version = "py314"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W", "F", "I", "N", "UP", "B", "A", "C4", "SIM", "RET", "PTH",
+    "S", "DTZ", "T20", "PT", "RUF", "ASYNC", "TID", "ERA", "PL",
+]
+ignore = [
+    "PLR0913",  # demasiados argumentos: aceptable en constructores con DI
+    "PLR2004",  # números mágicos en comparaciones
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "S105", "S106", "PLR2004", "S311"]
+"src/sapextract/migrations/**" = ["ERA001", "INP001"]
+
+# ---------------------------------------------------------------- mypy
+[tool.mypy]
+python_version = "3.14"
+strict = true
+plugins = ["pydantic.mypy"]
+mypy_path = "src"
+files = ["src", "tests"]
+
+[[tool.mypy.overrides]]
+module = ["testcontainers.*"]
+ignore_missing_imports = true
+
+# ---------------------------------------------------------------- pytest
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+pythonpath = ["."]
+filterwarnings = [
+    # Starlette recomienda httpx2 para TestClient; se migrará cuando FastAPI lo adopte.
+    "ignore:Using `httpx` with `starlette.testclient`",
+]
+markers = [
+    "integration: requiere Docker (testcontainers)",
+]
+
+[tool.coverage.run]
+source = ["sapextract"]
+branch = true

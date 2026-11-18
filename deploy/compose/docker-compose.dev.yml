@@ -1,0 +1,117 @@
+# Entorno de DESARROLLO. Desde la raíz del repo:  docker compose up --build
+# Credenciales de este archivo: solo para desarrollo local, nunca para QA/PRD.
+name: sapextract-dev
+
+x-backend: &backend
+  build:
+    context: ../..
+    dockerfile: deploy/docker/backend.Dockerfile
+    target: dev
+  image: sapextract-backend:dev
+  env_file:
+    - path: ../../.env
+      required: false
+  environment: &backend-env
+    SX_ENVIRONMENT: dev
+    SX_DATABASE_URL: postgresql+psycopg://sapextract:sapextract@db:5432/sapextract
+    SX_LOG_JSON: "false"
+    SX_LOG_LEVEL: INFO
+  volumes:
+    - ../../backend/src:/app/src
+  restart: unless-stopped
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: sapextract
+      POSTGRES_PASSWORD: sapextract
+      POSTGRES_DB: sapextract
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sapextract -d sapextract"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  migrate:
+    <<: *backend
+    command: ["sapextract", "db", "upgrade"]
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    <<: *backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  scheduler:
+    <<: *backend
+    command: ["python", "-m", "sapextract.main_scheduler"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  worker:
+    <<: *backend
+    command: ["python", "-m", "sapextract.main_worker"]
+    environment:
+      <<: *backend-env
+      SX_SPOOL_DIR: /app/spool
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  # Nota Windows: los cambios en archivos montados no siempre llegan al contenedor (sin recarga
+  # en caliente). Para desarrollar el frontend es más rápido `cd frontend && pnpm dev` en local
+  # (proxy a la API en localhost:8000) y `docker compose up -d --scale frontend=0` para el resto.
+  frontend:
+    image: node:24-alpine
+    working_dir: /app
+    command: ["sh", "-c", "corepack enable && pnpm install --frozen-lockfile && pnpm dev --host 0.0.0.0"]
+    environment:
+      VITE_API_PROXY: http://api:8000
+      COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+      # El almacén de pnpm debe vivir en el volumen, no en la carpeta montada: si no, pnpm crea
+      # /app/.pnpm-store (miles de archivos) y Vite se bloquea recorriéndolo.
+      npm_config_store_dir: /app/node_modules/.pnpm-store
+    ports:
+      - "5173:5173"
+    volumes:
+      - ../../frontend:/app
+      - frontend_node_modules:/app/node_modules
+    depends_on:
+      - api
+
+  sap-mock:
+    build:
+      context: ../../tools/sap-mock
+    image: sapextract-sap-mock:dev
+    environment:
+      MOCK_USER: sxmock
+      MOCK_PASSWORD: sxmock
+      MOCK_ROWS: "2500"
+    ports:
+      - "8081:8081"
+
+  # Opcional: SQL Server de pruebas como destino (docker compose --profile mssql up)
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    profiles: ["mssql"]
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${SX_DEV_MSSQL_SA_PASSWORD:-SapExtract.Dev.2026}
+    ports:
+      - "1433:1433"
+
+volumes:
+  pgdata:
+  frontend_node_modules:

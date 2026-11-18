@@ -1,0 +1,46 @@
+@import './tokens.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--sx-font-sans);
+  font-size: var(--sx-text-sm);
+  line-height: 1.5;
+  color: var(--sx-color-text);
+  background: var(--sx-color-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--sx-color-primary);
+}
+
+:focus-visible {
+  outline: 2px solid var(--sx-color-focus);
+  outline-offset: 2px;
+}
+
+code {
+  font-family: var(--sx-font-mono);
+  font-size: 0.9em;
+}
+
+.sx-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

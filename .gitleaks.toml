@@ -1,0 +1,12 @@
+# Configuración de gitleaks: reglas por defecto + excepciones para valores de DESARROLLO documentados.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Credenciales ficticias de desarrollo y pruebas"
+paths = [
+  '''deploy/compose/docker-compose\.dev\.yml''',
+  '''tools/sap-mock/tests/.*''',
+  '''backend/tests/.*''',
+  '''frontend/pnpm-lock\.yaml''',
+]

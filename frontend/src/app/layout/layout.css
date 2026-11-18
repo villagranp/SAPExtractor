@@ -1,0 +1,118 @@
+.sx-shell {
+  display: grid;
+  grid-template-columns: 248px 1fr;
+  min-height: 100%;
+}
+
+.sx-skip {
+  position: absolute;
+  left: -9999px;
+}
+.sx-skip:focus {
+  left: var(--sx-space-2);
+  top: var(--sx-space-2);
+  z-index: 10;
+  padding: var(--sx-space-2) var(--sx-space-3);
+  background: var(--sx-color-surface);
+}
+
+/* ---------- Sidebar */
+.sx-sidebar {
+  padding: var(--sx-space-4) var(--sx-space-3);
+  color: var(--sx-sidebar-text);
+  background: var(--sx-sidebar-bg);
+}
+.sx-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--sx-space-3);
+  padding: var(--sx-space-2);
+  margin-bottom: var(--sx-space-4);
+  color: var(--sx-sidebar-active);
+  text-decoration: none;
+}
+.sx-brand span {
+  display: grid;
+}
+.sx-brand small {
+  font-size: var(--sx-text-xs);
+  color: var(--sx-sidebar-text);
+}
+.sx-nav-section h2 {
+  margin: var(--sx-space-4) var(--sx-space-2) var(--sx-space-1);
+  font-size: var(--sx-text-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+.sx-nav-section ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sx-nav-link {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--sx-space-2);
+  padding: var(--sx-space-2);
+  color: inherit;
+  text-decoration: none;
+  border-radius: var(--sx-radius-md);
+}
+.sx-nav-link:hover,
+.sx-nav-link.active {
+  color: var(--sx-sidebar-active);
+  background: var(--sx-sidebar-active-bg);
+}
+.sx-nav-link--disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.sx-nav-link--disabled:hover {
+  background: transparent;
+  color: inherit;
+}
+.sx-nav-link small {
+  font-size: 0.65rem;
+}
+
+/* ---------- Main area */
+.sx-main-area {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.sx-topbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--sx-space-4);
+  padding: var(--sx-space-3) var(--sx-space-5);
+  background: var(--sx-color-surface);
+  border-bottom: 1px solid var(--sx-color-border);
+}
+.sx-content {
+  flex: 1;
+  padding: var(--sx-space-5);
+  outline: none;
+}
+.sx-mt {
+  margin-top: var(--sx-space-4);
+}
+
+@media (max-width: 800px) {
+  .sx-shell {
+    grid-template-columns: 1fr;
+  }
+  .sx-sidebar nav {
+    display: none;
+  }
+  .sx-brand {
+    margin-bottom: 0;
+  }
+  .sx-content {
+    padding: var(--sx-space-4);
+  }
+}

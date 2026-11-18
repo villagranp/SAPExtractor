@@ -1,0 +1,176 @@
+/* Estilos del design system propio. Solo usan tokens (var(--sx-*)). */
+
+/* ---------- Button */
+.sx-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sx-space-2);
+  padding: var(--sx-space-2) var(--sx-space-4);
+  font: inherit;
+  font-weight: 600;
+  border: 1px solid transparent;
+  border-radius: var(--sx-radius-md);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.sx-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.sx-btn--primary {
+  color: var(--sx-color-primary-contrast);
+  background: var(--sx-color-primary);
+}
+.sx-btn--primary:hover:not(:disabled) {
+  background: var(--sx-color-primary-hover);
+}
+.sx-btn--secondary {
+  color: var(--sx-color-text);
+  background: var(--sx-color-surface);
+  border-color: var(--sx-color-border);
+}
+.sx-btn--secondary:hover:not(:disabled) {
+  background: var(--sx-color-surface-alt);
+}
+.sx-btn--ghost {
+  color: var(--sx-color-primary);
+  background: transparent;
+}
+.sx-btn--danger {
+  color: #fff;
+  background: var(--sx-color-danger);
+}
+
+/* ---------- Card */
+.sx-card {
+  background: var(--sx-color-surface);
+  border: 1px solid var(--sx-color-border);
+  border-radius: var(--sx-radius-lg);
+  box-shadow: var(--sx-shadow-sm);
+  padding: var(--sx-space-5);
+}
+.sx-card__title {
+  margin: 0 0 var(--sx-space-3);
+  font-size: var(--sx-text-md);
+}
+
+/* ---------- StatusPill */
+.sx-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sx-space-1);
+  padding: 2px var(--sx-space-2);
+  font-size: var(--sx-text-xs);
+  font-weight: 600;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.sx-pill::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.sx-pill--success {
+  color: var(--sx-color-success);
+  background: var(--sx-color-success-bg);
+}
+.sx-pill--warning {
+  color: var(--sx-color-warning);
+  background: var(--sx-color-warning-bg);
+}
+.sx-pill--danger {
+  color: var(--sx-color-danger);
+  background: var(--sx-color-danger-bg);
+}
+.sx-pill--info {
+  color: var(--sx-color-info);
+  background: var(--sx-color-info-bg);
+}
+.sx-pill--neutral {
+  color: var(--sx-color-text-muted);
+  background: var(--sx-color-neutral-bg);
+}
+
+/* ---------- PageHeader */
+.sx-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sx-space-4);
+  margin-bottom: var(--sx-space-5);
+}
+.sx-page-header h1 {
+  margin: 0;
+  font-size: var(--sx-text-xl);
+}
+.sx-page-header p {
+  margin: var(--sx-space-1) 0 0;
+  color: var(--sx-color-text-muted);
+}
+
+/* ---------- EmptyState */
+.sx-empty {
+  padding: var(--sx-space-6);
+  text-align: center;
+  color: var(--sx-color-text-muted);
+  border: 1px dashed var(--sx-color-border);
+  border-radius: var(--sx-radius-lg);
+}
+.sx-empty h2 {
+  margin: 0 0 var(--sx-space-2);
+  font-size: var(--sx-text-md);
+  color: var(--sx-color-text);
+}
+
+/* ---------- FormField / Input */
+.sx-field {
+  display: grid;
+  gap: var(--sx-space-1);
+  margin-bottom: var(--sx-space-4);
+}
+.sx-field label {
+  font-weight: 600;
+}
+.sx-field__hint {
+  font-size: var(--sx-text-xs);
+  color: var(--sx-color-text-muted);
+}
+.sx-field__error {
+  font-size: var(--sx-text-xs);
+  color: var(--sx-color-danger);
+}
+.sx-input {
+  width: 100%;
+  padding: var(--sx-space-2) var(--sx-space-3);
+  font: inherit;
+  color: var(--sx-color-text);
+  background: var(--sx-color-surface);
+  border: 1px solid var(--sx-color-border);
+  border-radius: var(--sx-radius-md);
+}
+.sx-input:disabled {
+  background: var(--sx-color-surface-alt);
+}
+
+/* ---------- Grid helper */
+.sx-grid {
+  display: grid;
+  gap: var(--sx-space-4);
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+}
+
+/* ---------- Description list */
+.sx-dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--sx-space-2) var(--sx-space-4);
+  margin: 0;
+}
+.sx-dl dt {
+  color: var(--sx-color-text-muted);
+}
+.sx-dl dd {
+  margin: 0;
+}
