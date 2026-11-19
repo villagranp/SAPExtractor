@@ -9,7 +9,7 @@ Trazabilidad completa y verificable de **quién hizo qué, cuándo, desde dónde
 | Tipo | Para qué | Dónde se guarda | Quién lo consulta |
 |---|---|---|---|
 | **Auditoría** | Acciones de negocio y seguridad (login, cambios de configuración, ejecuciones manuales, reinicios de delta) | Tabla `audit_event` (append-only, encadenada por hash) | Auditor, Administrador |
-| **Logs de ejecución** | Detalle de cada extracción/carga (pasos, páginas, filas, errores) | Tablas `run_log` + archivo por ejecución | Operador, Administrador de datos |
+| **Logs de ejecución** | Detalle de cada extracción/carga (pasos, páginas, filas, errores) | Tabla `run_log`, particionada por fecha | Operador, Administrador de datos |
 | **Logs técnicos** | Diagnóstico de la aplicación (excepciones, peticiones HTTP, rendimiento) | stdout JSON → archivo rotado / colector (Loki, ELK, Azure Monitor) | Soporte técnico |
 
 ## 1. Auditoría
@@ -36,6 +36,8 @@ Garantías:
 - **Solo inserción**: el usuario de BD de la aplicación no tiene `UPDATE`/`DELETE` sobre `audit_event` (permisos de PostgreSQL + *trigger* que lo impide).
 - **Evidencia de manipulación**: verificación de la cadena de hash (`sapextract audit verify` y botón en la UI).
 - La auditoría se escribe **en la misma transacción** que el cambio auditado (si el cambio falla, no queda evento de éxito; los intentos fallidos/denegados se registran en una transacción aparte).
+- **Ancla externa** (It9, plan 13 C-18): la cadena y su ancla viven en la misma base, así que quien pueda escribir en ella puede recalcular la cadena entera. El hash de cabecera se firma con una clave derivada de la clave maestra y se emite a diario a los logs técnicos; la verificación se hace por tramos desde el último punto verificado.
+- La IP del contexto solo se toma de cabeceras de proxy cuando la petición llega de un proxy de confianza (`SX_TRUSTED_PROXIES`, plan 11 §3).
 
 ### Catálogo inicial de eventos
 
@@ -69,12 +71,14 @@ Cada ejecución (`run`) de un pipeline genera:
 
 | Elemento | Detalle |
 |---|---|
-| `run_step` | Pasos con inicio/fin/estado: `prepare`, `extract`, `stage`, `load`, `commit_delta`, `cleanup` |
-| `run_log` | Líneas con `ts`, `level`, `step`, `message`, `data` (JSON). Nivel configurable por pipeline (INFO por defecto, DEBUG temporal) |
+| `run_step` | Pasos con inicio/fin/estado, por intento. La lista de pasos es la del plan 06 §2: `prepare`, `extract`, `load`, `commit_delta`, `cleanup` |
+| `run_log` | Líneas con `ts`, `level`, `step`, `attempt`, `message`, `data` (JSON). Tabla particionada por fecha: la retención consiste en borrar particiones. Nivel configurable por pipeline (INFO por defecto, DEBUG temporal) |
 | `run_metric` | Filas leídas/escritas/actualizadas/borradas, páginas, bytes, duración por paso, filas/seg |
-| Archivo de log | `logs/runs/<yyyy>/<mm>/<run_id>.jsonl` para ejecuciones muy verbosas (la UI lo lee bajo demanda) |
 
-- **En vivo**: el worker publica (`pg_notify`) y la API reenvía por **SSE** a la pantalla de detalle de la ejecución.
+No hay archivo de log en el disco del worker: con varias instancias, la API no podría leerlo.
+
+- **En vivo**: el SSE de la API sondea `run_log` cada segundo con el cursor `after`, lo que cumple el criterio de menos de 2 s. `NOTIFY` se usa solo como aviso sin carga (su límite es de 8000 bytes y exigiría una conexión de escucha por réplica de API).
+- Los logs de ejecución no incluyen filas de datos de SAP salvo en errores de datos, donde la muestra queda en `run_log` y se consulta desde el detalle del run.
 - Errores con **código propio** (`SX-SAP-401`, `SX-SAP-DELTA-INVALID`, `SX-DST-SQL-MERGE`…) y mensaje accionable ("Revise las credenciales de la conexión X").
 
 ## 3. Logs técnicos
@@ -126,10 +130,13 @@ GET  /api/v1/settings/retention    PUT /api/v1/settings/retention
 - Pestaña «Actividad» reutilizable (`AuditTrail`) ya integrada en la ficha de usuario.
 
 **Iteración 5**
-- [ ] `run_step`, `run_log`, `run_metric` + archivo JSONL.
-- [ ] SSE de logs en vivo.
+- [ ] `run_step`, `run_log` (particionada por fecha) y `run_metric`.
+- [ ] SSE de logs en vivo por sondeo con cursor.
 - [ ] Catálogo de códigos de error.
-- [ ] Retención y archivado.
+- [ ] Retención (borrado de particiones) y archivado.
+
+**Iteración 9**
+- [ ] Ancla externa de la cadena de auditoría y verificación por tramos.
 
 ## Criterios de aceptación
 

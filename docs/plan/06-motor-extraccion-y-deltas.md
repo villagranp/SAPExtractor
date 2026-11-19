@@ -2,57 +2,77 @@
 
 **Iteración:** 5 · **Depende de:** 01 (spike), 04, 05, 07 · **Bloquea a:** 08, 09
 
+> Actualizado el 19.11.2026 con los cambios C-02 a C-06, C-08 a C-10, C-12 y C-13 del [plan 13](13-revision-y-plan-de-cambios.md). Lo marcado con H*n* depende del spike (ADR 0002).
+
 ## Objetivo
 
 Ejecutar de forma **fiable, reanudable e idempotente** la lectura de un origen SAP y su carga en un destino, gestionando correctamente los **deltas** de la ODQ y el pseudo-delta por marca de agua.
 
-> Este es el núcleo de la plataforma. Antes de implementarlo deben estar documentados los resultados del **Spike SAP** (ADR 0002).
+> Este es el núcleo de la plataforma. Antes de implementarlo deben estar documentados los resultados del **Spike SAP** (ADR 0002) y congelados los contratos de este plan en el ADR 0006.
 
 ## 1. Conceptos
 
 | Concepto | Definición |
 |---|---|
-| **Pipeline** | Origen + destino + opciones (definido en el módulo 08) |
-| **Run** (ejecución) | Una ejecución concreta de un pipeline |
-| **Modo de extracción** | `FULL`, `DELTA_INIT` (con datos), `DELTA_INIT_NO_DATA`, `DELTA`, `DELTA_REPEAT`, `WATERMARK` |
+| **Pipeline** | Un origen + un destino + opciones (módulo 08). Un destino adicional es otro pipeline |
+| **Run** (ejecución) | Ejecución lógica de un **lote** de un pipeline. Tiene uno o varios intentos (`run_attempt`) |
+| **Lote** (`batch_id`) | Identificador determinista de lo que el run debe cargar. En delta se deriva del pipeline, de la generación del estado de delta y del **token de partida**; en `WATERMARK`, del pipeline y la ventana; en `FULL` y `DELTA_INIT`, del run. Es la clave de idempotencia en destino |
+| **Modo del pipeline** | `FULL`, `DELTA`, `WATERMARK` (módulo 08) |
+| **Modo del run** | `FULL`, `DELTA_INIT`, `DELTA`, `WATERMARK`. Repetir un delta no es un modo: es un intento nuevo con el mismo token de partida. `DELTA_INIT_NO_DATA` solo se añade si el spike confirma que existe vía OData (H9) |
 | **Delta token** | Identificador que devuelve SAP (`__delta` / `!deltatoken`) para pedir los cambios desde la última petición |
 | **Spool** | Lotes extraídos guardados temporalmente en disco (Parquet) entre la extracción y la carga |
 
 ## 2. Ciclo de vida de una ejecución
 
+Una sola máquina de estados para run, intento y cola. No hay tabla `job`: la cola son los runs en `queued` (módulo 08).
+
 ```
 queued ──► running ──► succeeded
-              │  ├──► failed ──(reintento)──► queued
-              │  └──► cancelled
-              └──► (worker caído, sin heartbeat) ──► failed (stale)
+              ├──────► cancelled
+              └──────► intento fallido
+                         ├─ transitorio y quedan intentos ──► queued (mismo run, intento nuevo)
+                         └─ en otro caso ──────────────────► failed
 ```
 
-Pasos internos (`run_step`):
+Un worker que deja de dar latido pierde el run: el scheduler cierra ese intento como fallido (`stale`) y el run vuelve a `queued`.
+
+Pasos internos (`run_step`). Esta es la única lista; el plan 03 la referencia.
 
 | Paso | Qué hace |
 |---|---|
-| `prepare` | Bloquea el pipeline (un solo run activo), carga estado de delta, valida esquema, prueba destino |
-| `extract` | Lee página a página de SAP → convierte a Arrow → escribe spool Parquet. Guarda el **token pendiente** al final |
-| `load` | Lee el spool → carga en *staging* del destino → aplica (`append` / `upsert` / `replace`) en una transacción |
-| `commit_delta` | En la base de metadatos: `current_token ← pending_token`, marca de agua, run `succeeded` (misma transacción) |
-| `cleanup` | Borra spool (o lo conserva N días si se configura), libera bloqueo, emite métricas y eventos |
+| `prepare` | Carga el estado de delta, valida el esquema y prueba el destino. Consulta la tabla de control del destino: si el lote pendiente ya está aplicado, salta a `commit_delta` |
+| `extract` | Lee página a página de SAP → convierte a Arrow → escribe el spool Parquet. Al terminar escribe el manifiesto del spool y guarda el **token pendiente** |
+| `load` | `stage(spool)` y `apply(stage, mode, batch)`: aplica (`append` / `upsert` / `replace`) y escribe la tabla de control del destino en la misma transacción |
+| `commit_delta` | En la base de metadatos y con *fencing* (3.3): `current_token ← pending_token`, marca de agua, run `succeeded`, en una transacción |
+| `cleanup` | Borra el spool, emite métricas y eventos |
 
-Si falla `load`, el reintento **reutiliza el spool** sin volver a pedir a SAP (el token no ha avanzado).
+### Spool
+
+- **Manifiesto.** `_spool.json` se escribe al final y de forma atómica: `batch_id`, token pendiente, archivos con filas y hash, esquema. Un spool sin manifiesto es inválido: se borra y se vuelve a extraer.
+- **Localidad.** El spool vive en el disco del worker que extrajo. El intento registra qué worker lo tiene: si el reintento lo toma el mismo worker, reutiliza el spool sin volver a pedir a SAP; si lo toma otro, vuelve a extraer con el mismo token de partida. Un volumen compartido queda como alternativa si la repetición resulta cara.
+- **Datos en claro.** El spool contiene datos de SAP sin cifrar. Directorio con permisos solo para el usuario del servicio, borrado al terminar por defecto, retención máxima de 72 h y fuera de los backups (plan 11).
 
 ## 3. Protocolo de delta (ODQ vía OData)
 
 ### 3.1 Estado (`delta_state`, uno por pipeline)
 
+Cada pipeline delta tiene su propia suscripción en SAP. No hay multi-destino: un segundo destino es un segundo pipeline con su propio estado.
+
 | Campo | Descripción |
 |---|---|
 | `status` | `NOT_INITIALIZED` \| `INITIALIZING` \| `INITIALIZED` \| `BROKEN` |
+| `generation` | Sube en cada reinicialización; forma parte del `batch_id` |
 | `current_token` | Último token **confirmado** (carga exitosa) |
 | `pending_token` | Token obtenido en un run que aún no se ha confirmado |
 | `pending_run_id` | Run dueño del token pendiente |
+| `lease_epoch` | Sube cada vez que un worker toma el run (3.3) |
 | `init_filters_hash` | Filtros usados en la inicialización (si cambian, hay que reinicializar) |
+| `sap_close_pending` | La suscripción de una generación anterior sigue abierta en SAP (3.5) |
 | `initialized_at`, `last_delta_at` | Fechas |
 | `watermark_value` | Para `WATERMARK` |
 | `history` | Tabla `delta_state_history` con cada transición (auditada) |
+
+El estado `broken` del pipeline se deriva de `delta_state.status`; no se guarda dos veces.
 
 ### 3.2 Algoritmo
 
@@ -67,55 +87,75 @@ DELTA (token Tn):
   GET <EntitySet>?!deltatoken='Tn'
   → paginar → nuevo token Tn+1 → pending_token = Tn+1
   → load OK → commit: current_token = Tn+1
-  → load KO → current_token sigue = Tn (spool conservado para reintento)
+  → load KO → current_token sigue = Tn
 
-Reintento tras fallo en extract (sin spool válido):
-  → se vuelve a pedir con Tn  ⇒ la ODQ debe devolver de nuevo el mismo delta (REPEAT)
-     [comportamiento a confirmar en el Spike SAP]
+Reintento sin spool válido:
+  → se vuelve a pedir con Tn  ⇒ la ODQ debe devolver de nuevo ese delta
+     [a confirmar en el spike: H2, H10, H11, H13]
 ```
 
 Regla de oro: **el token confirmado solo avanza en la misma transacción que marca el run como exitoso, y solo después de que el destino confirmó la carga.**
+
+Las peticiones que abren o avanzan un delta se envían **sin reintento automático** en el cliente HTTP (`NO_RETRY`): un *timeout* no garantiza que SAP no procesara la petición, y reintentar a ciegas puede abrir otra petición en la ODQ. El reintento se decide a nivel de run, según H10.
+
+Si la repetición devuelve más filas que la primera vez (todo lo ocurrido desde Tn hasta ahora, H11), el resultado sigue siendo correcto: el `batch_id` depende del token de partida, no del contenido.
 
 ### 3.3 Garantías y casos límite
 
 | Caso | Tratamiento |
 |---|---|
-| Caída entre commit en destino y commit en metadatos | El siguiente run repite el delta Tn → la aplicación en destino es **idempotente** (ver 4) |
-| Dos pipelines delta sobre el mismo origen y filtros | Bloqueado por validación (la suscripción ODQ se compartiría). Usar un pipeline con varios destinos (v1.1) o filtros distintos |
+| Caída entre el commit en destino y el commit en metadatos | En `prepare`, la tabla de control del destino indica que el lote ya está aplicado: se confirma el token guardado allí, sin volver a extraer ni cargar |
+| Worker dado por caído que sigue vivo (pausa larga, corte de red con la BD) | *Fencing*: `lease_epoch` sube cada vez que un worker toma el run. `commit_delta` actualiza con `WHERE pending_run_id = :run AND lease_epoch = :epoch` y aborta si no afecta a ninguna fila. El latido comprueba el mismo valor y el worker se detiene si lo perdió |
+| Dos pipelines delta sobre el mismo origen (un segundo destino) | Cada pipeline abre su propia suscripción. Se permite solo si el spike confirma que conviven dos cadenas de delta sobre el mismo entity set y usuario técnico (H6, H18); hasta entonces, bloqueado por validación. Si no conviven, alternativas a evaluar con el equipo SAP: segundo servicio SEGW sobre el mismo DataSource, usuario técnico por pipeline, o el segundo pipeline en `FULL` o `WATERMARK` |
 | Filtros cambiados tras la inicialización | El pipeline pasa a requerir **reinicialización** explícita |
 | Token rechazado por SAP (suscripción borrada en ODQMON, caducada) | Error `SX-SAP-DELTA-INVALID`, `status = BROKEN`, alerta; el usuario decide reinicializar |
-| Reinicializar | Acción con permiso `pipeline:reset_delta`, motivo obligatorio, confirmación doble; opción de vaciar el destino; se documenta cerrar la suscripción antigua en ODQMON |
+| Reinicializar | Acción con permiso `pipeline:reset_delta`, motivo obligatorio, confirmación doble; opción de vaciar el destino; cierra la suscripción anterior en SAP (3.5) |
+| Pipeline delta pausado o roto durante días | La cola crece en SAP y puede perderse la posibilidad de repetir (H13): aviso al pausar y alerta de suscripción estancada (plan 09) |
 | Run cancelado | Cancelación cooperativa (se comprueba entre páginas); el token no avanza |
 
 ### 3.4 Semántica de los registros delta ODP
 
-Los servicios ODP añaden campos técnicos, entre ellos `ODQ_CHANGEMODE` (C/U/D) y `ODQ_ENTITYCNTR`. Según el **proceso de delta** del extractor:
+Los servicios ODP añaden campos técnicos, entre ellos `ODQ_CHANGEMODE` (C/U/D) y `ODQ_ENTITYCNTR`. El `$metadata` no expone el proceso de delta del extractor, así que no se detecta: lo declara el usuario en el origen (`source.delta_semantics`, plan 05).
 
-| Tipo de delta del extractor | Ejemplo | Modo de aplicación recomendado |
+| `delta_semantics` | Ejemplo | Modo de aplicación |
 |---|---|---|
-| Imagen posterior (*after image*) | Muchos extractores maestros y CDS con CDC | `upsert` por clave; `D` → borrado lógico (`_sx_deleted = 1`) o físico (configurable) |
-| Aditivo / imagen anterior + posterior (*before/after*, p. ej. 2LIS) | Extractores LO | `append` (histórico) conservando `ODQ_CHANGEMODE` y `ODQ_ENTITYCNTR`; la consolidación se hace aguas abajo |
+| `after_image` | Muchos extractores maestros y CDS con CDC | `upsert` por clave; `D` → borrado lógico (`_sx_deleted = 1`) o físico (configurable) |
+| `additive` / `before_after` | Extractores LO (2LIS) | `append` (histórico) conservando `ODQ_CHANGEMODE` y `ODQ_ENTITYCNTR`; la consolidación se hace aguas abajo |
+| `unknown` | Sin clasificar | Solo `append` |
 
-El asistente de pipeline sugiere el modo según el origen y avisa si la combinación es peligrosa (p. ej. `upsert` sobre un extractor aditivo).
+El asistente de pipeline propone el modo a partir de ese campo y bloquea las combinaciones peligrosas (`upsert` sobre un origen aditivo).
+
+En `upsert` con borrado lógico, un registro `D` solo marca `_sx_deleted`; no sobrescribe las demás columnas con vacíos (H17).
+
+### 3.5 Ciclo de vida de la suscripción en SAP
+
+La suscripción se crea en la init y la plataforma es responsable de cerrarla: al reinicializar, al borrar el pipeline y al deprecar el origen. Cada cierre se audita.
+
+- Si el spike confirma `TerminateDeltasFor<EntitySet>` (H12), la plataforma lo llama. Si esa función cierra todas las suscripciones del entity set, solo se llama cuando no queda otro pipeline delta sobre el mismo origen.
+- Si no existe o no se puede usar, queda una tarea manual guiada (ODQMON) con `sap_close_pending = true`, que se da por cerrada cuando `SubscribedTo<EntitySet>` responde que ya no existe o el usuario lo confirma.
 
 ## 4. Idempotencia en destino
 
-- Columnas técnicas añadidas a cada fila: `_sx_run_id`, `_sx_extracted_at`, `_sx_change_mode`, `_sx_record_seq`, `_sx_deleted`.
+- Columnas técnicas añadidas a cada fila: `_sx_batch_id`, `_sx_run_id` (informativo), `_sx_extracted_at`, `_sx_change_mode`, `_sx_record_seq`, `_sx_deleted`.
+- **Tabla de control en el destino**, `__sx_load_state` (pipeline, `batch_id`, token resultante, filas, fecha), escrita en la misma transacción que el `apply` en Snowflake y SQL Server. En CSV ese papel lo cumplen `_manifest.json` y `_SUCCESS` (plan 07).
 - `upsert`: `MERGE` por clave sobre una tabla de staging deduplicada (gana el último registro por clave según orden de llegada / `ODQ_ENTITYCNTR`).
-- `append`: antes de insertar se eliminan las filas del mismo `_sx_run_id` lógico de delta (clave = token origen), de modo que repetir el delta no duplica.
-- `replace` (full): carga en tabla/objeto temporal y **intercambio atómico** (rename/swap) para no dejar el destino vacío durante la carga.
-- CSV: escritura a archivo temporal + renombrado atómico; nombre determinista por token → repetir sobrescribe el mismo archivo.
+- `append`: antes de insertar se eliminan las filas del mismo `_sx_batch_id`, de modo que repetir el lote no duplica.
+- `replace` (full): sustitución atómica del contenido, sin dejar el destino vacío durante la carga y sin perder los permisos concedidos sobre la tabla (el mecanismo depende del destino, plan 07).
+- CSV: escritura a archivo temporal y renombrado atómico; carpeta y nombres por `batch_id`, así repetir sobrescribe los mismos archivos.
 
 ## 5. Pseudo-delta por marca de agua (`WATERMARK`)
 
 Para `CDS_ODATA` sin delta nativo:
 
 ```
-desde = watermark_value - overlap        (p. ej. 10 min)
+desde = watermark_value - overlap        (p. ej. 10 min; en campos de solo fecha, días completos)
 hasta = ahora_SAP - safety_lag           (p. ej. 2 min, evita transacciones en curso)
-GET <EntitySet>?$filter=<campo> ge datetime'desde' and <campo> lt datetime'hasta'&$orderby=<campo>
+GET <EntitySet>?$filter=<campo> ge <desde> and <campo> lt <hasta>
 → upsert por clave → watermark_value = hasta
 ```
+
+- `ahora_SAP` sale de la cabecera `Date` de la respuesta de SAP, no del reloj del worker.
+- El campo puede ser fecha-hora, solo fecha (`AEDAT`) o *timestamp* decimal: `source.watermark_kind` (`datetime`, `date`, `decimal_timestamp`) fija el literal del filtro (distinto en V2 y V4) y el solape. La zona horaria del campo se declara en el origen.
 
 Limitación documentada: no detecta borrados (se recomienda una reconciliación full periódica configurable, p. ej. semanal).
 
@@ -123,14 +163,22 @@ Limitación documentada: no detecta borrados (se recomienda una reconciliación 
 
 | Tema | Decisión |
 |---|---|
-| Paginación | Paginación de servidor (`__next` / `$skiptoken`) con `Prefer: odata.maxpagesize=<page_size>`; nunca `$skip` en delta |
-| Memoria | *Parsing* incremental de JSON por página (p. ej. `ijson`), lotes Arrow de tamaño fijo, spool a Parquet: memoria acotada independiente del volumen |
-| Tipos OData V2 | `/Date(ms)/` → timestamp UTC; `Edm.Decimal` (string) → decimal con precisión del `$metadata`; `Edm.Time` (`PT12H30M00S`) → time; fechas SAP vacías (`00000000`) → NULL |
+| Paginación ODP | Paginación de servidor (`__next` / `$skiptoken`) con `Prefer: odata.maxpagesize=<page_size>`; nunca `$skip` en delta |
+| Paginación `CDS_ODATA` | `__next` si el servicio lo ofrece. Si no, paginación por clave: `$orderby` por las claves y `$filter` "mayor que la última clave leída" (con claves compuestas, filtro lexicográfico). `$top/$skip` solo para tablas pequeñas |
+| Iterador de páginas | Propio del motor: sin tope de páginas (el `MAX_PAGES` del cliente es para el catálogo) y con límite de bytes por página como protección |
+| Memoria | Cada página se lee entera: su tamaño lo acota `page_size`. Lotes Arrow de tamaño fijo y spool a Parquet: memoria acotada independiente del volumen. No se usa *parsing* incremental |
+| Reintentos HTTP | Sin reintento automático en las peticiones de init y delta (3.2); sí en lecturas sin estado (`$metadata`, full por páginas con `$skiptoken` si H10 confirma que es repetible) |
+| Tipos OData V2 | `/Date(ms)/` de `Edm.DateTime` → fecha y hora **sin zona**, sin conversión (H15); `Edm.DateTimeOffset` → instante UTC; `Edm.Decimal` (string) → decimal con precisión del `$metadata`; `Edm.Time` (`PT12H30M00S`) → time; fechas SAP vacías (`00000000`) → NULL |
+| Importes | Si llegan en formato interno (H14), se expone la moneda de referencia junto al importe y el asistente lo avisa; la conversión queda como opción |
 | Textos | Se respetan ceros a la izquierda (NUMC como texto); recorte de espacios configurable |
-| Paralelismo | Un run lee secuencialmente (el delta es secuencial); el paralelismo es **entre pipelines**, limitado por sistema SAP |
-| Rendimiento | Métricas por página (latencia SAP, filas/seg); objetivo de referencia a fijar tras el spike |
+| Paralelismo | Un run lee secuencialmente (el delta es secuencial); el paralelismo es **entre pipelines**, limitado por sistema SAP (plan 08) |
+| Rendimiento | Métricas por página (latencia SAP, filas/seg); objetivo de referencia a fijar tras el spike (H5) |
 | Timeouts | Timeout de lectura por página y timeout global por run (configurable por pipeline) |
-| Heartbeat | El worker actualiza `run.heartbeat_at` cada 15 s; el scheduler marca como `failed (stale)` los runs sin latido y libera el bloqueo |
+| Heartbeat | El worker actualiza `run.heartbeat_at` cada 15 s y comprueba su `lease_epoch`; el scheduler cierra como `stale` los intentos sin latido |
+
+### Cargas iniciales grandes
+
+Una init de cientos de millones de filas puede durar muchas horas y un corte la reinicia. La estrategia se decide con H8–H10 en un ADR: init particionada (cargas `FULL` por rangos de filtro en paralelo más init sin datos) o, si H9 falla, init reanudable desde el spool y ventana acordada con Basis.
 
 ## 7. Interfaces (puertos) y plugins
 
@@ -138,47 +186,61 @@ Limitación documentada: no detecta borrados (se recomienda una reconciliación 
 class SourceConnector(Protocol):
     def schema(self) -> EntitySchema: ...
     def read_full(self, filters: Filters) -> Iterator[pa.RecordBatch]: ...
-    def read_delta_init(self, filters: Filters, with_data: bool) -> DeltaReadResult: ...
+    def read_delta_init(self, filters: Filters) -> DeltaReadResult: ...
     def read_delta(self, token: DeltaToken) -> DeltaReadResult: ...
-    def read_window(self, field: str, start: datetime, end: datetime) -> Iterator[pa.RecordBatch]: ...
+    def read_window(self, field: str, start: WatermarkValue, end: WatermarkValue) -> Iterator[pa.RecordBatch]: ...
+    def terminate_delta(self) -> TerminationResult: ...   # solo si H12 se confirma
 
 class DeltaReadResult(Protocol):
     batches: Iterator[pa.RecordBatch]
     def next_token(self) -> DeltaToken: ...   # disponible al agotar batches
 
+class Spool(Protocol):
+    manifest: SpoolManifest
+    def parquet_files(self) -> Sequence[Path]: ...
+    def batches(self) -> Iterator[pa.RecordBatch]: ...
+
 class DestinationWriter(Protocol):          # módulo 07
     def prepare(self, schema: EntitySchema, options: LoadOptions) -> None: ...
-    def stage(self, batches: Iterable[pa.RecordBatch]) -> StageInfo: ...
-    def apply(self, stage: StageInfo, mode: LoadMode) -> LoadResult: ...   # transaccional
+    def applied_batch(self, pipeline_id: UUID, batch_id: str) -> AppliedBatch | None: ...
+    def stage(self, spool: Spool) -> StageInfo: ...
+    def apply(self, stage: StageInfo, mode: LoadMode, batch: BatchInfo) -> LoadResult: ...   # transaccional; escribe la tabla de control
     def cleanup(self, stage: StageInfo) -> None: ...
 ```
 
-Registro de plugins por tipo (`ODP_EXTRACTOR`, `CDS_ODP`, `CDS_ODATA` / `sqlserver`, `csv`, `snowflake`). El motor (`ExtractionEngine`) solo conoce las interfaces.
+`stage` recibe el spool y no solo lotes: Snowflake sube los archivos Parquet tal cual, sin reescribirlos. Estos contratos se congelan en el ADR 0006 antes de que los dos desarrolladores trabajen en paralelo.
+
+Registro de plugins por tipo (`ODP_EXTRACTOR`, `CDS_ODP`, `CDS_ODATA` / `csv`, `snowflake`, `sqlserver`). El motor (`ExtractionEngine`) solo conoce las interfaces.
 
 ## 8. Errores y reintentos
 
 | Clase | Ejemplos | ¿Reintento automático? |
 |---|---|---|
-| Transitorio | Timeout, 502/503/504, conexión cortada, *deadlock* en destino | Sí (política del pipeline) |
+| Transitorio | Timeout, 502/503/504, conexión cortada, *deadlock* en destino | Sí, como intento nuevo del run (política del pipeline) |
 | Configuración | 401/403, tabla destino sin permisos, esquema incompatible | No → alerta |
-| Datos | Conversión imposible, clave nula en `upsert` | No → alerta con muestra de filas (sin datos sensibles si se marca el origen como confidencial) |
+| Datos | Conversión imposible, clave nula en `upsert` | No → alerta con la clave y la columna afectadas; la muestra de filas se consulta en el detalle del run y no viaja en el aviso |
 | Delta | Token inválido | No → `BROKEN` |
 
 ## Tareas
 
-- [ ] Modelo `run`, `run_step`, `delta_state`, `delta_state_history`.
-- [ ] Conectores `ODP_EXTRACTOR` / `CDS_ODP` (comparten implementación ODP) y `CDS_ODATA`.
-- [ ] Paginación incremental, conversión de tipos EDM → Arrow, spool Parquet.
-- [ ] Máquina de estados de delta con commit en dos fases.
-- [ ] Pseudo-delta por marca de agua.
+- [ ] ADR 0006 con los contratos (`SourceConnector`, `DestinationWriter`, spool, run, estado de delta), en la Fase 0.
+- [ ] Modelo `run`, `run_attempt`, `run_step`, `delta_state`, `delta_state_history`.
+- [ ] Conectores `ODP_EXTRACTOR` / `CDS_ODP` (comparten implementación ODP) y `CDS_ODATA` (paginación por clave).
+- [ ] Iterador de páginas del motor, conversión de tipos EDM → Arrow, spool Parquet con manifiesto.
+- [ ] Máquina de estados de delta con commit en dos fases, `batch_id` y *fencing*.
+- [ ] Salto de `load` cuando la tabla de control del destino ya tiene el lote.
+- [ ] Pseudo-delta por marca de agua con `watermark_kind`.
 - [ ] `ExtractionEngine` con pasos, cancelación, heartbeat y métricas.
-- [ ] Acción de reinicialización de delta (API + auditoría).
-- [ ] Pruebas con `sap-mock`: init, delta, repetición, token inválido, caída en cada paso (inyección de fallos).
+- [ ] Reinicialización de delta y cierre de la suscripción en SAP (API + auditoría).
+- [ ] Pruebas con `sap-mock`: init, delta, repetición, token inválido, caída en cada paso (inyección de fallos), worker zombi, reintento en otro worker.
 - [ ] Prueba de volumen (≥ 10 M filas sintéticas) con memoria acotada.
+- [ ] ADR de cargas iniciales grandes, tras el spike.
 
 ## Criterios de aceptación
 
-- Matar el worker en cualquier paso y relanzar no pierde ni duplica datos (prueba automatizada por cada paso).
-- Un fallo de carga se reintenta sin volver a llamar a SAP.
+- Matar el worker en cualquier paso y relanzar no pierde ni duplica datos (prueba automatizada por cada paso), en CSV y en Snowflake.
+- Un fallo de carga se reintenta sin volver a llamar a SAP cuando el spool sigue en el mismo worker.
+- Un worker dado por caído que vuelve no puede confirmar el token.
 - Un token inválido deja el pipeline en `BROKEN` con alerta y sin avanzar estado.
 - El consumo de memoria de un run no crece con el número de filas.
+- Criterio de volumen (filas/hora en una init real) fijado tras el spike y cumplido.

@@ -181,6 +181,9 @@ GET    /api/v1/api-tokens       POST /api/v1/api-tokens    DELETE /api/v1/api-to
 - [x] Eventos de auditoría para todas las acciones.
 
 **Iteración 7 (Entra ID)**
+
+Se construye en la Fase 4 (plan 13 §5). QA puede funcionar con login local; **PRD sale con Entra ID activo** (decisión del 19.11.2026), así que el *App registration* se pide a IT en la Fase 0. El administrador local de emergencia sigue existiendo en PRD.
+
 - [ ] `identity_provider` + `idp_group_mapping` con secreto cifrado.
 - [ ] Flujo OIDC con Authlib (PKCE, state, nonce, validación de id_token).
 - [ ] JIT y mapeo de grupos; fallback a Graph para exceso de grupos.

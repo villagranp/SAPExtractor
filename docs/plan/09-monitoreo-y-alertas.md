@@ -23,7 +23,7 @@ Filtros globales: entorno, sistema SAP, etiqueta, propietario.
 ## 2. Historial y detalle de ejecución
 
 - **Historial**: tabla filtrable (pipeline, estado, modo, disparador, fechas), exportable.
-- **Detalle de run**: cabecera (estado, modo, token usado/obtenido abreviado, intento, quién lo lanzó), pasos con duración, métricas (filas leídas/insertadas/actualizadas/borradas, MB, filas/seg), logs en vivo con filtro por nivel, botones *Reintentar* / *Cancelar*.
+- **Detalle de run**: cabecera (estado, modo, token usado/obtenido abreviado, quién lo lanzó), intentos del run (worker, duración, error), pasos con duración, métricas (filas leídas/insertadas/actualizadas/borradas, MB, filas/seg), logs en vivo con filtro por nivel, botones *Reintentar* / *Cancelar*.
 - **Tendencias por pipeline**: duración y volumen por ejecución (detecta degradaciones y cargas anómalas, p. ej. un delta que trae 0 filas varios días seguidos).
 
 ## 3. Alertas
@@ -37,6 +37,8 @@ Filtros globales: entorno, sistema SAP, etiqueta, propietario.
 | Retraso / SLA | Sin carga exitosa en X minutos (frescura) | Configurable por pipeline |
 | Duración anómala | Run > N × mediana de los últimos 10 | Configurable |
 | Volumen anómalo | 0 filas en N deltas seguidos, o > N × lo habitual | Configurable |
+| Suscripción estancada | Pipeline delta sin lectura confirmada en N días (pausado, roto o sin programar): la cola crece en SAP y puede perderse la posibilidad de repetir. N se fija con la retención real de la ODQ (H13) | Activa |
+| Suscripción sin cerrar | `delta_state.sap_close_pending` durante más de N días (plan 06 §3.5) | Activa |
 | Conexión caída | Prueba periódica de sistema SAP / destino falla | Activa |
 | Infraestructura | Sin workers vivos, scheduler sin líder, disco de spool > 85 % | Activa |
 | Seguridad | Múltiples logins fallidos, verificación de auditoría fallida, cambio en IdP | Activa (solo admins) |
@@ -54,7 +56,8 @@ Filtros globales: entorno, sistema SAP, etiqueta, propietario.
 
 - **Suscripciones**: por pipeline, por etiqueta o global; por usuario o por lista de distribución.
 - **Anti-ruido**: agrupación (un aviso por incidente, no por reintento), *cooldown*, aviso de **recuperación** cuando vuelve a funcionar.
-- Plantillas de mensaje con enlace directo al run.
+- Plantillas de mensaje con enlace directo al run. Los avisos **no llevan filas de datos de SAP**: indican el error, la clave y la columna afectadas, y la muestra se consulta en la plataforma, bajo sus permisos. El correo y Teams quedan fuera del control de acceso de la plataforma.
+- Las URL de *webhook* (Teams y genérico) se validan contra una lista de hosts permitidos, igual que las conexiones SAP (plan 04 §3): las escribe un usuario y el servidor hace la petición.
 - Estado de alerta: `open` → `acknowledged` (con usuario) → `resolved`.
 
 ## 4. Métricas técnicas y salud
@@ -92,7 +95,8 @@ GET  /metrics
 - [ ] Endpoints de dashboard con consultas agregadas eficientes (índices / vistas materializadas).
 - [ ] SSE global de eventos.
 - [ ] Motor de reglas de alerta (evaluación en scheduler + eventos del worker).
-- [ ] Canales correo, Teams, webhook con prueba de envío.
+- [ ] Canales correo, Teams, webhook con prueba de envío y validación de hosts permitidos.
+- [ ] Reglas de suscripción estancada y de suscripción sin cerrar.
 - [ ] Agrupación, cooldown y notificación de recuperación.
 - [ ] `/metrics` Prometheus.
 - [ ] Pantallas: dashboard, historial, detalle de run, alertas, configuración de reglas/canales.

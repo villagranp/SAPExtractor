@@ -28,8 +28,8 @@ Conector de streaming (nuevo tipo de worker, proceso de larga duración)
       ▼
 Broker de mensajes (Kafka / Redpanda / Azure Event Hubs)
       │
-      ├─► Sink SQL Server (upsert continuo)
       ├─► Sink Snowflake (Snowpipe Streaming)
+      ├─► Sink SQL Server (upsert continuo)
       └─► Otros consumidores corporativos
 ```
 
@@ -44,8 +44,8 @@ Broker de mensajes (Kafka / Redpanda / Azure Event Hubs)
 
 | Tema | Descripción | Prioridad sugerida |
 |---|---|---|
-| Multi-destino | Un origen/delta → varios destinos con una sola suscripción ODQ (fan-out desde el spool) | Alta (v1.1) |
-| Dependencias y DAGs | Encadenar pipelines; vista de grafo; ejecución condicional | Alta (v1.1–v1.2) |
+| Multi-destino | Un origen/delta → varios destinos con una sola suscripción ODQ | **Descartado** (decisión del 19.11.2026): un destino adicional es otro pipeline de un origen a un destino |
+| Dependencias y DAGs | Encadenar pipelines; vista de grafo de solo lectura; ejecución condicional | Alta (v1.1–v1.2) |
 | Destinos nuevos | Azure Data Lake / Blob (Parquet/Delta), S3, PostgreSQL, Databricks, Microsoft Fabric | Media |
 | Transformaciones ligeras | Columnas calculadas, conversión de unidades/moneda, filtros por fila | Media |
 | Calidad de datos | Reglas (no nulos, rangos, unicidad) con resultados en el run | Media |

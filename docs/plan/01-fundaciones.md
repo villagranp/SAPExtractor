@@ -90,7 +90,7 @@ Convenciones:
 |---|---|---|
 | Formato / lint | `ruff format --check`, `ruff check` | `prettier --check`, `eslint` |
 | Tipos | `mypy --strict` | `tsc --noEmit` |
-| Pruebas | `pytest` (unit + integración con testcontainers) | `vitest` |
+| Pruebas | `pytest` (unit + integración con testcontainers), con cobertura mínima (`fail_under` 80 % en `domain` y `application`) y aserción de una sola cabeza de Alembic | `vitest`; Playwright (E2E del flujo principal contra `docker compose` y el mock) con `axe` |
 | Contrato | Exporta `openapi.json` como artefacto | `gen:api` + `tsc` contra el OpenAPI recién generado |
 | Seguridad | `pip-audit`, `bandit` | `pnpm audit` |
 | Build | Imagen Docker | Imagen Docker (Nginx con estáticos) |
@@ -136,7 +136,9 @@ Tareas:
    - **Repetir** el mismo delta (re-solicitar con el token anterior) y documentar el comportamiento.
    - Medir rendimiento (filas/seg) con distintos tamaños de página.
 3. Revisar en ODQMON la suscripción creada y cómo se elimina.
-4. Grabar respuestas para el mock y documentar resultados en `docs/adr/0002-spike-sap-odp-odata.md`.
+4. Grabar respuestas para el mock y documentar resultados en `docs/adr/0002-extraccion-sap-odp-odata.md`.
+
+El ADR lista las hipótesis H1–H18. H8–H18 se añadieron el 19.11.2026 y el script `tools/spike-sap/spike_odp.py` todavía no las cubre: hay que ampliarlo antes de ejecutar. Orden: primero H6, H12 y H18, porque deciden si dos pipelines pueden leer en delta el mismo origen.
 
 ## 8. ADRs iniciales
 
@@ -147,6 +149,7 @@ Tareas:
 | 0003 | PostgreSQL como base de metadatos y cola de trabajos |
 | 0004 | Sesiones de servidor con cookie httpOnly (patrón BFF) en lugar de JWT en el navegador |
 | 0005 | Cifrado *envelope* de secretos |
+| 0006 | Contratos del motor: `SourceConnector`, `DestinationWriter`, spool, run y estado de delta (pendiente, Fase 0) |
 
 ## Tareas
 
@@ -160,6 +163,12 @@ Tareas:
 - [x] `tools/sap-mock` con catálogo, `$metadata`, paginación, init/delta/repetición y escenarios de error.
 - [x] Script del spike (`tools/spike-sap`) y ADR 0002 con hipótesis.
 - [ ] **Ejecutar el spike contra el SAP real de AG** y registrar resultados en ADR 0002 (requiere servicios publicados por el equipo SAP).
+
+**Fase 0 (plan 13)**
+- [ ] Ampliar `spike_odp.py` con H8–H18 y comparar la repetición por claves y `ODQ_ENTITYCNTR`, no por recuento.
+- [ ] Mock: `SubscribedTo…` y `TerminateDeltasFor…` cuando H12 se confirme; respuestas reales grabadas en el spike.
+- [ ] CI: `fail_under` de cobertura, job de Playwright con `axe`, aserción de una sola cabeza de Alembic.
+- [ ] ADR 0006 con los contratos del motor.
 
 ## Criterios de aceptación
 

@@ -44,7 +44,8 @@ src/
 Reglas:
 
 - Estado de servidor con **TanStack Query**; estado de UI local con `useState`/`useReducer`; sin store global salvo sesión/tema.
-- Formularios con **React Hook Form + Zod**; errores del backend (`errors[]` de Problem Details) se mapean a campos.
+- Formularios con **React Hook Form + Zod**; errores del backend (`errors[]` de Problem Details) se mapean a campos. Todavía no están instalados y las pantallas de It1–It2 se hicieron sin ellos: se adoptan en It3 (asistente de orígenes) y los formularios dinámicos de It4 los aprovechan. TanStack Table solo se añade si `shared/ui/data.tsx` se queda corto.
+- El **entorno** (DEV, QAS, PRD) de sistemas SAP, destinos y pipelines se muestra siempre con un distintivo: la instancia es única para todos los entornos.
 - **Rutas protegidas** por permiso (`<RequirePermission perm="pipeline:manage">`); elementos ocultos/deshabilitados según `GET /me`.
 - Carga diferida por módulo (`React.lazy`) y *code splitting*.
 - Accesibilidad **WCAG 2.1 AA**: navegación por teclado, foco visible, `aria-*`, contraste.
@@ -57,7 +58,7 @@ Reglas:
 Inicio (Dashboard)
 Pipelines
   ├─ Lista
-  ├─ Diseñador (nuevo / editar)
+  ├─ Asistente (nuevo / editar)
   └─ Detalle → Ejecuciones · Delta · Programación · Actividad
 Ejecuciones (historial global) → Detalle de run
 Orígenes SAP
@@ -76,21 +77,22 @@ Mi perfil · Mis sesiones
 
 ### 4.1 Asistentes paso a paso
 
-Usados en: sistema SAP, origen, destino, pipeline rápido. Patrón común (`Stepper`):
+Usados en: sistema SAP, origen, destino y pipeline. Patrón común (`Stepper`):
 
 - Validación por paso; no se avanza con errores.
 - Botón **Probar** antes de guardar (conexiones, destinos).
 - Paso final de **Resumen** legible.
 - Borrador guardado automáticamente (se puede retomar).
 
-### 4.2 Diseñador de pipelines (lienzo)
+### 4.2 Asistente de pipeline
 
-- **React Flow**: paneles laterales "Orígenes" y "Destinos" con búsqueda; arrastrar al lienzo; conectar.
-- Nodos con estado (icono de tipo, delta ✔, último resultado).
-- Panel derecho de propiedades: filtros (constructor visual), mapeo de columnas (tabla con renombrado/exclusión/tipo), modo de carga, programación.
-- Barra de **validación en vivo** (errores y avisos del backend `POST /pipelines/{id}/validate`).
+Un pipeline es un origen hacia un destino y no habrá multi-destino (decisión del 19.11.2026), así que el lienzo con React Flow previsto al inicio no se construye: un asistente hace lo mismo con menos coste y se maneja bien con teclado.
+
+- **Pasos**: origen (con búsqueda) → destino → carga (filtros con constructor visual, mapeo de columnas en tabla con renombrado/exclusión/tipo, modo de carga) → programación → resumen.
+- Cada elección muestra su estado (tipo, entorno, delta, último resultado).
+- Barra de **validación en vivo** (errores y avisos del backend `POST /pipelines/{id}/validate`), incluido el aviso de entornos distintos en origen y destino.
 - Botones: *Guardar borrador* · *Probar* · *Activar*.
-- v1: un origen → un destino por pipeline; el lienzo ya admite varios nodos para evolucionar a multi-destino y DAG.
+- El detalle del pipeline muestra origen y destino en la cabecera. *Clonar* abre el asistente con el sistema y el destino de otro entorno ya elegidos y el diff de esquema.
 
 ### 4.3 Constructor de programación
 
@@ -114,15 +116,19 @@ Usados en: sistema SAP, origen, destino, pipeline rápido. Patrón común (`Step
 | Unitarias | Vitest | Utilidades, esquemas Zod, hooks |
 | Componentes | Testing Library | Componentes de `shared/ui` y formularios |
 | Mock de API | MSW | Desarrollo y pruebas sin backend |
-| E2E | Playwright | Login, alta de sistema SAP → origen → destino → pipeline → ejecución (contra `sap-mock`) |
-| Accesibilidad | `axe` en Playwright | Pantallas principales |
+| E2E | Playwright, **ejecutado en CI** con `docker compose` y el mock | Login, alta de sistema SAP → origen → destino → pipeline → ejecución (contra `sap-mock`) |
+| Accesibilidad | `axe` en Playwright (por instalar) | Pantallas principales |
 | Visual | Página `/ui-kit` + capturas Playwright | Tras integrar la plantilla |
 
 ## Tareas
 
-**Iteración 0**
-- [ ] Proyecto Vite, estructura, providers, router, layout provisional, `gen:api`, MSW.
-- [ ] `shared/ui` mínimo (botón, input, tabla, modal, toast) y tokens.
+**Iteración 0** ✅
+- [x] Proyecto Vite, estructura, providers, router, layout provisional, `gen:api`, MSW.
+- [x] `shared/ui` mínimo (botón, input, tabla, modal, toast) y tokens.
+
+**Fase 0 (plan 13, C-21 y C-22)**
+- [ ] Job de Playwright en CI con `axe`; hoy solo existe `tests/e2e/smoke.spec.ts` y no se ejecuta en CI.
+- [ ] Instalar React Hook Form y Zod (primer uso en It3).
 
 **Iteración 1b (al recibir la plantilla)**
 - [ ] Análisis de la plantilla y ADR de integración.

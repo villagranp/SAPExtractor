@@ -16,7 +16,7 @@ Dar de alta, de forma guiada, los **orígenes de datos SAP** que se van a extrae
 
 | Tabla | Campos clave |
 |---|---|
-| `source` | `id`, `sap_system_id`, `code`, `name`, `description`, `source_type`, `odp_context` (`SAPI` \| `ABAP_CDS`), `odp_name` (DataSource o CDS), `service_name`, `service_version`, `entity_set`, `odata_version`, `delta_method` (`ODQ` \| `WATERMARK` \| `NONE`), `watermark_field`, `watermark_overlap_seconds`, `key_fields[]`, `default_filters` (JSON), `page_size`, `tags`, `status` (`draft` \| `active` \| `deprecated`) |
+| `source` | `id`, `sap_system_id`, `code`, `name`, `description`, `source_type`, `odp_context` (`SAPI` \| `ABAP_CDS`), `odp_name` (DataSource o CDS), `service_name`, `service_version`, `entity_set`, `odata_version`, `delta_method` (`ODQ` \| `WATERMARK` \| `NONE`), `delta_semantics` (`after_image` \| `additive` \| `before_after` \| `unknown`), `watermark_field`, `watermark_kind` (`datetime` \| `date` \| `decimal_timestamp`), `watermark_timezone`, `watermark_overlap_seconds`, `key_fields[]`, `default_filters` (JSON), `page_size`, `tags`, `status` (`draft` \| `active` \| `deprecated`) |
 | `source_schema_version` | `source_id`, `version`, `columns` (JSON: nombre, tipo EDM, longitud, precisión, escala, nullable, es_clave, etiqueta SAP), `detected_at`, `hash` |
 
 > Las credenciales y URL vienen del `sap_system`; el origen solo referencia servicio + entidad.
@@ -29,9 +29,12 @@ Dar de alta, de forma guiada, los **orígenes de datos SAP** que se van a extrae
 4. **Esquema**: tabla de columnas leída de `$metadata` (nombre técnico, etiqueta SAP, tipo, clave). El usuario puede:
    - Marcar/confirmar **campos clave** (necesarios para `MERGE` en destino).
    - Excluir columnas.
-   - En `CDS_ODATA`: elegir el **campo marca de agua** para pseudo-delta y el solapamiento.
+   - En `CDS_ODATA`: elegir el **campo marca de agua** para pseudo-delta, su tipo (fecha-hora, solo fecha o *timestamp* decimal), su zona horaria y el solapamiento.
+   - En orígenes ODP: declarar la **semántica del delta** (imagen posterior, aditivo, imagen anterior y posterior, o desconocida). El `$metadata` no la expone, así que no se puede detectar: el asistente ayuda con una tabla de extractores estándar frecuentes y con la guía (RSA2). Con "desconocida" el pipeline solo admite `append`.
 5. **Filtros por defecto** (opcional): constructor visual de `$filter` sobre campos filtrables (p. ej. sociedad, ejercicio). Aviso: en orígenes ODP, los filtros de una inicialización de delta quedan fijos para esa suscripción.
-6. **Vista previa**: primeras 100 filas (`$top=100`) **sin** `Prefer: odata.track-changes`, para no crear suscripción en la ODQ. Muestra recuento estimado si el servicio admite `$count`.
+6. **Vista previa**: primeras 100 filas (`$top=100`) **sin** `Prefer: odata.track-changes`, para no crear suscripción en la ODQ. Muestra recuento estimado si el servicio admite `$count`. Pendiente del spike (H16): en un extractor grande, `$top` podría lanzar la extracción completa en SAP antes de devolver las 100 filas; si es así, la vista previa llevará un filtro obligatorio o se desactivará para ese origen.
+
+   La vista previa lee con el usuario técnico, que tiene autorización amplia: quien tenga el permiso `source:preview` ve cualquier dato que ese usuario pueda leer. No hay marca de origen confidencial (decisión del 19.11.2026); ese permiso se concede solo a personas capacitadas.
 7. **Resumen y guardar**.
 
 ## 3. Gestión del esquema
@@ -50,7 +53,7 @@ Dar de alta, de forma guiada, los **orígenes de datos SAP** que se van a extrae
 | `SourceCatalogService` | Clasifica servicios ODP/CDS y detecta capacidad de delta (presencia de `DeltaLinksOf…`, anotaciones de *change tracking*) |
 | `SchemaRegistry` | Versionado y comparación de esquemas |
 | `PreviewService` | Lectura acotada sin suscripción, con timeout corto |
-| `SourceConnector` (puerto) | Interfaz implementada en el módulo 06: `read_full()`, `read_delta_init()`, `read_delta(token)`, `read_watermark(desde, hasta)` |
+| `SourceConnector` (puerto) | Interfaz implementada en el módulo 06: `read_full()`, `read_delta_init()`, `read_delta(token)`, `read_window(field, start, end)` (firma en el plan 06 §7) |
 
 ## 5. Lado SAP: guía de publicación
 
@@ -66,6 +69,7 @@ Esta guía se entrega al equipo SAP y se mostrará también como ayuda contextua
 4. **SEGW**: crear proyecto → *Data Model → Redefine → ODP Extraction* → contexto **SAPI** → seleccionar el DataSource → generar objetos de *runtime*.
 5. **Registrar el servicio** en `/IWFND/MAINT_SERVICE` y asignar al rol del usuario técnico (`S_SERVICE`).
 6. Monitorizar suscripciones en **ODQMON** (el suscriptor aparecerá como el servicio OData).
+7. **Proceso de delta**: consultar en `RSA2` el proceso de delta del DataSource (imagen posterior, aditivo, imagen anterior y posterior) e informarlo al dar de alta el origen. De él depende que el destino se cargue con `upsert` o con `append`.
 
 ### 5.2 CDS con delta vía ODP
 
@@ -114,7 +118,9 @@ GET    /api/v1/sources/{id}/schema/diff?from=&to=
 
 ## Tareas
 
-- [ ] Modelo `source` + `source_schema_version`.
+- [ ] Modelo `source` + `source_schema_version`, con `delta_semantics` y `watermark_kind`.
+- [ ] Tabla de semántica de delta de los extractores estándar frecuentes.
+- [ ] Formularios con React Hook Form y Zod (primera pantalla que los adopta, plan 10 §2).
 - [ ] `MetadataParser` V2 (prioridad) y V4.
 - [ ] Clasificación ODP/CDS y detección de delta.
 - [ ] Asistente backend (`inspect`) y vista previa sin suscripción.

@@ -2,7 +2,7 @@
 
 > Proyecto: **SAPExtract** (nombre provisional)
 > Estado: borrador para aprobación
-> Fecha: 17.11.2026
+> Fecha: 17.11.2026 · Actualizado el 19.11.2026 con las decisiones del [plan 13](13-revision-y-plan-de-cambios.md) (sección 10)
 
 ## 1. Visión
 
@@ -10,7 +10,7 @@ SAPExtract es una plataforma web para **orquestar extracciones de datos desde SA
 
 1. Registrar sistemas SAP (conexiones).
 2. Dar de alta **orígenes**: extractores (DataSources estándar y Z) y vistas CDS publicadas desde SAP.
-3. Elegir un **destino**: SQL Server, archivos CSV o Snowflake.
+3. Elegir un **destino**: Snowflake, archivos CSV o SQL Server.
 4. Definir **cuándo** se ejecuta (frecuencia, ventanas, dependencias) y **cómo** (full, inicialización de delta, delta).
 5. Monitorizar ejecuciones, volúmenes, errores y auditoría de todo lo que pasa.
 
@@ -26,9 +26,9 @@ A futuro (fuera del alcance inicial): **streaming** de datos casi en tiempo real
 | Auditoría y logs | Bitácora de auditoría inmutable, logs técnicos, logs por ejecución, retención y exportación |
 | Conexiones SAP | Alta de sistemas SAP vía OData (SAP Gateway), prueba de conexión, descubrimiento de servicios |
 | Orígenes | Extractores ODP (estándar y Z) y CDS, con lectura de metadatos y vista previa |
-| Deltas | Full, inicialización de delta (con/sin datos), delta, repetición, reinicio controlado, pseudo-delta por marca de tiempo |
-| Destinos | SQL Server, CSV (disco local / carpeta compartida), Snowflake |
-| Orquestación | Pipelines origen→destino, programación cron/intervalo, ejecución manual, reintentos, bloqueo de concurrencia, pausa/reanudación |
+| Deltas | Full, inicialización de delta (sin datos solo si el spike confirma que existe vía OData), delta, repetición, reinicio controlado, pseudo-delta por marca de tiempo |
+| Destinos | Snowflake y CSV (disco local / carpeta compartida) primero; SQL Server después |
+| Orquestación | Pipelines de un origen a un destino, programación cron/intervalo, ejecución manual, reintentos, bloqueo de concurrencia, pausa/reanudación |
 | Monitoreo | Dashboard, historial de ejecuciones, logs en vivo, alertas por correo / Teams |
 
 ### Fuera del alcance inicial
@@ -36,7 +36,8 @@ A futuro (fuera del alcance inicial): **streaming** de datos casi en tiempo real
 - Streaming / CDC en tiempo real.
 - Transformaciones complejas (más allá de selección/renombrado de columnas y filtros).
 - Destinos adicionales (Azure Data Lake, S3, Databricks, PostgreSQL…): la arquitectura los prevé como *plugins*.
-- Escritura hacia SAP (la plataforma es de **solo lectura** sobre SAP).
+- Escritura hacia SAP: la plataforma es de **solo lectura** sobre los datos de negocio. Lo único que gestiona en SAP son sus propias suscripciones de delta (abrirlas y cerrarlas, plan 06 §3.5).
+- Multi-destino por pipeline: descartado. Un destino adicional es otro pipeline de un origen a un destino.
 
 ## 3. Decisión clave: cómo se extrae de SAP
 
@@ -133,9 +134,9 @@ Reglas:
 | Calidad backend | **uv**, **ruff**, **mypy (strict)**, **pytest**, **testcontainers** | Gestión de dependencias rápida, lint, tipado, pruebas de integración reales |
 | Frontend | **React 19 + TypeScript + Vite** | SPA moderna; se adapta a la plantilla que se entregue |
 | Estado servidor | **TanStack Query** | Caché, reintentos, invalidación |
-| Tablas | **TanStack Table** | Listados con filtros, orden y paginación en servidor |
-| Formularios | **React Hook Form + Zod** | Validación declarativa compartida con el contrato OpenAPI |
-| Diseñador visual | **React Flow (@xyflow/react)** | Lienzo origen → destino arrastrable |
+| Tablas | `shared/ui` propio; **TanStack Table** solo si se queda corto | Listados con filtros, orden y paginación en servidor. Aún no instalado |
+| Formularios | **React Hook Form + Zod** (se adoptan en It3) | Validación declarativa compartida con el contrato OpenAPI. Las pantallas de It1–It2 se hicieron sin ellos |
+| Pipelines | Asistente por pasos sobre `shared/ui` | Un origen y un destino por pipeline: no hace falta lienzo. React Flow queda fuera del stack |
 | Cliente API | **openapi-typescript** + `openapi-fetch` | Tipos generados desde el OpenAPI del backend: contrato único |
 | i18n | **react-i18next** (es por defecto) | Preparado para otros idiomas |
 | Calidad frontend | **pnpm**, **ESLint**, **Prettier**, **Vitest**, **Testing Library**, **Playwright** | Unitarias, componentes y E2E |
@@ -171,7 +172,7 @@ SapSystem (conexión) 1───* Source (extractor ODP | CDS)
 Source 1───* Pipeline *───1 Destination
 Pipeline 1───1 DeltaState            (token, modo, estado de inicialización)
 Pipeline 1───* Schedule
-Pipeline 1───* Run 1───* RunStep / RunLog
+Pipeline 1───* Run 1───* RunAttempt / RunStep / RunLog   (la cola son los runs en espera)
 User *───* Role *───* Permission
 AuditEvent (append-only, encadenado por hash)
 IdentityProviderConfig (Entra ID)  ·  Secret (cifrado)
@@ -196,6 +197,7 @@ Detalle de cada entidad en el plan del módulo correspondiente.
 | 10 | [Frontend y UX](10-frontend-y-ux.md) | Integración de plantilla, pantallas, asistentes |
 | 11 | [Despliegue y operación](11-despliegue-y-operacion.md) | Entornos, contenedores, backups, runbooks |
 | 12 | [Streaming y evolución futura](12-streaming-roadmap-futuro.md) | Streaming, nuevos destinos, DAGs |
+| 13 | [Revisión y plan de cambios](13-revision-y-plan-de-cambios.md) | Revisión del diseño, decisiones del 19.11.2026 y plan de ejecución con dos desarrolladores |
 | — | [ROADMAP](ROADMAP.md) | Orden de iteraciones y dependencias |
 
 ## 10. Decisiones abiertas (a confirmar)
@@ -210,3 +212,17 @@ Detalle de cada entidad en el plan del módulo correspondiente.
 | D6 | ¿SAP es accesible directamente desde el servidor o vía SAP Cloud Connector / proxy? | Conectividad | Acceso directo HTTPS a Gateway |
 | D7 | Canal de alertas: SMTP, Microsoft Graph (correo) y/o Teams | Módulo 09 | SMTP + webhook de Teams |
 | D8 | Nombre definitivo de la plataforma | Branding, paquetes | `sapextract` (renombrable) |
+
+### Decisiones tomadas (19.11.2026)
+
+Detalle y consecuencias en el [plan 13 §6](13-revision-y-plan-de-cambios.md#6-decisiones-tomadas-19112026).
+
+| Tema | Decisión |
+|---|---|
+| Instancias | Una sola instancia productiva conecta con SAP DEV, QAS y PRD. Hay además un despliegue de QA de la propia plataforma para validar versiones (plan 11 §1) |
+| Destinos por pipeline | Uno. No habrá multi-destino; otro destino es otro pipeline |
+| Diseñador de pipelines | Asistente por pasos, sin lienzo |
+| Orden de los destinos | CSV y Snowflake antes del motor; SQL Server después del primer dato |
+| Cola | Sin tabla `job`: la cola son los runs en espera |
+| Datos sensibles | Sin tratamiento especial. El usuario técnico de SAP tiene autorización amplia de lectura y la barrera es el RBAC de la plataforma |
+| SSO | QA puede usar login local; PRD sale con Entra ID activo |

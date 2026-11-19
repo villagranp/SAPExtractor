@@ -71,8 +71,9 @@ Ubicación: `sap_connections/infrastructure/odata_client.py`. Reutilizado por or
 | Autenticación | Estrategias intercambiables (`BasicAuth`, `X509Auth`, `OAuth2ClientCredentials`) |
 | CSRF SAP | `x-csrf-token: fetch` solo si se necesitara (lectura no lo requiere; se deja preparado) |
 | Formato | `$format=json` (OData V2) / JSON nativo en V4 |
-| Reintentos | Exponencial con *jitter* en 429/502/503/504 y errores de red; nunca en 4xx de negocio |
-| Limitación | Semáforo por sistema (`max_concurrent_requests`) compartido entre workers mediante *advisory locks* / contador en BD |
+| Reintentos | Exponencial con *jitter* en 429/502/503/504 y errores de red; nunca en 4xx de negocio. **Sin reintento** (`NO_RETRY`) en las peticiones que abren o avanzan un delta: lo decide el motor a nivel de run (plan 06 §3.2) |
+| Limitación | Semáforo por proceso (`max_concurrent_requests`) para la API: explorador y vista previa. Las extracciones se limitan por **runs simultáneos por sistema** al tomar trabajo (`max_concurrent_runs`, plan 08 §3), sin semáforo compartido en BD |
+| Hosts permitidos | `base_url`, `proxy_url` y la URL de token OAuth se validan contra `SX_SAP_ALLOWED_HOSTS` (sufijos DNS o CIDR; obligatoria en PRD). Siempre se bloquea 169.254.0.0/16 y, fuera de DEV, *loopback*. La IP se resuelve y valida antes de conectar |
 | Versiones OData | Interfaz común con adaptadores V2 y V4 |
 | Errores | Traduce errores SAP (`error.message.value`, `innererror`) a excepciones de dominio con código `SX-SAP-*` |
 | Trazas | Log de cada petición (URL sin credenciales, estado, duración, bytes) |
@@ -100,7 +101,8 @@ GET    /api/v1/sap-systems/{id}/services/{service}/metadata
 
 ## Requisitos lado SAP (a entregar al equipo Basis)
 
-- Usuario técnico de comunicación con roles que incluyan `S_SERVICE` para los servicios publicados y autorizaciones de lectura ODP/ODQ correspondientes.
+- Usuario técnico de comunicación (tipo *System*, sin diálogo) con roles que incluyan `S_SERVICE` para los servicios publicados y autorizaciones de lectura ODP/ODQ. Por decisión del 19.11.2026 su autorización de lectura es amplia, para poder extraer cualquier origen; sigue siendo de solo lectura. El acceso a los datos se controla con los permisos de la plataforma, no en SAP.
+- Si el spike muestra que dos suscripciones de delta no conviven sobre el mismo entity set y usuario (H6, H18), puede hacer falta un usuario técnico por pipeline o un segundo servicio: se decide con el equipo SAP (plan 06 §3.3).
 - Servicios activados en `/IWFND/MAINT_SERVICE` y alcanzables desde el servidor de la plataforma (firewall/puertos HTTPS).
 - Certificado TLS del Gateway (o CA interna) para cargarlo en la plataforma.
 
@@ -116,6 +118,9 @@ GET    /api/v1/sap-systems/{id}/services/{service}/metadata
 - [x] Pantallas 1–3.
 - [x] Pruebas contra `tools/sap-mock` (incluye 401, 403, timeout, certificado inválido).
 - [ ] Validar contra el SAP real de AG (depende del spike de It0 y de que Basis publique los servicios).
+
+**Fase 0 (plan 13, C-07 a)**
+- [ ] `SX_SAP_ALLOWED_HOSTS`: validación de `base_url`, `proxy_url` y URL de token antes de conectar, con pruebas (host no permitido, IP de metadatos, *loopback* fuera de DEV, DNS que resuelve a una IP bloqueada).
 
 ## Lo construido en la iteración 2
 
@@ -162,7 +167,7 @@ Guardar el resultado no cambia la versión del sistema (no invalida un formulari
 
 **Mock SAP:** el catálogo admite `$expand=EntitySets`, las respuestas llevan `sap-server`/`dataserviceversion` y el usuario no distingue mayúsculas (como SAP). Las pruebas de integración lo levantan en proceso (también con TLS autofirmado) desde `backend/tests/support/sap_gateway.py`.
 
-**Pendiente para iteraciones posteriores:** borrador del asistente guardado automáticamente (plan 10 §4.1), semáforo de concurrencia entre procesos (It5–6), recuento de orígenes/pipelines en el listado (It3/It6), catálogo OData V4 y aviso proactivo de caducidad de certificados (It8, alertas).
+**Pendiente para iteraciones posteriores:** borrador del asistente guardado automáticamente (plan 10 §4.1), límite de runs simultáneos por sistema (`max_concurrent_runs`, It6; sustituye al semáforo entre procesos previsto), recuento de orígenes/pipelines en el listado (It3/It6), catálogo OData V4 y aviso proactivo de caducidad de certificados (It8, alertas).
 
 ## Criterios de aceptación
 
