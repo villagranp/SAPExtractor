@@ -319,5 +319,254 @@
     "title": "Página no encontrada",
     "body": "La dirección no existe o fue movida.",
     "back": "Volver al inicio"
+  },
+  "sapSystems": {
+    "title": "Sistemas SAP",
+    "description": "Conexiones a SAP Gateway (OData) desde las que se extraen extractores ODP y vistas CDS.",
+    "new": "Nuevo sistema SAP",
+    "searchPlaceholder": "Código, nombre o URL",
+    "empty": "No hay sistemas SAP con estos filtros.",
+    "emptyFirstTitle": "Aún no hay sistemas SAP",
+    "emptyFirst": "Registre el primero para probar la conexión y explorar sus servicios ODP y CDS.",
+    "fields": {
+      "system": "Sistema",
+      "code": "Código",
+      "name": "Nombre",
+      "description": "Descripción",
+      "environment": "Entorno",
+      "systemType": "Tipo de sistema",
+      "tags": "Etiquetas",
+      "baseUrl": "URL de Gateway",
+      "client": "Mandante",
+      "language": "Idioma",
+      "clientLanguage": "Mandante / idioma",
+      "tlsVerify": "Verificar el certificado TLS del servidor",
+      "caBundle": "CA propia (PEM)",
+      "proxyUrl": "Proxy HTTP(S)",
+      "timeout": "Timeout (segundos)",
+      "concurrency": "Peticiones simultáneas",
+      "limits": "Límites",
+      "authType": "Autenticación",
+      "credentials": "Credencial",
+      "status": "Estado",
+      "lastTest": "Última prueba"
+    },
+    "hints": {
+      "code": "Identificador único, p. ej. S4P_300 (sistema + mandante). No se puede cambiar.",
+      "tags": "Separadas por comas, p. ej. fi, ventas.",
+      "baseUrl": "Solo protocolo, host y puerto: la plataforma añade /sap/opu/odata/…",
+      "tlsVerify": "Desactívelo solo en desarrollo; en producción es obligatorio.",
+      "caBundle": "Si Gateway usa un certificado de una CA interna, pegue aquí su certificado.",
+      "concurrency": "Máximo de peticiones a la vez contra este sistema."
+    },
+    "validation": {
+      "required": "Obligatorio.",
+      "code": "De 3 a 30 caracteres: letras, números y guion bajo; empieza por letra.",
+      "url": "Indique una URL que empiece por http:// o https://.",
+      "client": "El mandante tiene 3 dígitos.",
+      "language": "Código SAP de 1 o 2 letras (ES, EN…).",
+      "timeout": "Entre 5 y 600 segundos.",
+      "concurrency": "Entre 1 y 32."
+    },
+    "environments": {
+      "DEV": "Desarrollo (DEV)",
+      "QAS": "Calidad (QAS)",
+      "PRD": "Producción (PRD)"
+    },
+    "systemTypes": {
+      "ECC": "SAP ECC (con Gateway)",
+      "S4HANA_ONPREM": "S/4HANA on-premise",
+      "S4HANA_CLOUD": "S/4HANA Cloud"
+    },
+    "statuses": {
+      "draft": "Borrador",
+      "active": "Activo",
+      "inactive": "Inactivo"
+    },
+    "authTypes": {
+      "basic": "Usuario y contraseña",
+      "x509": "Certificado X.509",
+      "oauth2_client_credentials": "OAuth 2.0 (client credentials)"
+    },
+    "test": {
+      "ok": "Correcta",
+      "failed": "Fallida",
+      "never": "Sin probar",
+      "outdated": "Repetir prueba"
+    },
+    "credentials": {
+      "username": "Usuario técnico",
+      "password": "Contraseña",
+      "certificate": "Certificado de cliente (PEM)",
+      "privateKey": "Clave privada (PEM)",
+      "passphrase": "Contraseña de la clave privada (si está cifrada)",
+      "tokenUrl": "URL del token",
+      "clientId": "Client ID",
+      "clientSecret": "Client secret",
+      "scope": "Scope (opcional)",
+      "stored": "credencial guardada",
+      "expires": "caduca",
+      "secretNote": "Los secretos se envían una sola vez, se guardan cifrados y nunca se vuelven a mostrar.",
+      "help": {
+        "basic": "Usuario de comunicación (tipo System), sin acceso de diálogo.",
+        "x509": "Recomendado en producción si Gateway admite certificados de cliente.",
+        "oauth2_client_credentials": "Para S/4HANA Cloud o BTP (communication arrangement)."
+      }
+    },
+    "wizard": {
+      "titleNew": "Nuevo sistema SAP",
+      "titleEdit": "Editar {{code}}",
+      "description": "Complete los pasos; puede probar la conexión antes de guardar.",
+      "progress": "Pasos del asistente",
+      "steps": {
+        "general": "Datos generales",
+        "connection": "Conexión",
+        "credentials": "Credenciales",
+        "test": "Prueba",
+        "summary": "Resumen"
+      },
+      "back": "Anterior",
+      "next": "Siguiente",
+      "save": "Guardar",
+      "saving": "Guardando…",
+      "testButton": "Probar conexión",
+      "testing": "Probando la conexión…",
+      "testHelp": "La prueba comprueba red y TLS, credenciales, que la URL es SAP Gateway y la latencia. No guarda nada.",
+      "testReusesCredentials": "Se usa la credencial guardada del sistema (no se envía al navegador).",
+      "activate": "Activar al guardar",
+      "activateHelp": "La prueba fue correcta: el sistema quedará listo para usarse.",
+      "activateBlocked": "Solo se puede activar con una prueba correcta; se guardará como borrador.",
+      "credentialsElsewhere": "Las credenciales se cambian desde el detalle del sistema (Cambiar credenciales).",
+      "currentCa": "CA propia actual",
+      "removeCa": "Eliminar la CA propia",
+      "caKeep": "Déjelo vacío para mantener la CA actual o pegue una nueva para sustituirla.",
+      "fixFields": "Revise los campos marcados."
+    },
+    "report": {
+      "title": "Resultado de la prueba",
+      "ok": "Conexión correcta",
+      "failed": "La prueba falló",
+      "testedAt": "Probado el {{date}}",
+      "outdated": "La conexión o la credencial cambiaron después de esta prueba: repítala antes de activar.",
+      "certificate": "Certificado: {{subject}} · emisor {{issuer}} · caduca {{date}}",
+      "steps": {
+        "network": "Red, DNS y TLS",
+        "authentication": "Autenticación en Gateway",
+        "server_info": "Servidor SAP Gateway",
+        "latency": "Latencia"
+      },
+      "statuses": {
+        "ok": "Correcto",
+        "warning": "Aviso",
+        "failed": "Error",
+        "skipped": "Omitido"
+      }
+    },
+    "detail": {
+      "back": "← Sistemas SAP",
+      "tabsLabel": "Secciones del sistema",
+      "tabs": {
+        "general": "General",
+        "services": "Servicios",
+        "sources": "Orígenes",
+        "activity": "Actividad"
+      },
+      "actions": {
+        "test": "Probar conexión",
+        "edit": "Editar",
+        "rotate": "Cambiar credenciales",
+        "duplicate": "Duplicar",
+        "activate": "Activar",
+        "deactivate": "Desactivar",
+        "delete": "Eliminar"
+      },
+      "connectionTitle": "Conexión",
+      "lastTestTitle": "Última prueba de conexión",
+      "noTest": "Todavía no se ha probado la conexión.",
+      "limits": "{{timeout}} s de timeout · {{parallel}} peticiones simultáneas",
+      "updated": "Última modificación",
+      "draftBanner": "Borrador: pruebe la conexión con éxito y actívelo para poder usarlo en orígenes y pipelines.",
+      "inactiveBanner": "Sistema desactivado: no se lanzarán nuevas ejecuciones.",
+      "activateBlocked": "Requiere una prueba correcta con la configuración actual.",
+      "sourcesTitle": "Orígenes de este sistema",
+      "sourcesSoon": "Los orígenes (extractores y CDS) se dan de alta en la iteración 3; aquí se listarán los que usen este sistema."
+    },
+    "confirm": {
+      "reason": "Motivo (queda en la auditoría)",
+      "typeCode": "Escriba {{code}} para confirmar",
+      "activate": {
+        "title": "¿Activar {{code}}?",
+        "message": "El sistema quedará disponible para orígenes y pipelines."
+      },
+      "deactivate": {
+        "title": "¿Desactivar {{code}}?",
+        "message": "Se impedirán nuevas ejecuciones; los pipelines asociados mostrarán un aviso."
+      },
+      "delete": {
+        "title": "¿Eliminar {{code}}?",
+        "message": "Se destruirán sus credenciales guardadas. No se puede eliminar si lo usan orígenes o pipelines activos."
+      }
+    },
+    "rotate": {
+      "title": "Cambiar credenciales de {{code}}",
+      "help": "La credencial nueva sustituye a la actual y se prueba la conexión a continuación.",
+      "submit": "Guardar y probar",
+      "working": "Guardando y probando…"
+    },
+    "duplicate": {
+      "title": "Duplicar {{code}}",
+      "help": "Crea un sistema nuevo con la misma configuración (p. ej. de QAS a PRD). Quedará como borrador.",
+      "submit": "Duplicar",
+      "keepCredentials": "Copiar la credencial del sistema original",
+      "keepCredentialsHelp": "Desmárquelo para indicar otro usuario técnico (lo habitual al pasar a producción)."
+    },
+    "explorer": {
+      "searchPlaceholder": "Nombre técnico o descripción",
+      "type": "Tipo",
+      "kinds": {
+        "odp": "ODP",
+        "cds": "CDS",
+        "other": "Otro",
+        "unknown": "Sin clasificar"
+      },
+      "refresh": "Releer catálogo de SAP",
+      "refreshing": "Leyendo catálogo…",
+      "reading": "Leyendo el catálogo de Gateway…",
+      "fetchedAt": "catálogo leído el {{date}}",
+      "fromCache": "(caché)",
+      "counts": "{{odp}} ODP · {{cds}} CDS · {{other}} otros · {{unknown}} sin clasificar",
+      "unknownHelp": "Gateway no informó los entity sets de algunos servicios: se clasifican al abrirlos.",
+      "empty": "No hay servicios con estos filtros.",
+      "deltaYes": "Delta",
+      "deltaNo": "Solo full",
+      "deltaUnknown": "?",
+      "key": "clave",
+      "entitySets": "Entity sets",
+      "readingMetadata": "Leyendo $metadata…",
+      "propertiesOf": "Propiedades de {{name}}",
+      "createSource": "Crear origen",
+      "createSourceSoon": "El asistente de orígenes llega en la iteración 3",
+      "columns": {
+        "service": "Servicio",
+        "kind": "Tipo",
+        "delta": "Delta",
+        "entitySets": "Entity sets ODP",
+        "entitySet": "Entity set",
+        "odpRole": "Rol ODP",
+        "keys": "Claves",
+        "property": "Propiedad",
+        "label": "Etiqueta SAP",
+        "type": "Tipo EDM",
+        "filterable": "Filtrable"
+      },
+      "odpRoles": {
+        "entity": "Extractor (EntityOf)",
+        "facts": "Hechos / CDS (FactsOf)",
+        "attributes": "Atributos (AttrOf)",
+        "texts": "Textos (TextOf)",
+        "hierarchy": "Jerarquía (HierOf)",
+        "delta_links": "Tokens de delta"
+      }
+    }
   }
 }

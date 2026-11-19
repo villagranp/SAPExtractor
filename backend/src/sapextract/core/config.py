@@ -84,6 +84,11 @@ class Settings(BaseSettings):
     bootstrap_admin_user: str | None = None
     bootstrap_admin_password: SecretStr | None = None
 
+    # --- Conexiones SAP (plan 04)
+    sap_catalog_ttl_minutes: int = Field(
+        60, ge=1, description="Vigencia de la caché del catálogo de servicios de Gateway"
+    )
+
     # --- Procesos de fondo
     scheduler_tick_seconds: float = 5.0
     worker_poll_seconds: float = 5.0

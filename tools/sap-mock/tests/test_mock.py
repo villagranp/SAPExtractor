@@ -44,12 +44,28 @@ def _read_all(
 
 def test_requires_basic_auth(client: TestClient) -> None:
     assert client.get(f"{CATALOG}/ServiceCollection", auth=("u", "mal")).status_code == 401
+    # Como en SAP, el usuario no distingue mayúsculas.
+    assert client.get(f"{CATALOG}/ServiceCollection", auth=("U", "p")).status_code == 200
 
 
 def test_catalog_lists_services(client: TestClient) -> None:
     results = client.get(f"{CATALOG}/ServiceCollection").json()["d"]["results"]
     names = {r["TechnicalServiceName"] for r in results}
     assert {"ZFI_WS_GL_ITEMS_SRV", "ZMM_CV_MATERIAL_CDS"} <= names
+
+
+def test_catalog_expands_entity_sets(client: TestClient) -> None:
+    response = client.get(f"{CATALOG}/ServiceCollection", params={"$expand": "EntitySets"})
+    assert response.headers["sap-server"] == "true"
+    by_name = {r["TechnicalServiceName"]: r for r in response.json()["d"]["results"]}
+    gl_sets = [e["ID"] for e in by_name["ZFI_WS_GL_ITEMS_SRV"]["EntitySets"]["results"]]
+    assert gl_sets == ["EntityOf0FI_GL_14", "DeltaLinksOfEntityOf0FI_GL_14"]
+    mat_sets = [e["ID"] for e in by_name["ZMM_CV_MATERIAL_CDS"]["EntitySets"]["results"]]
+    assert mat_sets == ["ZMM_CV_MATERIAL"]
+    plain = client.get(f"{CATALOG}/ServiceCollection").json()["d"]["results"][0]
+    assert "__deferred" in plain["EntitySets"]
+    bad = client.get(f"{CATALOG}/ServiceCollection", params={"$expand": "Annotations"})
+    assert bad.status_code == 400
 
 
 def test_metadata_is_valid_edmx(client: TestClient) -> None:

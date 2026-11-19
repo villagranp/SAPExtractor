@@ -59,6 +59,14 @@ ACTIONS: dict[str, Category] = {
     "api_token.created": Category.IDENTITY,
     "api_token.revoked": Category.IDENTITY,
     "session.revoked": Category.IDENTITY,
+    # config: conexiones SAP (plan 04)
+    "sap_connection.created": Category.CONFIG,
+    "sap_connection.updated": Category.CONFIG,
+    "sap_connection.deleted": Category.CONFIG,
+    "sap_connection.tested": Category.CONFIG,
+    "sap_connection.credentials_rotated": Category.SECURITY,
+    "sap_connection.activated": Category.CONFIG,
+    "sap_connection.deactivated": Category.CONFIG,
     # security
     "audit.exported": Category.SECURITY,
     "audit.verified": Category.SECURITY,

@@ -28,7 +28,7 @@ export const navigation: NavSection[] = [
   {
     titleKey: 'nav.sectionData',
     items: [
-      { to: '/sap-systems', labelKey: 'nav.sapSystems', iteration: 2 },
+      { to: '/sap-systems', labelKey: 'nav.sapSystems', permission: 'sap_connection:read' },
       { to: '/sources', labelKey: 'nav.sources', iteration: 3 },
       { to: '/destinations', labelKey: 'nav.destinations', iteration: 4 },
     ],

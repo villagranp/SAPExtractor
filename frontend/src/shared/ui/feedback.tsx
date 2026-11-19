@@ -100,3 +100,30 @@ export function OneTimeSecret({
     </div>
   );
 }
+
+export interface ChecklistItem {
+  id: string;
+  title: ReactNode;
+  tone: StatusTone;
+  statusLabel: ReactNode;
+  description?: ReactNode;
+  meta?: ReactNode;
+}
+
+/** Resultado paso a paso de una comprobación (prueba de conexión, validaciones). */
+export function Checklist({ items, label }: { items: ChecklistItem[]; label: string }) {
+  return (
+    <ol className="sx-checklist" aria-label={label}>
+      {items.map((item) => (
+        <li key={item.id} className="sx-checklist__item" data-status={item.tone}>
+          <span className={`sx-pill sx-pill--${item.tone}`}>{item.statusLabel}</span>
+          <div>
+            <strong>{item.title}</strong>
+            {item.description && <div>{item.description}</div>}
+          </div>
+          {item.meta && <small>{item.meta}</small>}
+        </li>
+      ))}
+    </ol>
+  );
+}

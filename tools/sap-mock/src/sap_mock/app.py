@@ -3,6 +3,7 @@
 Imita lo que la plataforma necesita de SAP:
 
 * Catálogo de servicios: ``/sap/opu/odata/iwfnd/CATALOGSERVICE;v=2/ServiceCollection``
+  (con ``$expand=EntitySets`` para clasificar ODP/CDS sin abrir cada servicio)
 * ``$metadata`` (EDMX V2 con anotaciones ``sap:``)
 * Lectura full paginada (``__next`` / ``$skiptoken``, ``Prefer: odata.maxpagesize``)
 * Inicialización de delta (``Prefer: odata.track-changes``) → ``__delta`` con token
@@ -287,6 +288,15 @@ def create_app(
     app.state.mock = state
     basic = HTTPBasic(auto_error=False)
 
+    @app.middleware("http")
+    async def _gateway_headers(request: Request, call_next: Any) -> Response:
+        """Cabeceras que añade SAP Gateway a sus respuestas."""
+        response: Response = await call_next(request)
+        if request.url.path.startswith(GATEWAY):
+            response.headers["sap-server"] = "true"
+            response.headers.setdefault("dataserviceversion", "2.0")
+        return response
+
     @app.exception_handler(SapError)
     async def _sap_error(_: Request, exc: SapError) -> JSONResponse:
         return _sap_error_response(exc.status, exc.code, exc.message)
@@ -300,8 +310,9 @@ def create_app(
         if sc.remaining > 0 and sc.status:
             sc.remaining -= 1
             raise SapError(sc.status, "/IWFND/CM_BEC/026", f"Error simulado {sc.status}")
+        # Como SAP, el usuario no distingue mayúsculas; la contraseña sí.
         ok = credentials is not None and (
-            secrets.compare_digest(credentials.username, expected_user)
+            secrets.compare_digest(credentials.username.upper(), expected_user.upper())
             & secrets.compare_digest(credentials.password, expected_password)
         )
         if not ok:
@@ -327,32 +338,47 @@ def create_app(
 
     @app.get(f"{CATALOG}/ServiceCollection", dependencies=[Guard])
     def catalog(request: Request) -> dict[str, Any]:
+        """Catálogo; con ``$expand=EntitySets`` incluye los entity sets de cada servicio."""
         root = str(request.base_url).rstrip("/")
+        expand = request.query_params.get("$expand", "")
+        if expand and expand != "EntitySets":
+            raise SapError(400, "/IWBEP/CM_MGW_RT/022", f"$expand no soportado: {expand}")
         results = []
         for name, svc in state.services.items():
             d = svc.definition
             url = f"{root}{GATEWAY}/sap/{name}"
-            results.append(
-                {
-                    "__metadata": {"uri": f"{root}{CATALOG}/ServiceCollection('{name}_0001')"},
-                    "ID": f"{name}_0001",
-                    "Title": name,
-                    "Description": d.description,
-                    "TechnicalServiceName": name,
-                    "TechnicalServiceVersion": 1,
-                    "ServiceUrl": f"{url}/",
-                    "MetadataUrl": f"{url}/$metadata",
-                    "IsSapService": False,
+            service_id = f"{name}_0001"
+            entry: dict[str, Any] = {
+                "__metadata": {"uri": f"{root}{CATALOG}/ServiceCollection('{service_id}')"},
+                "ID": service_id,
+                "Title": name,
+                "Description": d.description,
+                "TechnicalServiceName": name,
+                "TechnicalServiceVersion": 1,
+                "ServiceUrl": f"{url}/",
+                "MetadataUrl": f"{url}/$metadata",
+                "IsSapService": False,
+            }
+            if expand:
+                entry["EntitySets"] = {
+                    "results": [
+                        {"ID": entity_set, "Description": entity_set, "SrvIdentifier": service_id}
+                        for entity_set in _entity_sets(d)
+                    ]
                 }
-            )
+            else:
+                entry["EntitySets"] = {
+                    "__deferred": {
+                        "uri": f"{root}{CATALOG}/ServiceCollection('{service_id}')/EntitySets"
+                    }
+                }
+            results.append(entry)
         return {"d": {"results": results}}
 
     # -------------------------------------------------------------- servicio
     @app.get(f"{GATEWAY}/sap/{{service}}/", dependencies=[Guard])
     def service_document(service: str) -> dict[str, Any]:
-        d = _service(service).definition
-        sets = [d.entity_set] + ([f"DeltaLinksOf{d.entity_set}"] if d.supports_delta else [])
-        return {"d": {"EntitySets": sets}}
+        return {"d": {"EntitySets": _entity_sets(_service(service).definition)}}
 
     @app.get(f"{GATEWAY}/sap/{{service}}/$metadata", dependencies=[Guard])
     def metadata(service: str) -> Response:
@@ -537,6 +563,10 @@ def create_app(
         return {"status": "reset"}
 
     return app
+
+
+def _entity_sets(d: ServiceDef) -> list[str]:
+    return [d.entity_set] + ([f"DeltaLinksOf{d.entity_set}"] if d.supports_delta else [])
 
 
 def _page_size(request: Request, default: int) -> int:

@@ -80,6 +80,9 @@ export interface ConfirmDialogProps {
   /** Si se indica, se pide un motivo (obligatorio si `reasonRequired`). */
   reasonLabel?: string;
   reasonRequired?: boolean;
+  /** Acciones peligrosas: hay que escribir este texto (p. ej. el código del recurso). */
+  confirmText?: string;
+  confirmTextLabel?: string;
   error?: ReactNode;
   onConfirm: (reason: string) => void;
   onClose: () => void;
@@ -95,13 +98,20 @@ export function ConfirmDialog({
   busy = false,
   reasonLabel,
   reasonRequired = false,
+  confirmText,
+  confirmTextLabel,
   error,
   onConfirm,
   onClose,
 }: ConfirmDialogProps) {
   const [reason, setReason] = useState('');
+  const [typed, setTyped] = useState('');
   const reasonId = useId();
-  const blocked = busy || (reasonRequired && reason.trim().length < 5);
+  const typedId = useId();
+  const blocked =
+    busy ||
+    (reasonRequired && reason.trim().length < 5) ||
+    (confirmText !== undefined && typed.trim() !== confirmText);
   return (
     <Dialog
       open={open}
@@ -135,6 +145,20 @@ export function ConfirmDialog({
             value={reason}
             onChange={(e) => {
               setReason(e.target.value);
+            }}
+          />
+        </div>
+      )}
+      {confirmText !== undefined && (
+        <div className="sx-field" style={{ marginTop: 'var(--sx-space-4)' }}>
+          <label htmlFor={typedId}>{confirmTextLabel ?? confirmText}</label>
+          <input
+            id={typedId}
+            className="sx-input"
+            autoComplete="off"
+            value={typed}
+            onChange={(e) => {
+              setTyped(e.target.value);
             }}
           />
         </div>

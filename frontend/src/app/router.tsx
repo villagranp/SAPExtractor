@@ -6,6 +6,9 @@ import { LoginPage } from '@/features/auth/pages/LoginPage';
 import { ProfilePage } from '@/features/auth/pages/ProfilePage';
 import { RoleEditorPage } from '@/features/roles/pages/RoleEditorPage';
 import { RolesPage } from '@/features/roles/pages/RolesPage';
+import { SapSystemDetailPage } from '@/features/sap-systems/pages/SapSystemDetailPage';
+import { SapSystemsPage } from '@/features/sap-systems/pages/SapSystemsPage';
+import { SapSystemWizardPage } from '@/features/sap-systems/pages/SapSystemWizardPage';
 import { HomePage } from '@/features/system/pages/HomePage';
 import { UserDetailPage } from '@/features/users/pages/UserDetailPage';
 import { UsersPage } from '@/features/users/pages/UsersPage';
@@ -44,6 +47,10 @@ export const routes: RouteObject[] = [
     children: [
       { index: true, element: <HomePage /> },
       { path: 'profile', element: <ProfilePage /> },
+      guarded('sap-systems', 'sap_connection:read', <SapSystemsPage />),
+      guarded('sap-systems/new', 'sap_connection:manage', <SapSystemWizardPage />),
+      guarded('sap-systems/:systemId', 'sap_connection:read', <SapSystemDetailPage />),
+      guarded('sap-systems/:systemId/edit', 'sap_connection:manage', <SapSystemWizardPage />),
       guarded('admin/users', 'user:read', <UsersPage />),
       guarded('admin/users/:userId', 'user:read', <UserDetailPage />),
       guarded('admin/roles', 'role:read', <RolesPage />),

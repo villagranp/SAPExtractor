@@ -39,6 +39,17 @@ uv run sapextract generate-master-key                         # valor para SX_MA
 - La auditoría se escribe con `AuditService.record()` en la misma transacción que el cambio;
   los intentos fallidos o denegados, en una transacción propia.
 
+## Reglas del módulo de conexiones SAP
+
+- Todo acceso a SAP pasa por `SapODataClient` (`sap_connections/infrastructure/odata_client.py`):
+  añade `sap-client`/`sap-language`, reintenta solo 429/502/503/504 y errores de red y traduce
+  los errores a `SX-SAP-*` (siempre 502/504 hacia el navegador, nunca 401/403).
+- Las credenciales se guardan cifradas con `SecretStore` (`core/secret_store.py`) y solo se
+  descifran en memoria (`SapSystemService.spec_for`); las respuestas exponen `credential_info`.
+- Las llamadas a SAP se hacen con la transacción de BD cerrada; el resultado se guarda después.
+- Las pruebas de integración levantan `tools/sap-mock` en proceso (`tests/support/sap_gateway.py`),
+  también con TLS autofirmado, sin contenedores adicionales.
+
 Calidad:
 
 ```bash

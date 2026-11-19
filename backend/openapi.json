@@ -2048,6 +2048,925 @@
           }
         }
       }
+    },
+    "/api/v1/sap-systems": {
+      "get": {
+        "tags": [
+          "Sistemas SAP"
+        ],
+        "summary": "Sistemas SAP",
+        "operationId": "list_systems_api_v1_sap_systems_get",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "name": "environment",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/SapEnvironment"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Environment"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/SystemStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "system_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/SystemType"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "System Type"
+            }
+          },
+          {
+            "name": "tag",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 40
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tag"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Page Size"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^-?[a-z_][a-z0-9_]*$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Sort"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_SapSystemSummary_"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Sistemas SAP"
+        ],
+        "summary": "Alta de sistema SAP (y prueba/activación opcionales)",
+        "operationId": "create_system_api_v1_sap_systems_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SapSystemCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SapSystemWithTestResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "sap_connection.created",
+          "sap_connection.tested",
+          "sap_connection.activated"
+        ]
+      }
+    },
+    "/api/v1/sap-systems/test": {
+      "post": {
+        "tags": [
+          "Sistemas SAP"
+        ],
+        "summary": "Prueba de conexión sin guardar (asistente)",
+        "operationId": "test_unsaved_api_v1_sap_systems_test_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SapSystemTestRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestReportResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "sap_connection.tested"
+        ]
+      }
+    },
+    "/api/v1/sap-systems/{system_id}": {
+      "get": {
+        "tags": [
+          "Sistemas SAP"
+        ],
+        "summary": "Get System",
+        "operationId": "get_system_api_v1_sap_systems__system_id__get",
+        "parameters": [
+          {
+            "name": "system_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "System Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SapSystemDetail"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Sistemas SAP"
+        ],
+        "summary": "Edita datos generales y de conexión (las credenciales tienen su propio endpoint)",
+        "operationId": "update_system_api_v1_sap_systems__system_id__patch",
+        "parameters": [
+          {
+            "name": "system_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "System Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SapSystemUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SapSystemDetail"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "sap_connection.updated"
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Sistemas SAP"
+        ],
+        "summary": "Baja lógica (destruye las credenciales); no se permite con objetos activos",
+        "operationId": "delete_system_api_v1_sap_systems__system_id__delete",
+        "parameters": [
+          {
+            "name": "system_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "System Id"
+            }
+          },
+          {
+            "name": "reason",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 500
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Reason"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "sap_connection.deleted"
+        ]
+      }
+    },
+    "/api/v1/sap-systems/{system_id}/test": {
+      "post": {
+        "tags": [
+          "Sistemas SAP"
+        ],
+        "summary": "Prueba de conexión por pasos (guarda el resultado)",
+        "operationId": "test_system_api_v1_sap_systems__system_id__test_post",
+        "parameters": [
+          {
+            "name": "system_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "System Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SapSystemWithTestResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "sap_connection.tested"
+        ]
+      }
+    },
+    "/api/v1/sap-systems/{system_id}/credentials/rotate": {
+      "post": {
+        "tags": [
+          "Sistemas SAP"
+        ],
+        "summary": "Sustituye la credencial (o el tipo de autenticación) y prueba la conexión",
+        "operationId": "rotate_credentials_api_v1_sap_systems__system_id__credentials_rotate_post",
+        "parameters": [
+          {
+            "name": "system_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "System Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CredentialRotateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SapSystemWithTestResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "sap_connection.credentials_rotated",
+          "sap_connection.tested"
+        ]
+      }
+    },
+    "/api/v1/sap-systems/{system_id}/duplicate": {
+      "post": {
+        "tags": [
+          "Sistemas SAP"
+        ],
+        "summary": "Duplica la conexión (p. ej. de QAS a PRD cambiando URL y credenciales)",
+        "operationId": "duplicate_system_api_v1_sap_systems__system_id__duplicate_post",
+        "parameters": [
+          {
+            "name": "system_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "System Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SapSystemDuplicateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SapSystemWithTestResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "sap_connection.created"
+        ]
+      }
+    },
+    "/api/v1/sap-systems/{system_id}/activate": {
+      "post": {
+        "tags": [
+          "Sistemas SAP"
+        ],
+        "summary": "Activa el sistema (exige una prueba correcta y vigente)",
+        "operationId": "activate_system_api_v1_sap_systems__system_id__activate_post",
+        "parameters": [
+          {
+            "name": "system_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "System Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SapSystemDetail"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "sap_connection.activated"
+        ]
+      }
+    },
+    "/api/v1/sap-systems/{system_id}/deactivate": {
+      "post": {
+        "tags": [
+          "Sistemas SAP"
+        ],
+        "summary": "Desactiva el sistema: impide nuevas ejecuciones",
+        "operationId": "deactivate_system_api_v1_sap_systems__system_id__deactivate_post",
+        "parameters": [
+          {
+            "name": "system_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "System Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StatusReasonRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SapSystemDetail"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "sap_connection.deactivated"
+        ]
+      }
+    },
+    "/api/v1/sap-systems/{system_id}/services": {
+      "get": {
+        "tags": [
+          "Sistemas SAP",
+          "Explorador SAP"
+        ],
+        "summary": "Catálogo de servicios de Gateway clasificado (ODP / CDS / otros)",
+        "operationId": "list_services_api_v1_sap_systems__system_id__services_get",
+        "parameters": [
+          {
+            "name": "system_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "System Id"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Search"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ServiceKind"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Uno o varios tipos",
+              "title": "Type"
+            },
+            "description": "Uno o varios tipos"
+          },
+          {
+            "name": "refresh",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Ignorar la caché y releer de SAP",
+              "default": false,
+              "title": "Refresh"
+            },
+            "description": "Ignorar la caché y releer de SAP"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Page Size"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^-?[a-z_][a-z0-9_]*$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Sort"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogPageResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sap-systems/{system_id}/services/{service_name}/entity-sets": {
+      "get": {
+        "tags": [
+          "Sistemas SAP",
+          "Explorador SAP"
+        ],
+        "summary": "Entity sets del servicio, con propiedades y soporte de delta",
+        "operationId": "service_entity_sets_api_v1_sap_systems__system_id__services__service_name__entity_sets_get",
+        "parameters": [
+          {
+            "name": "system_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "System Id"
+            }
+          },
+          {
+            "name": "service_name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Service Name"
+            }
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 999,
+              "minimum": 1,
+              "default": 1,
+              "title": "Version"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceEntitySetsResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sap-systems/{system_id}/services/{service_name}/metadata": {
+      "get": {
+        "tags": [
+          "Sistemas SAP",
+          "Explorador SAP"
+        ],
+        "summary": "$metadata del servicio interpretado (tipos de entidad y propiedades)",
+        "operationId": "service_metadata_api_v1_sap_systems__system_id__services__service_name__metadata_get",
+        "parameters": [
+          {
+            "name": "system_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "System Id"
+            }
+          },
+          {
+            "name": "service_name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Service Name"
+            }
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 999,
+              "minimum": 1,
+              "default": 1,
+              "title": "Version"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceMetadataResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2603,6 +3522,206 @@
         ],
         "title": "AuthSource"
       },
+      "AuthType": {
+        "type": "string",
+        "enum": [
+          "basic",
+          "x509",
+          "oauth2_client_credentials"
+        ],
+        "title": "AuthType"
+      },
+      "BasicCredentialsIn": {
+        "properties": {
+          "auth_type": {
+            "type": "string",
+            "const": "basic",
+            "title": "Auth Type"
+          },
+          "username": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Username",
+            "description": "Usuario técnico de SAP"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "format": "password",
+            "title": "Password",
+            "writeOnly": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "auth_type",
+          "username",
+          "password"
+        ],
+        "title": "BasicCredentialsIn"
+      },
+      "CatalogPageResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/CatalogServiceResponse"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "page_size": {
+            "type": "integer",
+            "title": "Page Size"
+          },
+          "fetched_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Fetched At"
+          },
+          "from_cache": {
+            "type": "boolean",
+            "title": "From Cache"
+          },
+          "counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Counts",
+            "description": "Servicios del catálogo por tipo (sin filtros)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "page_size",
+          "fetched_at",
+          "from_cache",
+          "counts"
+        ],
+        "title": "CatalogPageResponse"
+      },
+      "CatalogServiceResponse": {
+        "properties": {
+          "technical_name": {
+            "type": "string",
+            "title": "Technical Name"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "service_id": {
+            "type": "string",
+            "title": "Service Id"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "service_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Service Path"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ServiceKind"
+          },
+          "classified_by": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ClassificationSource"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "supports_delta": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supports Delta"
+          },
+          "entity_sets": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entity Sets"
+          },
+          "odp_entity_sets": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Odp Entity Sets"
+          }
+        },
+        "type": "object",
+        "required": [
+          "technical_name",
+          "version",
+          "service_id",
+          "title",
+          "description",
+          "service_path",
+          "kind",
+          "classified_by",
+          "supports_delta",
+          "entity_sets",
+          "odp_entity_sets"
+        ],
+        "title": "CatalogServiceResponse"
+      },
       "Category": {
         "type": "string",
         "enum": [
@@ -2614,6 +3733,41 @@
           "system"
         ],
         "title": "Category"
+      },
+      "CertificateInfo": {
+        "properties": {
+          "subject": {
+            "type": "string",
+            "title": "Subject"
+          },
+          "issuer": {
+            "type": "string",
+            "title": "Issuer"
+          },
+          "not_after": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Not After"
+          },
+          "serial": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Serial"
+          }
+        },
+        "type": "object",
+        "required": [
+          "subject",
+          "issuer",
+          "not_after"
+        ],
+        "title": "CertificateInfo"
       },
       "CheckResult": {
         "properties": {
@@ -2645,6 +3799,292 @@
           "fail"
         ],
         "title": "CheckStatus"
+      },
+      "ClassificationSource": {
+        "type": "string",
+        "enum": [
+          "entity_sets",
+          "name"
+        ],
+        "title": "ClassificationSource"
+      },
+      "CredentialInfo": {
+        "properties": {
+          "username": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Username"
+          },
+          "client_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Id"
+          },
+          "token_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Token Url"
+          },
+          "scope": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope"
+          },
+          "certificate_subject": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Certificate Subject"
+          },
+          "certificate_issuer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Certificate Issuer"
+          },
+          "certificate_not_after": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Certificate Not After"
+          }
+        },
+        "type": "object",
+        "title": "CredentialInfo",
+        "description": "Datos visibles de la credencial (nunca el secreto)."
+      },
+      "CredentialRotateRequest": {
+        "properties": {
+          "credentials": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BasicCredentialsIn"
+              },
+              {
+                "$ref": "#/components/schemas/X509CredentialsIn"
+              },
+              {
+                "$ref": "#/components/schemas/OAuth2CredentialsIn"
+              }
+            ],
+            "title": "Credentials",
+            "discriminator": {
+              "propertyName": "auth_type",
+              "mapping": {
+                "basic": "#/components/schemas/BasicCredentialsIn",
+                "oauth2_client_credentials": "#/components/schemas/OAuth2CredentialsIn",
+                "x509": "#/components/schemas/X509CredentialsIn"
+              }
+            }
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "credentials"
+        ],
+        "title": "CredentialRotateRequest"
+      },
+      "DependentResponse": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "id",
+          "name",
+          "active"
+        ],
+        "title": "DependentResponse"
+      },
+      "EntitySetResponse": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "entity_type": {
+            "type": "string",
+            "title": "Entity Type"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "odp_role": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OdpRole"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "odp_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Odp Name"
+          },
+          "supports_delta": {
+            "type": "boolean",
+            "title": "Supports Delta"
+          },
+          "change_tracking": {
+            "type": "boolean",
+            "title": "Change Tracking"
+          },
+          "pageable": {
+            "type": "boolean",
+            "title": "Pageable"
+          },
+          "countable": {
+            "type": "boolean",
+            "title": "Countable"
+          },
+          "keys": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Keys"
+          },
+          "properties": {
+            "items": {
+              "$ref": "#/components/schemas/PropertyResponse"
+            },
+            "type": "array",
+            "title": "Properties"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "entity_type",
+          "label",
+          "odp_role",
+          "odp_name",
+          "supports_delta",
+          "change_tracking",
+          "pageable",
+          "countable",
+          "keys",
+          "properties"
+        ],
+        "title": "EntitySetResponse"
+      },
+      "EntityTypeResponse": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "namespace": {
+            "type": "string",
+            "title": "Namespace"
+          },
+          "keys": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Keys"
+          },
+          "properties": {
+            "items": {
+              "$ref": "#/components/schemas/PropertyResponse"
+            },
+            "type": "array",
+            "title": "Properties"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "namespace",
+          "keys",
+          "properties"
+        ],
+        "title": "EntityTypeResponse"
       },
       "FieldError": {
         "properties": {
@@ -2835,6 +4275,68 @@
         ],
         "title": "MfaEnrollmentResponse"
       },
+      "OAuth2CredentialsIn": {
+        "properties": {
+          "auth_type": {
+            "type": "string",
+            "const": "oauth2_client_credentials",
+            "title": "Auth Type"
+          },
+          "token_url": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Token Url"
+          },
+          "client_id": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Client Id"
+          },
+          "client_secret": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "format": "password",
+            "title": "Client Secret",
+            "writeOnly": true
+          },
+          "scope": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope"
+          }
+        },
+        "type": "object",
+        "required": [
+          "auth_type",
+          "token_url",
+          "client_id",
+          "client_secret"
+        ],
+        "title": "OAuth2CredentialsIn"
+      },
+      "OdpRole": {
+        "type": "string",
+        "enum": [
+          "entity",
+          "facts",
+          "attributes",
+          "texts",
+          "hierarchy",
+          "delta_links"
+        ],
+        "title": "OdpRole",
+        "description": "Papel de un *entity set* en un servicio generado con *Redefine → ODP Extraction*."
+      },
       "Outcome": {
         "type": "string",
         "enum": [
@@ -2874,6 +4376,37 @@
           "page_size"
         ],
         "title": "Page[AuditEventResponse]"
+      },
+      "Page_SapSystemSummary_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SapSystemSummary"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "page_size": {
+            "type": "integer",
+            "title": "Page Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "page_size"
+        ],
+        "title": "Page[SapSystemSummary]"
       },
       "Page_UserSummary_": {
         "properties": {
@@ -3034,6 +4567,104 @@
         ],
         "title": "ProblemDetails",
         "description": "Formato único de error de la API."
+      },
+      "PropertyResponse": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "edm_type": {
+            "type": "string",
+            "title": "Edm Type"
+          },
+          "nullable": {
+            "type": "boolean",
+            "title": "Nullable"
+          },
+          "is_key": {
+            "type": "boolean",
+            "title": "Is Key"
+          },
+          "max_length": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Length"
+          },
+          "precision": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Precision"
+          },
+          "scale": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scale"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "filterable": {
+            "type": "boolean",
+            "title": "Filterable"
+          },
+          "sortable": {
+            "type": "boolean",
+            "title": "Sortable"
+          },
+          "display_format": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Format"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "edm_type",
+          "nullable",
+          "is_key",
+          "max_length",
+          "precision",
+          "scale",
+          "label",
+          "filterable",
+          "sortable",
+          "display_format"
+        ],
+        "title": "PropertyResponse"
       },
       "ReasonRequest": {
         "properties": {
@@ -3258,6 +4889,976 @@
         "type": "object",
         "title": "RoleUpdateRequest"
       },
+      "SapEnvironment": {
+        "type": "string",
+        "enum": [
+          "DEV",
+          "QAS",
+          "PRD"
+        ],
+        "title": "SapEnvironment"
+      },
+      "SapSystemCreateRequest": {
+        "properties": {
+          "base_url": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Base Url",
+            "examples": [
+              "https://gateway.empresa.local:44300"
+            ]
+          },
+          "sap_client": {
+            "type": "string",
+            "maxLength": 3,
+            "minLength": 1,
+            "title": "Sap Client",
+            "examples": [
+              "300"
+            ]
+          },
+          "language": {
+            "type": "string",
+            "maxLength": 2,
+            "minLength": 1,
+            "title": "Language",
+            "default": "ES"
+          },
+          "tls_verify": {
+            "type": "boolean",
+            "title": "Tls Verify",
+            "default": true
+          },
+          "ca_bundle_pem": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ca Bundle Pem",
+            "description": "CA propia (PEM) para validar el certificado"
+          },
+          "proxy_url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proxy Url"
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "maximum": 600.0,
+            "minimum": 5.0,
+            "title": "Timeout Seconds",
+            "default": 60
+          },
+          "max_concurrent_requests": {
+            "type": "integer",
+            "maximum": 32.0,
+            "minimum": 1.0,
+            "title": "Max Concurrent Requests",
+            "default": 4
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 30,
+            "minLength": 1,
+            "title": "Code",
+            "examples": [
+              "S4P_300"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "environment": {
+            "$ref": "#/components/schemas/SapEnvironment"
+          },
+          "system_type": {
+            "$ref": "#/components/schemas/SystemType"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Tags"
+          },
+          "credentials": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BasicCredentialsIn"
+              },
+              {
+                "$ref": "#/components/schemas/X509CredentialsIn"
+              },
+              {
+                "$ref": "#/components/schemas/OAuth2CredentialsIn"
+              }
+            ],
+            "title": "Credentials",
+            "discriminator": {
+              "propertyName": "auth_type",
+              "mapping": {
+                "basic": "#/components/schemas/BasicCredentialsIn",
+                "oauth2_client_credentials": "#/components/schemas/OAuth2CredentialsIn",
+                "x509": "#/components/schemas/X509CredentialsIn"
+              }
+            }
+          },
+          "run_test": {
+            "type": "boolean",
+            "title": "Run Test",
+            "description": "Probar la conexión al guardar",
+            "default": true
+          },
+          "activate": {
+            "type": "boolean",
+            "title": "Activate",
+            "description": "Activar si la prueba es correcta",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "base_url",
+          "sap_client",
+          "code",
+          "name",
+          "environment",
+          "system_type",
+          "credentials"
+        ],
+        "title": "SapSystemCreateRequest"
+      },
+      "SapSystemDetail": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "environment": {
+            "$ref": "#/components/schemas/SapEnvironment"
+          },
+          "system_type": {
+            "$ref": "#/components/schemas/SystemType"
+          },
+          "base_url": {
+            "type": "string",
+            "title": "Base Url"
+          },
+          "sap_client": {
+            "type": "string",
+            "title": "Sap Client"
+          },
+          "auth_type": {
+            "$ref": "#/components/schemas/AuthType"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SystemStatus"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags"
+          },
+          "last_test_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Test At"
+          },
+          "last_test_ok": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Test Ok"
+          },
+          "test_outdated": {
+            "type": "boolean",
+            "title": "Test Outdated"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "language": {
+            "type": "string",
+            "title": "Language"
+          },
+          "credential_info": {
+            "$ref": "#/components/schemas/CredentialInfo"
+          },
+          "tls_verify": {
+            "type": "boolean",
+            "title": "Tls Verify"
+          },
+          "ca_bundle": {
+            "items": {
+              "$ref": "#/components/schemas/CertificateInfo"
+            },
+            "type": "array",
+            "title": "Ca Bundle"
+          },
+          "proxy_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proxy Url"
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "title": "Timeout Seconds"
+          },
+          "max_concurrent_requests": {
+            "type": "integer",
+            "title": "Max Concurrent Requests"
+          },
+          "status_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status Reason"
+          },
+          "last_test_result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TestReportResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          },
+          "updated_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated By"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "dependents": {
+            "items": {
+              "$ref": "#/components/schemas/DependentResponse"
+            },
+            "type": "array",
+            "title": "Dependents"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "name",
+          "environment",
+          "system_type",
+          "base_url",
+          "sap_client",
+          "auth_type",
+          "status",
+          "tags",
+          "last_test_at",
+          "last_test_ok",
+          "test_outdated",
+          "updated_at",
+          "description",
+          "language",
+          "credential_info",
+          "tls_verify",
+          "ca_bundle",
+          "proxy_url",
+          "timeout_seconds",
+          "max_concurrent_requests",
+          "status_reason",
+          "last_test_result",
+          "created_at",
+          "created_by",
+          "updated_by",
+          "version",
+          "dependents"
+        ],
+        "title": "SapSystemDetail"
+      },
+      "SapSystemDuplicateRequest": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "maxLength": 30,
+            "minLength": 1,
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "environment": {
+            "$ref": "#/components/schemas/SapEnvironment"
+          },
+          "base_url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Url"
+          },
+          "sap_client": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 3
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sap Client"
+          },
+          "credentials": {
+            "anyOf": [
+              {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/BasicCredentialsIn"
+                  },
+                  {
+                    "$ref": "#/components/schemas/X509CredentialsIn"
+                  },
+                  {
+                    "$ref": "#/components/schemas/OAuth2CredentialsIn"
+                  }
+                ],
+                "discriminator": {
+                  "propertyName": "auth_type",
+                  "mapping": {
+                    "basic": "#/components/schemas/BasicCredentialsIn",
+                    "oauth2_client_credentials": "#/components/schemas/OAuth2CredentialsIn",
+                    "x509": "#/components/schemas/X509CredentialsIn"
+                  }
+                }
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Credentials",
+            "description": "Credenciales nuevas; si se omiten se copian las del original"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "name",
+          "environment"
+        ],
+        "title": "SapSystemDuplicateRequest"
+      },
+      "SapSystemSummary": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "environment": {
+            "$ref": "#/components/schemas/SapEnvironment"
+          },
+          "system_type": {
+            "$ref": "#/components/schemas/SystemType"
+          },
+          "base_url": {
+            "type": "string",
+            "title": "Base Url"
+          },
+          "sap_client": {
+            "type": "string",
+            "title": "Sap Client"
+          },
+          "auth_type": {
+            "$ref": "#/components/schemas/AuthType"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SystemStatus"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags"
+          },
+          "last_test_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Test At"
+          },
+          "last_test_ok": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Test Ok"
+          },
+          "test_outdated": {
+            "type": "boolean",
+            "title": "Test Outdated"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "name",
+          "environment",
+          "system_type",
+          "base_url",
+          "sap_client",
+          "auth_type",
+          "status",
+          "tags",
+          "last_test_at",
+          "last_test_ok",
+          "test_outdated",
+          "updated_at"
+        ],
+        "title": "SapSystemSummary"
+      },
+      "SapSystemTestRequest": {
+        "properties": {
+          "base_url": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Base Url",
+            "examples": [
+              "https://gateway.empresa.local:44300"
+            ]
+          },
+          "sap_client": {
+            "type": "string",
+            "maxLength": 3,
+            "minLength": 1,
+            "title": "Sap Client",
+            "examples": [
+              "300"
+            ]
+          },
+          "language": {
+            "type": "string",
+            "maxLength": 2,
+            "minLength": 1,
+            "title": "Language",
+            "default": "ES"
+          },
+          "tls_verify": {
+            "type": "boolean",
+            "title": "Tls Verify",
+            "default": true
+          },
+          "ca_bundle_pem": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ca Bundle Pem",
+            "description": "CA propia (PEM) para validar el certificado"
+          },
+          "proxy_url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proxy Url"
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "maximum": 600.0,
+            "minimum": 5.0,
+            "title": "Timeout Seconds",
+            "default": 60
+          },
+          "max_concurrent_requests": {
+            "type": "integer",
+            "maximum": 32.0,
+            "minimum": 1.0,
+            "title": "Max Concurrent Requests",
+            "default": 4
+          },
+          "code": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 30
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code"
+          },
+          "credentials": {
+            "anyOf": [
+              {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/BasicCredentialsIn"
+                  },
+                  {
+                    "$ref": "#/components/schemas/X509CredentialsIn"
+                  },
+                  {
+                    "$ref": "#/components/schemas/OAuth2CredentialsIn"
+                  }
+                ],
+                "discriminator": {
+                  "propertyName": "auth_type",
+                  "mapping": {
+                    "basic": "#/components/schemas/BasicCredentialsIn",
+                    "oauth2_client_credentials": "#/components/schemas/OAuth2CredentialsIn",
+                    "x509": "#/components/schemas/X509CredentialsIn"
+                  }
+                }
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Credentials"
+          },
+          "reuse_credentials_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reuse Credentials From",
+            "description": "Usar la credencial guardada de este sistema (edición/duplicado) si no se envían credenciales"
+          }
+        },
+        "type": "object",
+        "required": [
+          "base_url",
+          "sap_client"
+        ],
+        "title": "SapSystemTestRequest",
+        "description": "Prueba del asistente sin guardar."
+      },
+      "SapSystemUpdateRequest": {
+        "properties": {
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version",
+            "description": "Versión leída (bloqueo optimista)"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "environment": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SapEnvironment"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "system_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SystemType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "tags": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array",
+                "maxItems": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tags"
+          },
+          "base_url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Url"
+          },
+          "sap_client": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 3,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sap Client"
+          },
+          "language": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Language"
+          },
+          "tls_verify": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tls Verify"
+          },
+          "ca_bundle_pem": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ca Bundle Pem",
+            "description": "'' elimina la CA"
+          },
+          "proxy_url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proxy Url",
+            "description": "'' elimina el proxy"
+          },
+          "timeout_seconds": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 600.0,
+                "minimum": 5.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timeout Seconds"
+          },
+          "max_concurrent_requests": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 32.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Concurrent Requests"
+          }
+        },
+        "type": "object",
+        "title": "SapSystemUpdateRequest"
+      },
+      "SapSystemWithTestResponse": {
+        "properties": {
+          "system": {
+            "$ref": "#/components/schemas/SapSystemDetail"
+          },
+          "test": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TestReportResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "system"
+        ],
+        "title": "SapSystemWithTestResponse"
+      },
+      "ServiceEntitySetsResponse": {
+        "properties": {
+          "service": {
+            "$ref": "#/components/schemas/CatalogServiceResponse"
+          },
+          "odata_version": {
+            "type": "string",
+            "title": "Odata Version"
+          },
+          "entity_sets": {
+            "items": {
+              "$ref": "#/components/schemas/EntitySetResponse"
+            },
+            "type": "array",
+            "title": "Entity Sets"
+          }
+        },
+        "type": "object",
+        "required": [
+          "service",
+          "odata_version",
+          "entity_sets"
+        ],
+        "title": "ServiceEntitySetsResponse"
+      },
+      "ServiceKind": {
+        "type": "string",
+        "enum": [
+          "odp",
+          "cds",
+          "other",
+          "unknown"
+        ],
+        "title": "ServiceKind"
+      },
+      "ServiceMetadataResponse": {
+        "properties": {
+          "service": {
+            "$ref": "#/components/schemas/CatalogServiceResponse"
+          },
+          "odata_version": {
+            "type": "string",
+            "title": "Odata Version"
+          },
+          "namespaces": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Namespaces"
+          },
+          "entity_types": {
+            "items": {
+              "$ref": "#/components/schemas/EntityTypeResponse"
+            },
+            "type": "array",
+            "title": "Entity Types"
+          },
+          "entity_sets": {
+            "items": {
+              "$ref": "#/components/schemas/EntitySetResponse"
+            },
+            "type": "array",
+            "title": "Entity Sets"
+          }
+        },
+        "type": "object",
+        "required": [
+          "service",
+          "odata_version",
+          "namespaces",
+          "entity_types",
+          "entity_sets"
+        ],
+        "title": "ServiceMetadataResponse"
+      },
       "SessionResponse": {
         "properties": {
           "id": {
@@ -3351,6 +5952,44 @@
         "title": "SessionStatusResponse",
         "description": "Paso en el que queda la sesión tras la operación."
       },
+      "StatusReasonRequest": {
+        "properties": {
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "title": "StatusReasonRequest"
+      },
+      "StepName": {
+        "type": "string",
+        "enum": [
+          "network",
+          "authentication",
+          "server_info",
+          "latency"
+        ],
+        "title": "StepName"
+      },
+      "StepStatus": {
+        "type": "string",
+        "enum": [
+          "ok",
+          "warning",
+          "failed",
+          "skipped"
+        ],
+        "title": "StepStatus"
+      },
       "SystemInfo": {
         "properties": {
           "name": {
@@ -3379,6 +6018,25 @@
         ],
         "title": "SystemInfo"
       },
+      "SystemStatus": {
+        "type": "string",
+        "enum": [
+          "draft",
+          "active",
+          "inactive"
+        ],
+        "title": "SystemStatus",
+        "description": "``draft``: sin prueba correcta aún · ``active``: usable · ``inactive``: desactivado."
+      },
+      "SystemType": {
+        "type": "string",
+        "enum": [
+          "ECC",
+          "S4HANA_ONPREM",
+          "S4HANA_CLOUD"
+        ],
+        "title": "SystemType"
+      },
       "TemporaryPasswordResponse": {
         "properties": {
           "temporary_password": {
@@ -3392,6 +6050,98 @@
           "temporary_password"
         ],
         "title": "TemporaryPasswordResponse"
+      },
+      "TestReportResponse": {
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "title": "Ok"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At"
+          },
+          "finished_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Finished At"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/TestStepResponse"
+            },
+            "type": "array",
+            "title": "Steps"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ok",
+          "summary",
+          "started_at",
+          "finished_at",
+          "steps"
+        ],
+        "title": "TestReportResponse"
+      },
+      "TestStepResponse": {
+        "properties": {
+          "name": {
+            "$ref": "#/components/schemas/StepName"
+          },
+          "status": {
+            "$ref": "#/components/schemas/StepStatus"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "duration_ms": {
+            "type": "integer",
+            "title": "Duration Ms"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "details": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Details"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "status",
+          "message",
+          "duration_ms",
+          "details"
+        ],
+        "title": "TestStepResponse"
       },
       "UserCreateRequest": {
         "properties": {
@@ -3806,6 +6556,50 @@
         },
         "type": "object",
         "title": "UserUpdateRequest"
+      },
+      "X509CredentialsIn": {
+        "properties": {
+          "auth_type": {
+            "type": "string",
+            "const": "x509",
+            "title": "Auth Type"
+          },
+          "certificate_pem": {
+            "type": "string",
+            "maxLength": 100000,
+            "minLength": 1,
+            "title": "Certificate Pem"
+          },
+          "private_key_pem": {
+            "type": "string",
+            "maxLength": 100000,
+            "minLength": 1,
+            "format": "password",
+            "title": "Private Key Pem",
+            "writeOnly": true
+          },
+          "private_key_passphrase": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 256,
+                "format": "password",
+                "writeOnly": true
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Private Key Passphrase"
+          }
+        },
+        "type": "object",
+        "required": [
+          "auth_type",
+          "certificate_pem",
+          "private_key_pem"
+        ],
+        "title": "X509CredentialsIn"
       }
     }
   }

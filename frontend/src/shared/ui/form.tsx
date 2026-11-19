@@ -1,4 +1,10 @@
-import { useId, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react';
+import {
+  useId,
+  type InputHTMLAttributes,
+  type ReactNode,
+  type SelectHTMLAttributes,
+  type TextareaHTMLAttributes,
+} from 'react';
 
 /* Controles de formulario adicionales del design system. */
 
@@ -106,5 +112,107 @@ export function FieldErrors({ errors }: FieldErrorsProps) {
         <li key={e}>{e}</li>
       ))}
     </ul>
+  );
+}
+
+export interface TextAreaFieldProps extends Omit<
+  TextareaHTMLAttributes<HTMLTextAreaElement>,
+  'id'
+> {
+  label: string;
+  hint?: string | undefined;
+  error?: string | undefined;
+  /** Texto de ancho fijo (PEM, JSON, código). */
+  mono?: boolean;
+}
+
+export function TextAreaField({
+  label,
+  hint,
+  error,
+  mono = false,
+  className,
+  rows = 4,
+  ...rest
+}: TextAreaFieldProps) {
+  const id = useId();
+  const describedBy = error ? `${id}-error` : hint ? `${id}-hint` : undefined;
+  return (
+    <div className="sx-field">
+      <label htmlFor={id}>{label}</label>
+      <textarea
+        id={id}
+        rows={rows}
+        className={['sx-input', mono && 'sx-input--mono', className].filter(Boolean).join(' ')}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={describedBy}
+        spellCheck={mono ? false : undefined}
+        {...rest}
+      />
+      {hint && !error && (
+        <span id={`${id}-hint`} className="sx-field__hint">
+          {hint}
+        </span>
+      )}
+      {error && (
+        <span id={`${id}-error`} className="sx-field__error" role="alert">
+          {error}
+        </span>
+      )}
+    </div>
+  );
+}
+
+export interface StepperStep {
+  id: string;
+  label: ReactNode;
+}
+
+export interface StepperProps {
+  steps: StepperStep[];
+  /** Índice del paso actual (0..n-1). */
+  current: number;
+  label: string;
+  /** Permite volver a un paso anterior pulsándolo. */
+  onSelect?: (index: number) => void;
+}
+
+/** Progreso de un asistente paso a paso (plan 10 §4.1). */
+export function Stepper({ steps, current, label, onSelect }: StepperProps) {
+  return (
+    <ol className="sx-stepper" aria-label={label}>
+      {steps.map((step, index) => {
+        const state = index < current ? 'done' : index === current ? 'current' : 'todo';
+        const content = (
+          <>
+            <span className="sx-stepper__index" aria-hidden="true">
+              {state === 'done' ? '✓' : index + 1}
+            </span>
+            <span>{step.label}</span>
+          </>
+        );
+        return (
+          <li
+            key={step.id}
+            className={`sx-stepper__step sx-stepper__step--${state}`}
+            aria-current={state === 'current' ? 'step' : undefined}
+          >
+            {onSelect && state === 'done' ? (
+              <button
+                type="button"
+                className="sx-stepper__button"
+                onClick={() => {
+                  onSelect(index);
+                }}
+              >
+                {content}
+              </button>
+            ) : (
+              content
+            )}
+          </li>
+        );
+      })}
+    </ol>
   );
 }

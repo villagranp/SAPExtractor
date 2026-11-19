@@ -21,6 +21,8 @@ from sapextract.core.middleware import RequestContextMiddleware
 from sapextract.core.ratelimit import SlidingWindowLimiter
 from sapextract.identity.api import admin_routes, auth_routes
 from sapextract.identity.application.toolkit import IdentityToolkit
+from sapextract.sap_connections.api import routes as sap_routes
+from sapextract.sap_connections.application.toolkit import SapToolkit
 
 log = structlog.get_logger(__name__)
 
@@ -33,6 +35,7 @@ def build_api_router() -> APIRouter:
     api.include_router(auth_routes.router)
     api.include_router(admin_routes.router)
     api.include_router(audit_routes.router)
+    api.include_router(sap_routes.router)
     return api
 
 
@@ -61,6 +64,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.db = Database(settings)
     app.state.events = EventBus()
     app.state.identity = IdentityToolkit.build(settings)
+    app.state.sap = SapToolkit.build(settings, audit=app.state.identity.audit)
     app.state.auth_limiter = SlidingWindowLimiter(settings.auth_rate_limit_per_minute)
 
     register_exception_handlers(app)

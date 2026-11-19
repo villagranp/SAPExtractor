@@ -5,9 +5,14 @@ import { expect, test, type Page } from '@playwright/test';
  * (ya hizo el cambio de contraseña inicial):
  *   E2E_ADMIN_USER=root E2E_ADMIN_PASSWORD=... pnpm test:e2e
  * Sin esas variables solo se ejecutan las pruebas públicas.
+ * El flujo SAP usa el mock del compose (desde la API: http://sap-mock:8081, sxmock/sxmock);
+ * se puede apuntar a otro con E2E_SAP_URL, E2E_SAP_USER y E2E_SAP_PASSWORD.
  */
 const ADMIN_USER = process.env.E2E_ADMIN_USER;
 const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD;
+const SAP_URL = process.env.E2E_SAP_URL ?? 'http://sap-mock:8081';
+const SAP_USER = process.env.E2E_SAP_USER ?? 'sxmock';
+const SAP_PASSWORD = process.env.E2E_SAP_PASSWORD ?? 'sxmock';
 
 async function login(page: Page, username: string, password: string) {
   await page.goto('/login');
@@ -63,5 +68,37 @@ test.describe('con administrador', () => {
     await dialog.getByRole('button', { name: 'Cerrar' }).last().click();
     await page.getByRole('link', { name: 'Auditoría' }).click();
     await expect(page.getByRole('table').getByText('user.created').first()).toBeVisible();
+  });
+
+  test('alta de sistema SAP → prueba por pasos → explorador ODP/CDS', async ({ page }) => {
+    await login(page, ADMIN_USER ?? '', ADMIN_PASSWORD ?? '');
+    await page.getByRole('link', { name: 'Sistemas SAP' }).click();
+    await page.getByRole('button', { name: 'Nuevo sistema SAP' }).click();
+
+    const code = `E2E_${Date.now().toString(36).toUpperCase()}`;
+    await page.getByLabel('Código').fill(code);
+    await page.getByLabel('Nombre').fill('Gateway E2E');
+    await page.getByRole('button', { name: 'Siguiente' }).click();
+    await page.getByLabel('URL de Gateway').fill(SAP_URL);
+    await page.getByLabel('Mandante').fill('100');
+    await page.getByRole('button', { name: 'Siguiente' }).click();
+    await page.getByLabel('Usuario técnico').fill(SAP_USER);
+    await page.getByLabel('Contraseña').fill(SAP_PASSWORD);
+    await page.getByRole('button', { name: 'Siguiente' }).click();
+
+    await page.getByRole('button', { name: 'Probar conexión' }).click();
+    await expect(page.getByText('Conexión correcta')).toBeVisible();
+    await page.getByRole('button', { name: 'Siguiente' }).click();
+    await page.getByRole('button', { name: 'Guardar' }).click();
+
+    await expect(page.getByRole('heading', { name: new RegExp(code) })).toBeVisible();
+    await expect(page.getByText('Activo', { exact: true })).toBeVisible();
+    // La contraseña no vuelve al navegador.
+    await expect(page.getByText(SAP_PASSWORD, { exact: true })).toHaveCount(0);
+
+    await page.getByRole('tab', { name: 'Servicios' }).click();
+    await expect(page.getByTestId('catalog-summary')).toContainText('3 ODP · 1 CDS');
+    await page.getByText('ZFI_WS_GL_ITEMS_SRV').click();
+    await expect(page.getByRole('dialog').getByText('EntityOf0FI_GL_14').first()).toBeVisible();
   });
 });

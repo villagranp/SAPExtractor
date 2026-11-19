@@ -106,14 +106,63 @@ GET    /api/v1/sap-systems/{id}/services/{service}/metadata
 
 ## Tareas
 
-- [ ] Modelo `sap_system` + `secret` + migraciones.
-- [ ] `SapODataClient` con estrategias de autenticación, reintentos y semáforo.
-- [ ] Prueba de conexión por pasos.
-- [ ] Lectura del catálogo y clasificación ODP / CDS.
-- [ ] Parser de `$metadata` (EDMX V2/V4) → modelo interno de entidades y propiedades.
-- [ ] Endpoints y permisos (`sap_connection:*`).
-- [ ] Pantallas 1–3.
-- [ ] Pruebas contra `tools/sap-mock` (incluye 401, 403, timeout, certificado inválido).
+**Iteración 2** ✅
+- [x] Modelo `sap_system` + `secret` + migraciones (`0004_sap_connections`, con `sap_catalog_cache`).
+- [x] `SapODataClient` con estrategias de autenticación, reintentos y semáforo. *(Semáforo por proceso; la coordinación entre procesos con advisory locks llega con los workers, It5–6.)*
+- [x] Prueba de conexión por pasos.
+- [x] Lectura del catálogo y clasificación ODP / CDS.
+- [x] Parser de `$metadata` (EDMX V2/V4) → modelo interno de entidades y propiedades.
+- [x] Endpoints y permisos (`sap_connection:*`).
+- [x] Pantallas 1–3.
+- [x] Pruebas contra `tools/sap-mock` (incluye 401, 403, timeout, certificado inválido).
+- [ ] Validar contra el SAP real de AG (depende del spike de It0 y de que Basis publique los servicios).
+
+## Lo construido en la iteración 2
+
+Código: `backend/src/sapextract/sap_connections/`, `backend/src/sapextract/core/secret_store.py` y `frontend/src/features/sap-systems/`.
+
+**Diferencias con el diseño inicial (decididas al implementar):**
+
+| Tema | Diseño | Implementado | Motivo |
+|---|---|---|---|
+| Estado del sistema | `status` libre | `draft` → `active` ↔ `inactive`; activar exige `last_test_ok` y `test_outdated = false` | "No se puede marcar como active sin una prueba correcta" (§2.1), también tras editar la conexión o rotar la credencial |
+| Resultado de la prueba | `last_test_result` | + `last_test_ok` y `test_outdated` | Semáforo en listados y bloqueo de activación sin abrir el JSON |
+| Datos no secretos de la credencial | — | `credential_info` (usuario, client_id, sujeto y caducidad del certificado) y `ca_bundle_info` | La UI muestra "SXTECH · ••••••" y las caducidades sin descifrar nada |
+| Contenido de `secret` | Credencial | JSON cifrado (AES-GCM envelope) ligado a su id (`aad = secret:<id>`) | Un texto cifrado copiado a otra fila no se puede descifrar |
+| Edición de credenciales | En el asistente | Endpoint propio `credentials/rotate` (cambia también el tipo de autenticación) + prueba automática | El PATCH nunca transporta secretos; la rotación queda auditada aparte |
+| Baja | Borrado | Baja lógica: se destruyen los secretos y se libera el código (índice único parcial) | No conservar credenciales sin uso; la auditoría mantiene la referencia |
+| Errores de SAP en la API | — | Siempre 502/504 con código `SX-SAP-*` | Un 401 de SAP no debe parecer una sesión caducada de SAPExtract |
+| Catálogo | Consulta por servicio | `ServiceCollection?$expand=EntitySets` (sin `$expand` si Gateway lo rechaza) y caché por sistema (`SX_SAP_CATALOG_TTL_MINUTES`, 60 min) | Clasificar cientos de servicios con una sola lectura; sin entity sets, se clasifica al abrir el servicio |
+| Catálogo V4 | — | Solo el catálogo V2 (`CATALOGSERVICE;v=2`); el parser sí lee `$metadata` V4 | Los service binding V4 se explorarán cuando un caso real lo pida |
+| Semáforo de concurrencia | Compartido entre workers (BD) | Por proceso (`ConcurrencyLimiter`) | Aún no hay workers que extraigan (It5) |
+
+**Prueba de conexión por pasos** (`application/connection_tester.py`), cada paso con estado `ok | warning | failed | skipped`, duración y código de error:
+
+1. *Red, DNS y TLS*: resolución, TCP y saludo TLS con el contexto real (verificación, CA propia, certificado de cliente). Si el certificado no es de confianza se muestra el certificado presentado; aviso si caduca en menos de 30 días o si la conexión va por HTTP. Con proxy se comprueba el proxy y TLS se valida en el paso 2.
+2. *Autenticación*: `GET CATALOGSERVICE;v=2/` sin reintentos: 401 (`SX-SAP-AUTH`), 403 (`SX-SAP-FORBIDDEN`), 404, timeout (`SX-SAP-TIMEOUT`), TLS (`SX-SAP-TLS`), red (`SX-SAP-NETWORK`), DNS (`SX-SAP-DNS`), OAuth (`SX-SAP-OAUTH`).
+3. *Servidor*: comprueba que la respuesta es OData de Gateway (detecta portales HTML de SSO) y recoge `sap-server`, `dataserviceversion`…
+4. *Latencia*: tres muestras (aviso si la media supera 2 s).
+
+Guardar el resultado no cambia la versión del sistema (no invalida un formulario de edición abierto). La prueba del asistente (`POST /sap-systems/test`) también se audita y puede reutilizar la credencial guardada de un sistema existente (`reuse_credentials_from`) sin que vuelva al navegador.
+
+**Reglas añadidas:**
+
+- PRD exige HTTPS y verificación TLS. La URL base no admite credenciales, parámetros ni fragmentos.
+- Código `^[A-Z][A-Z0-9_]{2,29}$`, mandante de 3 dígitos, idioma SAP de 1–2 letras, timeout de 5 a 600 s, de 1 a 32 peticiones simultáneas.
+- X.509: se comprueba que la clave privada corresponde al certificado y su contraseña; el material se carga en OpenSSL desde un directorio temporal privado que se borra al instante.
+- OAuth 2.0: token cacheado hasta 60 s antes de caducar; ante un 401 se renueva una vez.
+- `__next` se reancla a la URL base configurada (Gateway informa a menudo su nombre interno de host).
+- `$metadata` se analiza con `defusedxml` (sin DTD ni entidades externas).
+- Auditoría: `sap_connection.created|updated|deleted|tested|credentials_rotated|activated|deactivated`; la credencial aparece siempre como `***`.
+- Los módulos de orígenes (It3) y pipelines (It6) registran sus dependencias en `SapToolkit.dependents`: impiden borrar el sistema si hay objetos activos y se listan en la pestaña *Orígenes*.
+
+**API real:** la del §4 más `POST /sap-systems/{id}/activate` y `POST /sap-systems/{id}/deactivate`. `GET …/services` admite `type` repetible (`odp`, `cds`, `other`, `unknown`), `search`, paginación y `refresh=true` (relee de SAP). Los nombres de servicio con espacio de nombres (`/NS/SERVICIO`) se aceptan en la ruta.
+
+**Frontend:** lista con semáforo de la última prueba; asistente de 5 pasos (*Datos generales · Conexión · Credenciales · Prueba · Resumen*; en edición, sin el paso de credenciales); detalle con pestañas *General · Servicios · Orígenes · Actividad*, diálogos *Cambiar credenciales* y *Duplicar*, y eliminación que exige escribir el código y un motivo. Nuevos componentes de `shared/ui`: `Stepper`, `TextAreaField` y `Checklist`; `ConfirmDialog` admite `confirmText`.
+
+**Mock SAP:** el catálogo admite `$expand=EntitySets`, las respuestas llevan `sap-server`/`dataserviceversion` y el usuario no distingue mayúsculas (como SAP). Las pruebas de integración lo levantan en proceso (también con TLS autofirmado) desde `backend/tests/support/sap_gateway.py`.
+
+**Pendiente para iteraciones posteriores:** borrador del asistente guardado automáticamente (plan 10 §4.1), semáforo de concurrencia entre procesos (It5–6), recuento de orígenes/pipelines en el listado (It3/It6), catálogo OData V4 y aviso proactivo de caducidad de certificados (It8, alertas).
 
 ## Criterios de aceptación
 

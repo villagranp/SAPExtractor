@@ -4,6 +4,7 @@ import {
   Button,
   Card,
   Checkbox,
+  Checklist,
   ConfirmDialog,
   DataTable,
   DetailList,
@@ -14,7 +15,9 @@ import {
   SelectField,
   Spinner,
   StatusPill,
+  Stepper,
   Tabs,
+  TextAreaField,
   TextField,
 } from '@/shared/ui';
 
@@ -88,6 +91,25 @@ export function UiKitPage() {
             copyLabel="Copiar"
             copiedLabel="Copiado"
           />
+        </Card>
+        <Card title="Asistente y comprobación">
+          <Stepper
+            label="Pasos"
+            current={1}
+            steps={[
+              { id: 'a', label: 'Datos' },
+              { id: 'b', label: 'Conexión' },
+              { id: 'c', label: 'Resumen' },
+            ]}
+          />
+          <Checklist
+            label="Prueba"
+            items={[
+              { id: '1', title: 'Red', tone: 'success', statusLabel: 'Correcto', meta: '12 ms' },
+              { id: '2', title: 'Autenticación', tone: 'danger', statusLabel: 'Error' },
+            ]}
+          />
+          <TextAreaField label="PEM" mono rows={2} placeholder="-----BEGIN CERTIFICATE-----" />
         </Card>
         <Card title="Diálogo">
           <Button

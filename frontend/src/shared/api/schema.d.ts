@@ -589,6 +589,196 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/sap-systems": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Sistemas SAP */
+        get: operations["list_systems_api_v1_sap_systems_get"];
+        put?: never;
+        /** Alta de sistema SAP (y prueba/activación opcionales) */
+        post: operations["create_system_api_v1_sap_systems_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sap-systems/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Prueba de conexión sin guardar (asistente) */
+        post: operations["test_unsaved_api_v1_sap_systems_test_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sap-systems/{system_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get System */
+        get: operations["get_system_api_v1_sap_systems__system_id__get"];
+        put?: never;
+        post?: never;
+        /** Baja lógica (destruye las credenciales); no se permite con objetos activos */
+        delete: operations["delete_system_api_v1_sap_systems__system_id__delete"];
+        options?: never;
+        head?: never;
+        /** Edita datos generales y de conexión (las credenciales tienen su propio endpoint) */
+        patch: operations["update_system_api_v1_sap_systems__system_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/sap-systems/{system_id}/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Prueba de conexión por pasos (guarda el resultado) */
+        post: operations["test_system_api_v1_sap_systems__system_id__test_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sap-systems/{system_id}/credentials/rotate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sustituye la credencial (o el tipo de autenticación) y prueba la conexión */
+        post: operations["rotate_credentials_api_v1_sap_systems__system_id__credentials_rotate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sap-systems/{system_id}/duplicate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Duplica la conexión (p. ej. de QAS a PRD cambiando URL y credenciales) */
+        post: operations["duplicate_system_api_v1_sap_systems__system_id__duplicate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sap-systems/{system_id}/activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Activa el sistema (exige una prueba correcta y vigente) */
+        post: operations["activate_system_api_v1_sap_systems__system_id__activate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sap-systems/{system_id}/deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Desactiva el sistema: impide nuevas ejecuciones */
+        post: operations["deactivate_system_api_v1_sap_systems__system_id__deactivate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sap-systems/{system_id}/services": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Catálogo de servicios de Gateway clasificado (ODP / CDS / otros) */
+        get: operations["list_services_api_v1_sap_systems__system_id__services_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sap-systems/{system_id}/services/{service_name}/entity-sets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Entity sets del servicio, con propiedades y soporte de delta */
+        get: operations["service_entity_sets_api_v1_sap_systems__system_id__services__service_name__entity_sets_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sap-systems/{system_id}/services/{service_name}/metadata": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** $metadata del servicio interpretado (tipos de entidad y propiedades) */
+        get: operations["service_metadata_api_v1_sap_systems__system_id__services__service_name__metadata_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -787,10 +977,95 @@ export interface components {
          */
         AuthSource: "local" | "entra";
         /**
+         * AuthType
+         * @enum {string}
+         */
+        AuthType: "basic" | "x509" | "oauth2_client_credentials";
+        /** BasicCredentialsIn */
+        BasicCredentialsIn: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            auth_type: "basic";
+            /**
+             * Username
+             * @description Usuario técnico de SAP
+             */
+            username: string;
+            /**
+             * Password
+             * Format: password
+             */
+            password: string;
+        };
+        /** CatalogPageResponse */
+        CatalogPageResponse: {
+            /** Items */
+            items: components["schemas"]["CatalogServiceResponse"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /**
+             * Fetched At
+             * Format: date-time
+             */
+            fetched_at: string;
+            /** From Cache */
+            from_cache: boolean;
+            /**
+             * Counts
+             * @description Servicios del catálogo por tipo (sin filtros)
+             */
+            counts: {
+                [key: string]: number;
+            };
+        };
+        /** CatalogServiceResponse */
+        CatalogServiceResponse: {
+            /** Technical Name */
+            technical_name: string;
+            /** Version */
+            version: number;
+            /** Service Id */
+            service_id: string;
+            /** Title */
+            title: string | null;
+            /** Description */
+            description: string | null;
+            /** Service Path */
+            service_path: string | null;
+            kind: components["schemas"]["ServiceKind"];
+            classified_by: components["schemas"]["ClassificationSource"] | null;
+            /** Supports Delta */
+            supports_delta: boolean | null;
+            /** Entity Sets */
+            entity_sets: string[] | null;
+            /** Odp Entity Sets */
+            odp_entity_sets: string[];
+        };
+        /**
          * Category
          * @enum {string}
          */
         Category: "auth" | "identity" | "config" | "execution" | "security" | "system";
+        /** CertificateInfo */
+        CertificateInfo: {
+            /** Subject */
+            subject: string;
+            /** Issuer */
+            issuer: string;
+            /**
+             * Not After
+             * Format: date-time
+             */
+            not_after: string;
+            /** Serial */
+            serial?: string | null;
+        };
         /** CheckResult */
         CheckResult: {
             status: components["schemas"]["CheckStatus"];
@@ -802,6 +1077,84 @@ export interface components {
          * @enum {string}
          */
         CheckStatus: "ok" | "fail";
+        /**
+         * ClassificationSource
+         * @enum {string}
+         */
+        ClassificationSource: "entity_sets" | "name";
+        /**
+         * CredentialInfo
+         * @description Datos visibles de la credencial (nunca el secreto).
+         */
+        CredentialInfo: {
+            /** Username */
+            username?: string | null;
+            /** Client Id */
+            client_id?: string | null;
+            /** Token Url */
+            token_url?: string | null;
+            /** Scope */
+            scope?: string | null;
+            /** Certificate Subject */
+            certificate_subject?: string | null;
+            /** Certificate Issuer */
+            certificate_issuer?: string | null;
+            /** Certificate Not After */
+            certificate_not_after?: string | null;
+        };
+        /** CredentialRotateRequest */
+        CredentialRotateRequest: {
+            /** Credentials */
+            credentials: components["schemas"]["BasicCredentialsIn"] | components["schemas"]["X509CredentialsIn"] | components["schemas"]["OAuth2CredentialsIn"];
+            /** Version */
+            version?: number | null;
+        };
+        /** DependentResponse */
+        DependentResponse: {
+            /** Kind */
+            kind: string;
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Active */
+            active: boolean;
+        };
+        /** EntitySetResponse */
+        EntitySetResponse: {
+            /** Name */
+            name: string;
+            /** Entity Type */
+            entity_type: string;
+            /** Label */
+            label: string | null;
+            odp_role: components["schemas"]["OdpRole"] | null;
+            /** Odp Name */
+            odp_name: string | null;
+            /** Supports Delta */
+            supports_delta: boolean;
+            /** Change Tracking */
+            change_tracking: boolean;
+            /** Pageable */
+            pageable: boolean;
+            /** Countable */
+            countable: boolean;
+            /** Keys */
+            keys: string[];
+            /** Properties */
+            properties: components["schemas"]["PropertyResponse"][];
+        };
+        /** EntityTypeResponse */
+        EntityTypeResponse: {
+            /** Name */
+            name: string;
+            /** Namespace */
+            namespace: string;
+            /** Keys */
+            keys: string[];
+            /** Properties */
+            properties: components["schemas"]["PropertyResponse"][];
+        };
         /** FieldError */
         FieldError: {
             /** Field */
@@ -877,6 +1230,31 @@ export interface components {
              */
             qr_svg_data_uri: string;
         };
+        /** OAuth2CredentialsIn */
+        OAuth2CredentialsIn: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            auth_type: "oauth2_client_credentials";
+            /** Token Url */
+            token_url: string;
+            /** Client Id */
+            client_id: string;
+            /**
+             * Client Secret
+             * Format: password
+             */
+            client_secret: string;
+            /** Scope */
+            scope?: string | null;
+        };
+        /**
+         * OdpRole
+         * @description Papel de un *entity set* en un servicio generado con *Redefine → ODP Extraction*.
+         * @enum {string}
+         */
+        OdpRole: "entity" | "facts" | "attributes" | "texts" | "hierarchy" | "delta_links";
         /**
          * Outcome
          * @enum {string}
@@ -886,6 +1264,17 @@ export interface components {
         Page_AuditEventResponse_: {
             /** Items */
             items: components["schemas"]["AuditEventResponse"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+        };
+        /** Page[SapSystemSummary] */
+        Page_SapSystemSummary_: {
+            /** Items */
+            items: components["schemas"]["SapSystemSummary"][];
             /** Total */
             total: number;
             /** Page */
@@ -952,6 +1341,31 @@ export interface components {
             request_id?: string | null;
             /** Errors */
             errors?: components["schemas"]["FieldError"][];
+        };
+        /** PropertyResponse */
+        PropertyResponse: {
+            /** Name */
+            name: string;
+            /** Edm Type */
+            edm_type: string;
+            /** Nullable */
+            nullable: boolean;
+            /** Is Key */
+            is_key: boolean;
+            /** Max Length */
+            max_length: number | null;
+            /** Precision */
+            precision: number | null;
+            /** Scale */
+            scale: number | null;
+            /** Label */
+            label: string | null;
+            /** Filterable */
+            filterable: boolean;
+            /** Sortable */
+            sortable: boolean;
+            /** Display Format */
+            display_format: string | null;
         };
         /** ReasonRequest */
         ReasonRequest: {
@@ -1030,6 +1444,312 @@ export interface components {
              */
             version?: number | null;
         };
+        /**
+         * SapEnvironment
+         * @enum {string}
+         */
+        SapEnvironment: "DEV" | "QAS" | "PRD";
+        /** SapSystemCreateRequest */
+        SapSystemCreateRequest: {
+            /**
+             * Base Url
+             * @example https://gateway.empresa.local:44300
+             */
+            base_url: string;
+            /**
+             * Sap Client
+             * @example 300
+             */
+            sap_client: string;
+            /**
+             * Language
+             * @default ES
+             */
+            language: string;
+            /**
+             * Tls Verify
+             * @default true
+             */
+            tls_verify: boolean;
+            /**
+             * Ca Bundle Pem
+             * @description CA propia (PEM) para validar el certificado
+             */
+            ca_bundle_pem?: string | null;
+            /** Proxy Url */
+            proxy_url?: string | null;
+            /**
+             * Timeout Seconds
+             * @default 60
+             */
+            timeout_seconds: number;
+            /**
+             * Max Concurrent Requests
+             * @default 4
+             */
+            max_concurrent_requests: number;
+            /**
+             * Code
+             * @example S4P_300
+             */
+            code: string;
+            /** Name */
+            name: string;
+            /** Description */
+            description?: string | null;
+            environment: components["schemas"]["SapEnvironment"];
+            system_type: components["schemas"]["SystemType"];
+            /** Tags */
+            tags?: string[];
+            /** Credentials */
+            credentials: components["schemas"]["BasicCredentialsIn"] | components["schemas"]["X509CredentialsIn"] | components["schemas"]["OAuth2CredentialsIn"];
+            /**
+             * Run Test
+             * @description Probar la conexión al guardar
+             * @default true
+             */
+            run_test: boolean;
+            /**
+             * Activate
+             * @description Activar si la prueba es correcta
+             * @default false
+             */
+            activate: boolean;
+        };
+        /** SapSystemDetail */
+        SapSystemDetail: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+            environment: components["schemas"]["SapEnvironment"];
+            system_type: components["schemas"]["SystemType"];
+            /** Base Url */
+            base_url: string;
+            /** Sap Client */
+            sap_client: string;
+            auth_type: components["schemas"]["AuthType"];
+            status: components["schemas"]["SystemStatus"];
+            /** Tags */
+            tags: string[];
+            /** Last Test At */
+            last_test_at: string | null;
+            /** Last Test Ok */
+            last_test_ok: boolean | null;
+            /** Test Outdated */
+            test_outdated: boolean;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Description */
+            description: string | null;
+            /** Language */
+            language: string;
+            credential_info: components["schemas"]["CredentialInfo"];
+            /** Tls Verify */
+            tls_verify: boolean;
+            /** Ca Bundle */
+            ca_bundle: components["schemas"]["CertificateInfo"][];
+            /** Proxy Url */
+            proxy_url: string | null;
+            /** Timeout Seconds */
+            timeout_seconds: number;
+            /** Max Concurrent Requests */
+            max_concurrent_requests: number;
+            /** Status Reason */
+            status_reason: string | null;
+            last_test_result: components["schemas"]["TestReportResponse"] | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by: string | null;
+            /** Updated By */
+            updated_by: string | null;
+            /** Version */
+            version: number;
+            /** Dependents */
+            dependents: components["schemas"]["DependentResponse"][];
+        };
+        /** SapSystemDuplicateRequest */
+        SapSystemDuplicateRequest: {
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+            environment: components["schemas"]["SapEnvironment"];
+            /** Base Url */
+            base_url?: string | null;
+            /** Sap Client */
+            sap_client?: string | null;
+            /**
+             * Credentials
+             * @description Credenciales nuevas; si se omiten se copian las del original
+             */
+            credentials?: (components["schemas"]["BasicCredentialsIn"] | components["schemas"]["X509CredentialsIn"] | components["schemas"]["OAuth2CredentialsIn"]) | null;
+        };
+        /** SapSystemSummary */
+        SapSystemSummary: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+            environment: components["schemas"]["SapEnvironment"];
+            system_type: components["schemas"]["SystemType"];
+            /** Base Url */
+            base_url: string;
+            /** Sap Client */
+            sap_client: string;
+            auth_type: components["schemas"]["AuthType"];
+            status: components["schemas"]["SystemStatus"];
+            /** Tags */
+            tags: string[];
+            /** Last Test At */
+            last_test_at: string | null;
+            /** Last Test Ok */
+            last_test_ok: boolean | null;
+            /** Test Outdated */
+            test_outdated: boolean;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * SapSystemTestRequest
+         * @description Prueba del asistente sin guardar.
+         */
+        SapSystemTestRequest: {
+            /**
+             * Base Url
+             * @example https://gateway.empresa.local:44300
+             */
+            base_url: string;
+            /**
+             * Sap Client
+             * @example 300
+             */
+            sap_client: string;
+            /**
+             * Language
+             * @default ES
+             */
+            language: string;
+            /**
+             * Tls Verify
+             * @default true
+             */
+            tls_verify: boolean;
+            /**
+             * Ca Bundle Pem
+             * @description CA propia (PEM) para validar el certificado
+             */
+            ca_bundle_pem?: string | null;
+            /** Proxy Url */
+            proxy_url?: string | null;
+            /**
+             * Timeout Seconds
+             * @default 60
+             */
+            timeout_seconds: number;
+            /**
+             * Max Concurrent Requests
+             * @default 4
+             */
+            max_concurrent_requests: number;
+            /** Code */
+            code?: string | null;
+            /** Credentials */
+            credentials?: (components["schemas"]["BasicCredentialsIn"] | components["schemas"]["X509CredentialsIn"] | components["schemas"]["OAuth2CredentialsIn"]) | null;
+            /**
+             * Reuse Credentials From
+             * @description Usar la credencial guardada de este sistema (edición/duplicado) si no se envían credenciales
+             */
+            reuse_credentials_from?: string | null;
+        };
+        /** SapSystemUpdateRequest */
+        SapSystemUpdateRequest: {
+            /**
+             * Version
+             * @description Versión leída (bloqueo optimista)
+             */
+            version?: number | null;
+            /** Name */
+            name?: string | null;
+            /** Description */
+            description?: string | null;
+            environment?: components["schemas"]["SapEnvironment"] | null;
+            system_type?: components["schemas"]["SystemType"] | null;
+            /** Tags */
+            tags?: string[] | null;
+            /** Base Url */
+            base_url?: string | null;
+            /** Sap Client */
+            sap_client?: string | null;
+            /** Language */
+            language?: string | null;
+            /** Tls Verify */
+            tls_verify?: boolean | null;
+            /**
+             * Ca Bundle Pem
+             * @description '' elimina la CA
+             */
+            ca_bundle_pem?: string | null;
+            /**
+             * Proxy Url
+             * @description '' elimina el proxy
+             */
+            proxy_url?: string | null;
+            /** Timeout Seconds */
+            timeout_seconds?: number | null;
+            /** Max Concurrent Requests */
+            max_concurrent_requests?: number | null;
+        };
+        /** SapSystemWithTestResponse */
+        SapSystemWithTestResponse: {
+            system: components["schemas"]["SapSystemDetail"];
+            test?: components["schemas"]["TestReportResponse"] | null;
+        };
+        /** ServiceEntitySetsResponse */
+        ServiceEntitySetsResponse: {
+            service: components["schemas"]["CatalogServiceResponse"];
+            /** Odata Version */
+            odata_version: string;
+            /** Entity Sets */
+            entity_sets: components["schemas"]["EntitySetResponse"][];
+        };
+        /**
+         * ServiceKind
+         * @enum {string}
+         */
+        ServiceKind: "odp" | "cds" | "other" | "unknown";
+        /** ServiceMetadataResponse */
+        ServiceMetadataResponse: {
+            service: components["schemas"]["CatalogServiceResponse"];
+            /** Odata Version */
+            odata_version: string;
+            /** Namespaces */
+            namespaces: string[];
+            /** Entity Types */
+            entity_types: components["schemas"]["EntityTypeResponse"][];
+            /** Entity Sets */
+            entity_sets: components["schemas"]["EntitySetResponse"][];
+        };
         /** SessionResponse */
         SessionResponse: {
             /**
@@ -1074,6 +1794,21 @@ export interface components {
         SessionStatusResponse: {
             stage: components["schemas"]["SessionStage"];
         };
+        /** StatusReasonRequest */
+        StatusReasonRequest: {
+            /** Reason */
+            reason?: string | null;
+        };
+        /**
+         * StepName
+         * @enum {string}
+         */
+        StepName: "network" | "authentication" | "server_info" | "latency";
+        /**
+         * StepStatus
+         * @enum {string}
+         */
+        StepStatus: "ok" | "warning" | "failed" | "skipped";
         /** SystemInfo */
         SystemInfo: {
             /** Name */
@@ -1085,6 +1820,17 @@ export interface components {
             /** Build Commit */
             build_commit: string;
         };
+        /**
+         * SystemStatus
+         * @description ``draft``: sin prueba correcta aún · ``active``: usable · ``inactive``: desactivado.
+         * @enum {string}
+         */
+        SystemStatus: "draft" | "active" | "inactive";
+        /**
+         * SystemType
+         * @enum {string}
+         */
+        SystemType: "ECC" | "S4HANA_ONPREM" | "S4HANA_CLOUD";
         /** TemporaryPasswordResponse */
         TemporaryPasswordResponse: {
             /**
@@ -1092,6 +1838,42 @@ export interface components {
              * @description Se muestra UNA vez
              */
             temporary_password: string;
+        };
+        /** TestReportResponse */
+        TestReportResponse: {
+            /** Ok */
+            ok: boolean;
+            /** Summary */
+            summary: string;
+            /** Error Code */
+            error_code?: string | null;
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /**
+             * Finished At
+             * Format: date-time
+             */
+            finished_at: string;
+            /** Steps */
+            steps: components["schemas"]["TestStepResponse"][];
+        };
+        /** TestStepResponse */
+        TestStepResponse: {
+            name: components["schemas"]["StepName"];
+            status: components["schemas"]["StepStatus"];
+            /** Message */
+            message: string;
+            /** Duration Ms */
+            duration_ms: number;
+            /** Error Code */
+            error_code?: string | null;
+            /** Details */
+            details: {
+                [key: string]: unknown;
+            };
         };
         /** UserCreateRequest */
         UserCreateRequest: {
@@ -1235,6 +2017,23 @@ export interface components {
              * @description Versión leída; si no coincide responde 409
              */
             version?: number | null;
+        };
+        /** X509CredentialsIn */
+        X509CredentialsIn: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            auth_type: "x509";
+            /** Certificate Pem */
+            certificate_pem: string;
+            /**
+             * Private Key Pem
+             * Format: password
+             */
+            private_key_pem: string;
+            /** Private Key Passphrase */
+            private_key_passphrase?: string | null;
         };
     };
     responses: never;
@@ -2545,6 +3344,482 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AuditEventResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    list_systems_api_v1_sap_systems_get: {
+        parameters: {
+            query?: {
+                q?: string | null;
+                environment?: components["schemas"]["SapEnvironment"] | null;
+                status?: components["schemas"]["SystemStatus"] | null;
+                system_type?: components["schemas"]["SystemType"] | null;
+                tag?: string | null;
+                page?: number;
+                page_size?: number;
+                sort?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_SapSystemSummary_"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    create_system_api_v1_sap_systems_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SapSystemCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SapSystemWithTestResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    test_unsaved_api_v1_sap_systems_test_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SapSystemTestRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TestReportResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    get_system_api_v1_sap_systems__system_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                system_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SapSystemDetail"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    delete_system_api_v1_sap_systems__system_id__delete: {
+        parameters: {
+            query?: {
+                reason?: string | null;
+            };
+            header?: never;
+            path: {
+                system_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    update_system_api_v1_sap_systems__system_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                system_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SapSystemUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SapSystemDetail"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    test_system_api_v1_sap_systems__system_id__test_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                system_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SapSystemWithTestResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    rotate_credentials_api_v1_sap_systems__system_id__credentials_rotate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                system_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CredentialRotateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SapSystemWithTestResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    duplicate_system_api_v1_sap_systems__system_id__duplicate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                system_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SapSystemDuplicateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SapSystemWithTestResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    activate_system_api_v1_sap_systems__system_id__activate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                system_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SapSystemDetail"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    deactivate_system_api_v1_sap_systems__system_id__deactivate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                system_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StatusReasonRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SapSystemDetail"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    list_services_api_v1_sap_systems__system_id__services_get: {
+        parameters: {
+            query?: {
+                search?: string | null;
+                /** @description Uno o varios tipos */
+                type?: components["schemas"]["ServiceKind"][] | null;
+                /** @description Ignorar la caché y releer de SAP */
+                refresh?: boolean;
+                page?: number;
+                page_size?: number;
+                sort?: string | null;
+            };
+            header?: never;
+            path: {
+                system_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CatalogPageResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    service_entity_sets_api_v1_sap_systems__system_id__services__service_name__entity_sets_get: {
+        parameters: {
+            query?: {
+                version?: number;
+            };
+            header?: never;
+            path: {
+                system_id: string;
+                service_name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceEntitySetsResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    service_metadata_api_v1_sap_systems__system_id__services__service_name__metadata_get: {
+        parameters: {
+            query?: {
+                version?: number;
+            };
+            header?: never;
+            path: {
+                system_id: string;
+                service_name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceMetadataResponse"];
                 };
             };
             /** @description Error */
