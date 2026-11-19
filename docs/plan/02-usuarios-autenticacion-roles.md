@@ -168,17 +168,17 @@ GET    /api/v1/api-tokens       POST /api/v1/api-tokens    DELETE /api/v1/api-to
 
 ## Tareas
 
-**Iteración 1 (local + RBAC)**
-- [ ] Modelo y migraciones (`user`, `local_credential`, `role`, `permission`, `user_role`, `session`).
-- [ ] Semilla de permisos y roles de sistema (idempotente en cada arranque).
-- [ ] CLI `create-admin` y `reset-password`.
-- [ ] Login/logout local, sesiones de servidor, CSRF, bloqueo por intentos, rate limiting.
-- [ ] MFA TOTP.
-- [ ] Dependencia `require_permission` y `GET /me`.
-- [ ] CRUD de usuarios y roles con reglas de negocio (último admin, auto-edición).
-- [ ] Tokens API.
-- [ ] Pantallas 1–4, 6, 7.
-- [ ] Eventos de auditoría para todas las acciones.
+**Iteración 1 (local + RBAC)** ✅
+- [x] Modelo y migraciones (`user_account`, `local_credential`, `role`, `permission`, `role_permission`, `user_role`, `user_session`, `api_token`).
+- [x] Semilla de permisos y roles de sistema (idempotente en cada `sapextract db upgrade`).
+- [x] CLI `create-admin` y `reset-password` (+ administrador inicial con `SX_BOOTSTRAP_ADMIN_*`).
+- [x] Login/logout local, sesiones de servidor, CSRF, bloqueo por intentos, rate limiting.
+- [x] MFA TOTP.
+- [x] Dependencia `require_permission` y `GET /me`.
+- [x] CRUD de usuarios y roles con reglas de negocio (último admin, auto-edición, break-glass, anti-escalada).
+- [x] Tokens API.
+- [x] Pantallas 1–4, 6, 7.
+- [x] Eventos de auditoría para todas las acciones.
 
 **Iteración 7 (Entra ID)**
 - [ ] `identity_provider` + `idp_group_mapping` con secreto cifrado.
@@ -186,6 +186,35 @@ GET    /api/v1/api-tokens       POST /api/v1/api-tokens    DELETE /api/v1/api-to
 - [ ] JIT y mapeo de grupos; fallback a Graph para exceso de grupos.
 - [ ] Pantalla 5 con prueba de configuración y guía.
 - [ ] Pruebas con un tenant de desarrollo.
+
+## Lo construido en la iteración 1
+
+Código: `backend/src/sapextract/identity/` y `frontend/src/features/{auth,users,roles,api-tokens}/`.
+
+**Diferencias con el diseño inicial (decididas al implementar):**
+
+| Tema | Diseño | Implementado | Motivo |
+|---|---|---|---|
+| Nombres de tabla | `user`, `session` | `user_account`, `user_session` | `user` es palabra reservada en PostgreSQL |
+| Identificador de sesión | `id` = hash del token | `id` UUID + `token_hash` único | Permite listar y revocar sesiones sin exponer hashes; la rotación solo cambia `token_hash` |
+| Permisos efectivos | Cacheados en la sesión | Calculados en cada petición (una consulta) | Siempre correctos al cambiar roles, sin invalidaciones |
+| Política de login local | Ajuste en BD | Variable `SX_LOCAL_LOGIN_ENABLED_FOR` | Se moverá a la pantalla de ajustes cuando exista (It7, con Entra ID) |
+| Rate limiting | — | En memoria por proceso (IP + ruta) | Freno a la fuerza bruta; el bloqueo de cuentas sí es global (BD) |
+| Lista de contraseñas filtradas | Lista completa | Lista mínima incluida + `SX_PASSWORD_DENYLIST_FILE` | Sin llamadas externas; en PRD se carga una lista amplia |
+
+**Flujo de login por pasos.** Cada sesión tiene un `stage`: `mfa` → `password_change` → `mfa_setup` → `active`. Solo `active` da acceso a la API; `GET /me` responde en cualquier paso para que el SPA muestre el siguiente. Cada avance rota el token de sesión y el token CSRF. Las sesiones a medio login caducan a los 10 minutos.
+
+**Reglas añadidas:**
+- *Anti-escalada*: nadie concede (ni quita) roles, permisos de un rol ni alcances de un token API que no tenga él mismo.
+- El administrador *break-glass* no se puede desactivar, bloquear, anonimizar ni cambiar de roles.
+- Anonimizar exige desactivar antes e indicar un motivo.
+- Restablecer la contraseña o el MFA, desactivar o bloquear un usuario cierra sus sesiones; desactivar también revoca sus tokens API.
+- Bloqueo temporal tras 5 fallos (5 min, duplicándose con cada fallo adicional, máx. 24 h); los fallos de MFA cuentan igual.
+- Respuesta idéntica para usuario inexistente, contraseña incorrecta, cuenta bloqueada o desactivada (el motivo real queda en la auditoría).
+
+**API real:** además de la del §7: `POST /users/{id}/lock`, `POST /users/{id}/reset-mfa`, `GET /users/{id}/sessions`, `DELETE /me/sessions/{id}`, `POST /auth/mfa/setup` + `POST /auth/mfa/enable` (en lugar de `/mfa/verify` para el alta). `POST /auth/mfa/verify` es el segundo factor durante el login.
+
+**Pendiente para iteraciones posteriores:** pantalla de ajustes de identidad, acciones masivas en la tabla de usuarios, sincronización con Entra (It7).
 
 ## Criterios de aceptación
 

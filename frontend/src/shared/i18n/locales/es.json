@@ -4,7 +4,28 @@
     "tagline": "Orquestador de extracciones SAP",
     "skipToContent": "Saltar al contenido"
   },
+  "common": {
+    "loading": "Cargando…",
+    "close": "Cerrar",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "save": "Guardar",
+    "saved": "Cambios guardados.",
+    "done": "Operación realizada.",
+    "create": "Crear",
+    "delete": "Eliminar",
+    "copy": "Copiar",
+    "copied": "Copiado",
+    "search": "Buscar",
+    "all": "Todos",
+    "yes": "Sí",
+    "no": "No",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "pageSummary": "{from}–{to} de {total}"
+  },
   "nav": {
+    "menu": "Menú principal",
     "home": "Inicio",
     "pipelines": "Pipelines",
     "runs": "Ejecuciones",
@@ -12,17 +33,22 @@
     "sources": "Orígenes",
     "destinations": "Destinos",
     "alerts": "Alertas",
-    "users": "Usuarios y roles",
+    "users": "Usuarios",
+    "roles": "Roles",
+    "apiTokens": "Tokens API",
     "audit": "Auditoría",
-    "settings": "Ajustes",
+    "identityProvider": "Microsoft Entra ID",
     "sectionData": "Datos",
     "sectionOperation": "Operación",
     "sectionAdmin": "Administración",
     "soon": "Iteración {{it}}"
   },
+  "userMenu": {
+    "logout": "Cerrar sesión"
+  },
   "home": {
     "title": "Estado de la plataforma",
-    "description": "Iteración 0: base técnica en marcha. Los módulos se habilitan según el roadmap.",
+    "description": "Base técnica, usuarios, roles y auditoría en marcha. Los módulos se habilitan según el roadmap.",
     "api": "API",
     "database": "Base de metadatos",
     "migrations": "Migraciones",
@@ -34,15 +60,260 @@
     "checking": "Comprobando…",
     "unreachable": "Sin conexión con la API",
     "nextSteps": "Próximos pasos",
-    "nextStepsBody": "Iteración 1: usuarios, roles y auditoría. Iteración 2: conexiones SAP."
+    "nextStepsBody": "Iteración 2: conexiones SAP. Iteración 4: destinos (CSV, SQL Server, Snowflake)."
   },
   "login": {
     "title": "Iniciar sesión",
     "username": "Usuario",
     "password": "Contraseña",
     "submit": "Entrar",
+    "signingIn": "Comprobando…",
     "microsoft": "Entrar con Microsoft",
-    "pending": "El inicio de sesión se habilita en la iteración 1."
+    "apiUnavailable": "No hay conexión con la API. Inténtelo de nuevo en unos minutos.",
+    "mfaTitle": "Verificación en dos pasos",
+    "mfaHelp": "Introduzca el código de 6 dígitos de su aplicación de autenticación.",
+    "verify": "Verificar",
+    "passwordChangeTitle": "Cambie su contraseña",
+    "passwordChangeHelp": "Está usando una contraseña temporal. Elija una nueva para continuar.",
+    "mfaSetupTitle": "Configure la verificación en dos pasos",
+    "mfaSetupHelp": "Su cuenta de administrador requiere un segundo factor antes de continuar.",
+    "useAnotherAccount": "Usar otra cuenta"
+  },
+  "password": {
+    "current": "Contraseña actual",
+    "new": "Nueva contraseña",
+    "confirm": "Repita la nueva contraseña",
+    "mismatch": "Las contraseñas no coinciden.",
+    "submit": "Cambiar contraseña",
+    "policyHint": "Mínimo 12 caracteres. No use contraseñas conocidas, secuencias ni su nombre de usuario.",
+    "changed": "Contraseña actualizada. Se cerraron sus demás sesiones."
+  },
+  "mfa": {
+    "intro": "Añada un segundo factor con una aplicación como Microsoft Authenticator o Google Authenticator.",
+    "setupStart": "Configurar segundo factor",
+    "scanQr": "Escanee el código QR con su aplicación de autenticación.",
+    "enterCode": "Escriba el código de 6 dígitos que muestra la aplicación.",
+    "qrAlt": "Código QR para la aplicación de autenticación",
+    "manualKey": "¿No puede escanear? Clave manual:",
+    "code": "Código de verificación",
+    "enable": "Activar"
+  },
+  "profile": {
+    "title": "Mi perfil",
+    "description": "Sus datos, seguridad y sesiones abiertas.",
+    "data": "Datos",
+    "security": "Verificación en dos pasos",
+    "mfaOn": "La verificación en dos pasos está activa.",
+    "entraManaged": "Su cuenta se gestiona en Microsoft Entra ID.",
+    "changePassword": "Cambiar contraseña",
+    "sessions": "Sesiones abiertas",
+    "sessionsEmpty": "No hay sesiones abiertas.",
+    "started": "Inicio",
+    "lastSeen": "Última actividad",
+    "ip": "IP",
+    "device": "Navegador",
+    "current": "Esta sesión",
+    "revoke": "Cerrar"
+  },
+  "forbidden": {
+    "title": "Sin acceso",
+    "body": "Su rol no incluye permiso para esta pantalla. Pida acceso a un administrador."
+  },
+  "users": {
+    "title": "Usuarios",
+    "description": "Altas, roles, bloqueos y bajas. Toda acción queda en la auditoría.",
+    "new": "Nuevo usuario",
+    "searchPlaceholder": "Usuario, nombre o correo",
+    "empty": "No hay usuarios con estos filtros.",
+    "breakGlass": "Administrador de emergencia",
+    "tempLocked": "Bloqueo temporal",
+    "fields": {
+      "username": "Usuario",
+      "displayName": "Nombre visible",
+      "email": "Correo",
+      "authSource": "Origen",
+      "roles": "Roles",
+      "role": "Rol",
+      "status": "Estado",
+      "lastLogin": "Último acceso",
+      "failedAttempts": "Intentos fallidos",
+      "lockedUntil": "Bloqueado hasta",
+      "mustChange": "Debe cambiar la contraseña",
+      "created": "Alta",
+      "updated": "Última modificación"
+    },
+    "statuses": {
+      "active": "Activo",
+      "invited": "Pendiente de primer acceso",
+      "locked": "Bloqueado",
+      "disabled": "Desactivado"
+    },
+    "authSources": {
+      "local": "Local",
+      "entra": "Microsoft Entra ID"
+    },
+    "create": {
+      "title": "Nuevo usuario",
+      "usernameHint": "Minúsculas, números y . _ @ - (3 a 100 caracteres).",
+      "localHint": "Se generará una contraseña temporal que deberá cambiar al entrar.",
+      "entraHint": "Podrá entrar con su cuenta corporativa cuando se configure Entra ID (iteración 7).",
+      "submit": "Crear usuario",
+      "createdTitle": "Usuario creado",
+      "createdBody": "Se creó el usuario {{username}}.",
+      "openUser": "Ver usuario",
+      "tempPassword": "Contraseña temporal",
+      "tempPasswordWarning": "Entréguela por un canal seguro. No se volverá a mostrar y deberá cambiarse en el primer acceso."
+    },
+    "actions": {
+      "unlock": "Desbloquear",
+      "lock": "Bloquear",
+      "reset-mfa": "Restablecer MFA",
+      "reset-password": "Restablecer contraseña",
+      "revoke-sessions": "Cerrar sesiones",
+      "enable": "Reactivar",
+      "disable": "Desactivar",
+      "anonymize": "Anonimizar"
+    },
+    "confirm": {
+      "unlock": "Se quitará el bloqueo de {{name}} y se pondrán a cero sus intentos fallidos.",
+      "lock": "{{name}} no podrá entrar hasta que se desbloquee. Se cerrarán sus sesiones.",
+      "reset-mfa": "Se eliminará el segundo factor de {{name}}; deberá configurarlo de nuevo. Se cerrarán sus sesiones.",
+      "reset-password": "Se generará una contraseña temporal para {{name}} y se cerrarán sus sesiones.",
+      "revoke-sessions": "Se cerrarán todas las sesiones abiertas de {{name}}.",
+      "enable": "{{name}} podrá volver a entrar con sus roles actuales.",
+      "disable": "{{name}} no podrá entrar. Se cerrarán sus sesiones y se revocarán sus tokens API. El historial se conserva.",
+      "anonymize": "Se sustituirán los datos personales de {{name}}. La acción es irreversible; la auditoría se conserva."
+    },
+    "detail": {
+      "tabsLabel": "Secciones del usuario",
+      "tabs": {
+        "data": "Datos",
+        "roles": "Roles",
+        "sessions": "Sesiones",
+        "activity": "Actividad"
+      },
+      "info": "Información",
+      "edit": "Editar datos",
+      "rolesTitle": "Roles asignados",
+      "rolesHelp": "Solo puede asignar o quitar roles cuyos permisos tenga usted. Nadie puede cambiar sus propios roles.",
+      "saveRoles": "Guardar roles",
+      "selfHint": "Es su propio usuario: los cambios de estado y de roles debe hacerlos otro administrador.",
+      "anonymized": "Usuario anonimizado: solo se conserva su historial de auditoría.",
+      "reason": "Motivo"
+    }
+  },
+  "roles": {
+    "title": "Roles",
+    "description": "Roles de sistema y personalizados con sus permisos.",
+    "new": "Nuevo rol",
+    "system": "Sistema",
+    "custom": "Personalizado",
+    "systemReadonly": "Los roles de sistema no se pueden modificar. Cree un rol personalizado si necesita otra combinación.",
+    "selectedCount": "{{count}} de {{total}} permisos",
+    "selectModule": "Seleccionar todo {{module}}",
+    "fields": {
+      "name": "Nombre",
+      "code": "Código",
+      "type": "Tipo",
+      "description": "Descripción",
+      "permissions": "Permisos",
+      "users": "Usuarios"
+    },
+    "editor": {
+      "general": "Datos generales",
+      "codeHint": "Identificador estable: minúsculas, números y guion bajo. No se puede cambiar después.",
+      "newTitle": "Nuevo rol",
+      "deleteTitle": "Eliminar rol",
+      "deleteConfirm": "Se eliminará el rol {{name}}. Solo es posible si no está asignado a ningún usuario."
+    }
+  },
+  "audit": {
+    "title": "Auditoría",
+    "description": "Quién hizo qué, cuándo y desde dónde. Registro inmutable encadenado por hash.",
+    "empty": "No hay eventos con estos filtros.",
+    "columns": {
+      "when": "Fecha",
+      "actor": "Actor",
+      "action": "Acción",
+      "category": "Categoría",
+      "resource": "Recurso",
+      "outcome": "Resultado"
+    },
+    "categories": {
+      "auth": "Autenticación",
+      "identity": "Identidad",
+      "config": "Configuración",
+      "execution": "Ejecución",
+      "security": "Seguridad",
+      "system": "Sistema"
+    },
+    "outcomes": {
+      "success": "Correcto",
+      "failure": "Fallido",
+      "denied": "Denegado"
+    },
+    "actorTypes": {
+      "user": "usuario",
+      "api_token": "token API",
+      "system": "sistema"
+    },
+    "filters": {
+      "from": "Desde",
+      "to": "Hasta",
+      "actor": "Actor",
+      "category": "Categoría",
+      "action": "Acción",
+      "outcome": "Resultado"
+    },
+    "export": {
+      "csv": "Exportar CSV",
+      "json": "Exportar JSON"
+    },
+    "integrity": {
+      "ok": "Integridad verificada ({{count}} eventos)",
+      "fail": "Cadena rota en el evento {{seq}}",
+      "never": "Integridad sin verificar",
+      "verify": "Verificar integridad",
+      "verifying": "Verificando…"
+    },
+    "detail": {
+      "title": "Detalle del evento",
+      "reason": "Motivo",
+      "seq": "Secuencia",
+      "changes": "Cambios",
+      "noChanges": "El evento no registra cambios de datos.",
+      "field": "Campo",
+      "before": "Antes",
+      "after": "Después",
+      "context": "Contexto",
+      "hash": "Hash"
+    }
+  },
+  "apiTokens": {
+    "title": "Tokens API",
+    "description": "Credenciales para integrar otras herramientas (Authorization: Bearer). El valor solo se muestra al crearlo.",
+    "new": "Nuevo token",
+    "empty": "No hay tokens API.",
+    "createdTitle": "Token creado",
+    "secretLabel": "Valor del token",
+    "secretWarning": "Cópielo ahora y guárdelo en un gestor de secretos: no se volverá a mostrar.",
+    "usage": "Úselo en la cabecera Authorization: Bearer <token>.",
+    "revoke": "Revocar",
+    "revokeConfirm": "El token {{name}} dejará de funcionar de inmediato.",
+    "fields": {
+      "name": "Nombre",
+      "owner": "Usuario",
+      "scopes": "Permisos",
+      "status": "Estado",
+      "expires": "Caduca",
+      "expiresInDays": "Caducidad (días)",
+      "lastUsed": "Último uso"
+    },
+    "statuses": {
+      "active": "Activo",
+      "expired": "Caducado",
+      "revoked": "Revocado"
+    }
   },
   "notFound": {
     "title": "Página no encontrada",

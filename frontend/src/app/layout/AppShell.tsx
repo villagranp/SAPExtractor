@@ -1,21 +1,25 @@
 import { useTranslation } from 'react-i18next';
 import { Link, NavLink, Outlet } from 'react-router';
+import { useLogout, useMe } from '@/features/auth/api/queries';
 import { useSystemInfo } from '@/features/system/api/queries';
-import { StatusPill } from '@/shared/ui';
-import { navigation } from './navigation';
+import { Button, StatusPill } from '@/shared/ui';
+import { visibleNavigation } from './navigation';
 import './layout.css';
 
 /** Layout PROVISIONAL: se sustituirá por el de la plantilla corporativa (iteración 1b). */
 export function AppShell() {
   const { t } = useTranslation();
   const info = useSystemInfo();
+  const me = useMe();
+  const logout = useLogout();
+  const sections = visibleNavigation(me.data?.permissions ?? []);
 
   return (
     <div className="sx-shell">
       <a className="sx-skip" href="#sx-main">
         {t('app.skipToContent')}
       </a>
-      <aside className="sx-sidebar" aria-label="Menú principal">
+      <aside className="sx-sidebar" aria-label={t('nav.menu')}>
         <Link to="/" className="sx-brand">
           <img src="/favicon.svg" alt="" width={28} height={28} />
           <span>
@@ -24,14 +28,14 @@ export function AppShell() {
           </span>
         </Link>
         <nav>
-          {navigation.map((section, i) => (
+          {sections.map((section, i) => (
             <div key={section.titleKey ?? i} className="sx-nav-section">
               {section.titleKey && <h2>{t(section.titleKey)}</h2>}
               <ul>
                 {section.items.map((item) => (
                   <li key={item.to}>
                     {item.iteration === undefined ? (
-                      <NavLink to={item.to} end className="sx-nav-link">
+                      <NavLink to={item.to} end={item.to === '/'} className="sx-nav-link">
                         {t(item.labelKey)}
                       </NavLink>
                     ) : (
@@ -54,7 +58,23 @@ export function AppShell() {
               {info.data.environment.toUpperCase()}
             </StatusPill>
           )}
-          <Link to="/login">{t('login.title')}</Link>
+          {me.data && (
+            <div className="sx-usermenu">
+              <Link to="/profile" className="sx-usermenu__name">
+                {me.data.display_name}
+                <small>{me.data.username}</small>
+              </Link>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  logout.mutate();
+                }}
+                disabled={logout.isPending}
+              >
+                {t('userMenu.logout')}
+              </Button>
+            </div>
+          )}
         </header>
         <main id="sx-main" className="sx-content" tabIndex={-1}>
           <Outlet />

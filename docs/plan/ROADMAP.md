@@ -26,7 +26,7 @@ v2   Streaming (plan 12)
 | It | Nombre | Planes | Entregable demostrable | Depende de |
 |---|---|---|---|---|
 | **0** ✅ | Fundaciones + Spike SAP (falta ejecutar el spike en el SAP real) | [01](01-fundaciones.md), [10](10-frontend-y-ux.md) §0 | `docker compose up` con API, front, BD, mock SAP; CI; ADR 0002 con el comportamiento real del delta en el SAP de AG | — |
-| **1** | Identidad local, RBAC y auditoría base | [02](02-usuarios-autenticacion-roles.md) (local), [03](03-auditoria-y-logs.md) (base) | Login admin local + MFA; gestión de usuarios y roles; pantalla de auditoría con integridad verificable | 0 |
+| **1** ✅ | Identidad local, RBAC y auditoría base | [02](02-usuarios-autenticacion-roles.md) (local), [03](03-auditoria-y-logs.md) (base) | Login admin local + MFA; gestión de usuarios y roles; pantalla de auditoría con integridad verificable | 0 |
 | **1b** | Integración de plantilla | [10](10-frontend-y-ux.md) §1 | Layout y design system con la plantilla corporativa; `/ui-kit` | 0 + plantilla recibida |
 | **2** | Conexiones SAP | [04](04-conexiones-sap.md) | Alta de sistema SAP, prueba de conexión por pasos, explorador de servicios ODP/CDS | 1 |
 | **3** | Orígenes SAP | [05](05-origenes-sap.md) | Asistente de origen (extractor estándar, Z y CDS), esquema versionado, vista previa sin suscripción; guía SAP validada | 2 |

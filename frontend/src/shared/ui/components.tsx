@@ -109,8 +109,8 @@ export function EmptyState({ title, children, action }: EmptyStateProps) {
 // ------------------------------------------------------------------ TextField
 export interface TextFieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'id'> {
   label: string;
-  hint?: string;
-  error?: string;
+  hint?: string | undefined;
+  error?: string | undefined;
 }
 
 export function TextField({ label, hint, error, className, ...rest }: TextFieldProps) {

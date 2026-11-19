@@ -1,11 +1,13 @@
 /**
- * Menú principal. `iteration` indica en qué iteración del ROADMAP se habilita la opción;
- * mientras tanto se muestra deshabilitada con la etiqueta correspondiente.
+ * Menú principal.
+ * - `iteration`: iteración del ROADMAP en la que se habilita; mientras tanto se ve deshabilitada.
+ * - `permission`: la opción solo aparece si el usuario tiene ese permiso (la API también lo exige).
  */
 export interface NavItem {
   to: string;
   labelKey: string;
   iteration?: number;
+  permission?: string;
 }
 
 export interface NavSection {
@@ -34,9 +36,23 @@ export const navigation: NavSection[] = [
   {
     titleKey: 'nav.sectionAdmin',
     items: [
-      { to: '/admin/users', labelKey: 'nav.users', iteration: 1 },
-      { to: '/admin/audit', labelKey: 'nav.audit', iteration: 1 },
-      { to: '/admin/settings', labelKey: 'nav.settings', iteration: 1 },
+      { to: '/admin/users', labelKey: 'nav.users', permission: 'user:read' },
+      { to: '/admin/roles', labelKey: 'nav.roles', permission: 'role:read' },
+      { to: '/admin/api-tokens', labelKey: 'nav.apiTokens', permission: 'api_token:manage' },
+      { to: '/admin/audit', labelKey: 'nav.audit', permission: 'audit:read' },
+      { to: '/admin/identity-provider', labelKey: 'nav.identityProvider', iteration: 7 },
     ],
   },
 ];
+
+/** Secciones visibles para un conjunto de permisos (sin secciones vacías). */
+export function visibleNavigation(permissions: readonly string[]): NavSection[] {
+  return navigation
+    .map((section) => ({
+      ...section,
+      items: section.items.filter(
+        (item) => item.permission === undefined || permissions.includes(item.permission),
+      ),
+    }))
+    .filter((section) => section.items.length > 0);
+}

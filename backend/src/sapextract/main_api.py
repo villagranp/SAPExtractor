@@ -10,6 +10,7 @@ from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from sapextract import __version__
+from sapextract.audit.api import routes as audit_routes
 from sapextract.core import health
 from sapextract.core.config import Settings, get_settings
 from sapextract.core.db import Database
@@ -17,6 +18,9 @@ from sapextract.core.errors import ProblemDetails, register_exception_handlers
 from sapextract.core.events import EventBus
 from sapextract.core.logging import configure_logging
 from sapextract.core.middleware import RequestContextMiddleware
+from sapextract.core.ratelimit import SlidingWindowLimiter
+from sapextract.identity.api import admin_routes, auth_routes
+from sapextract.identity.application.toolkit import IdentityToolkit
 
 log = structlog.get_logger(__name__)
 
@@ -26,6 +30,9 @@ def build_api_router() -> APIRouter:
     api = APIRouter(responses={"default": {"model": ProblemDetails, "description": "Error"}})
     api.include_router(health.router)
     # Los módulos se registran aquí a medida que se implementan (ver docs/plan/ROADMAP.md).
+    api.include_router(auth_routes.router)
+    api.include_router(admin_routes.router)
+    api.include_router(audit_routes.router)
     return api
 
 
@@ -53,6 +60,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.settings = settings
     app.state.db = Database(settings)
     app.state.events = EventBus()
+    app.state.identity = IdentityToolkit.build(settings)
+    app.state.auth_limiter = SlidingWindowLimiter(settings.auth_rate_limit_per_minute)
 
     register_exception_handlers(app)
     if settings.cors_origins:

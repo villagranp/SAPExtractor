@@ -110,12 +110,20 @@ GET  /api/v1/settings/retention    PUT /api/v1/settings/retention
 
 ## Tareas
 
-**Iteración 1**
-- [ ] Tabla `audit_event` particionada + trigger anti-modificación + rol de BD restringido.
-- [ ] `AuditService`, cálculo de diff y enmascarado.
-- [ ] Cadena de hash + comando y endpoint de verificación.
-- [ ] Logging estructurado con enmascarado y `request_id`.
-- [ ] Pantalla de auditoría con filtros, detalle y exportación.
+**Iteración 1** ✅
+- [x] Tabla `audit_event` particionada + trigger anti-modificación. *(Rol de BD restringido sin `UPDATE/DELETE` → iteración 9, con el despliegue de PRD.)*
+- [x] `AuditService`, cálculo de diff y enmascarado.
+- [x] Cadena de hash + comando y endpoint de verificación.
+- [x] Logging estructurado con enmascarado y `request_id` (iteración 0).
+- [x] Pantalla de auditoría con filtros, detalle y exportación.
+
+**Lo construido en la iteración 1** (`backend/src/sapextract/audit/`, `frontend/src/features/audit/`):
+- Particiones mensuales creadas por la función `sx.audit_ensure_partitions(n)` (migración + tarea diaria del scheduler, 3 meses por delante) y una partición `DEFAULT` de seguridad. Triggers que rechazan `UPDATE`, `DELETE` y `TRUNCATE` (también sobre cada partición).
+- La escritura de la cadena se serializa con `pg_advisory_xact_lock` dentro de la transacción del cambio auditado; los fallos y denegaciones (`auth.login_failed`, `auth.access_denied`…) se registran en transacción propia.
+- La verificación se detiene en el primer evento roto e indica si fue modificado o si falta/está desordenado el enlace; el resultado queda en `system_setting` (`audit.last_verification`) y genera `audit.verified` o `audit.verification_failed`.
+- Cada endpoint que modifica datos declara sus eventos en el OpenAPI (`x-sx-audit`); una prueba lo exige. Otra prueba busca secretos sembrados (contraseñas, MFA, tokens) en la auditoría y en los logs.
+- Exportación CSV (con protección contra fórmulas de Excel) o JSON, síncrona hasta 100 000 eventos; la asíncrona para volúmenes mayores queda para cuando haga falta.
+- Pestaña «Actividad» reutilizable (`AuditTrail`) ya integrada en la ficha de usuario.
 
 **Iteración 5**
 - [ ] `run_step`, `run_log`, `run_metric` + archivo JSONL.

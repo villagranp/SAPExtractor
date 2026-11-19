@@ -14,6 +14,8 @@ Plataforma para orquestar extracciones SAP (ODP/CDS vía OData) con deltas hacia
 - Backend = monolito modular; cada módulo con capas `api/ application/ domain/ infrastructure/`. `domain` no depende de frameworks. Nada de lógica en routers.
 - Conectores de origen y destino solo a través de las interfaces `SourceConnector` / `DestinationWriter` (plan 06).
 - Toda acción que cambie configuración o ejecute algo emite un evento de auditoría (plan 03). Nunca secretos en logs, auditoría ni respuestas.
+  - Endpoints: permiso con `require_permission("recurso:acción")` y `openapi_extra=audited("accion")` en todo `POST/PUT/PATCH/DELETE` (una prueba lo exige). Nuevas acciones → catálogo `audit/domain/model.py`; nuevos permisos → `identity/domain/permissions.py`.
+  - La auditoría se registra con `AuditService.record()` dentro de la transacción del cambio (capa `application`).
 - El delta token solo avanza tras confirmar la carga en destino (plan 06 §3).
 - Extracción SAP solo vía OData (no API RFC de ODP; ver plan 00 §3).
 - Frontend: las pantallas (`features/*`) solo importan componentes de `src/shared/ui`, nunca de la plantilla directamente.

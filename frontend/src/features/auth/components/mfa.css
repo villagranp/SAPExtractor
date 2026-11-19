@@ -1,0 +1,10 @@
+.sx-steps {
+  margin: 0;
+  padding-left: var(--sx-space-5);
+}
+/* El QR necesita fondo claro para leerse también en modo oscuro. */
+.sx-qr {
+  padding: var(--sx-space-2);
+  background: #fff;
+  border-radius: var(--sx-radius-md);
+}

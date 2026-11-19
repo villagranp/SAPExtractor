@@ -3,12 +3,46 @@
 from __future__ import annotations
 
 import argparse
+import getpass
 import json
 import sys
-from collections.abc import Sequence
+from collections.abc import Iterator, Sequence
+from contextlib import contextmanager
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from sapextract import __version__
+
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
+
+    from sapextract.identity.application.toolkit import IdentityToolkit
+
+
+@contextmanager
+def _identity_session() -> Iterator[tuple[Session, IdentityToolkit]]:
+    from sapextract.core.config import get_settings  # noqa: PLC0415
+    from sapextract.core.db import Database  # noqa: PLC0415
+    from sapextract.identity.application.toolkit import IdentityToolkit  # noqa: PLC0415
+
+    settings = get_settings()
+    db = Database(settings)
+    try:
+        with db.session() as session:
+            yield session, IdentityToolkit.build(settings)
+    finally:
+        db.dispose()
+
+
+def _print_error(exc: Exception) -> int:
+    from sapextract.core.exceptions import DomainError  # noqa: PLC0415
+
+    if isinstance(exc, DomainError):
+        sys.stderr.write(f"Error: {exc.detail}\n")
+        for issue in exc.errors:
+            sys.stderr.write(f"  - {issue.message}\n")
+        return 2
+    raise exc
 
 
 def _cmd_version(_: argparse.Namespace) -> int:
@@ -40,11 +74,97 @@ def _cmd_export_openapi(args: argparse.Namespace) -> int:
 
 
 def _cmd_db_upgrade(args: argparse.Namespace) -> int:
+    from sapextract.audit.application.maintenance import ensure_partitions  # noqa: PLC0415
     from sapextract.core.config import get_settings  # noqa: PLC0415
+    from sapextract.core.exceptions import DomainError  # noqa: PLC0415
     from sapextract.core.migrations import upgrade  # noqa: PLC0415
+    from sapextract.identity.application.bootstrap import (  # noqa: PLC0415
+        ensure_bootstrap_admin,
+        sync_catalog,
+    )
 
     upgrade(get_settings().database_url, args.revision)
+    if args.revision != "head":
+        return 0
+    with _identity_session() as (session, toolkit):
+        ensure_partitions(session)
+        sync_catalog(session)
+        session.commit()
+        sys.stdout.write("Catálogo de permisos y roles de sistema sincronizado.\n")
+        try:
+            created = ensure_bootstrap_admin(session, toolkit)
+            session.commit()
+        except DomainError as exc:
+            sys.stderr.write("No se pudo crear el administrador inicial (SX_BOOTSTRAP_ADMIN_*).\n")
+            return _print_error(exc)
+    if created:
+        sys.stdout.write(
+            f"Administrador inicial «{created}» creado: deberá cambiar la contraseña al entrar.\n"
+        )
     return 0
+
+
+def _cmd_create_admin(args: argparse.Namespace) -> int:
+    from sapextract.core.exceptions import DomainError  # noqa: PLC0415
+    from sapextract.identity.application.bootstrap import (  # noqa: PLC0415
+        create_local_admin,
+        sync_catalog,
+    )
+
+    password: str | None = None
+    if not args.generate:
+        password = getpass.getpass("Contraseña inicial: ")
+        if password != getpass.getpass("Repita la contraseña: "):
+            sys.stderr.write("Error: las contraseñas no coinciden.\n")
+            return 2
+    try:
+        with _identity_session() as (session, toolkit):
+            sync_catalog(session)
+            created = create_local_admin(
+                session,
+                toolkit,
+                username=args.username,
+                display_name=args.display_name or "",
+                password=password,
+            )
+            session.commit()
+    except DomainError as exc:
+        return _print_error(exc)
+    sys.stdout.write(f"Administrador «{created.username}» creado.\n")
+    if created.generated:
+        sys.stdout.write(f"Contraseña temporal (se muestra una sola vez): {created.password}\n")
+    sys.stdout.write("Deberá cambiar la contraseña en el primer acceso.\n")
+    return 0
+
+
+def _cmd_reset_password(args: argparse.Namespace) -> int:
+    from sapextract.core.exceptions import DomainError  # noqa: PLC0415
+    from sapextract.identity.application.bootstrap import reset_password_cli  # noqa: PLC0415
+
+    try:
+        with _identity_session() as (session, toolkit):
+            result = reset_password_cli(session, toolkit, username=args.username)
+            session.commit()
+    except DomainError as exc:
+        return _print_error(exc)
+    sys.stdout.write(f"Contraseña de «{result.username}» restablecida y cuenta desbloqueada.\n")
+    sys.stdout.write(f"Contraseña temporal (se muestra una sola vez): {result.password}\n")
+    return 0
+
+
+def _cmd_audit_verify(_: argparse.Namespace) -> int:
+    from sapextract.audit.domain.model import Actor  # noqa: PLC0415
+
+    with _identity_session() as (session, toolkit):
+        result = toolkit.audit.verify_and_record(session, actor=Actor.system("cli"))
+    if result.ok:
+        sys.stdout.write(f"Integridad correcta: {result.checked} eventos verificados.\n")
+        return 0
+    sys.stdout.write(
+        f"CADENA ROTA en el evento seq={result.broken_seq} (id={result.broken_id}) "
+        f"tras {result.checked} eventos correctos: {result.detail}\n"
+    )
+    return 1
 
 
 def _cmd_db_current(_: argparse.Namespace) -> int:
@@ -82,6 +202,31 @@ def build_parser() -> argparse.ArgumentParser:
     up.add_argument("revision", nargs="?", default="head")
     up.set_defaults(func=_cmd_db_upgrade)
     db.add_parser("current", help="Muestra la versión aplicada").set_defaults(func=_cmd_db_current)
+
+    p = sub.add_parser(
+        "create-admin", help="Crea un administrador local de emergencia (break-glass)"
+    )
+    p.add_argument("--username", required=True)
+    p.add_argument("--display-name", default=None)
+    p.add_argument(
+        "--generate",
+        action="store_true",
+        help="Genera una contraseña temporal en lugar de pedirla",
+    )
+    p.set_defaults(func=_cmd_create_admin)
+
+    p = sub.add_parser(
+        "reset-password", help="Restablece la contraseña de un usuario local (recuperación)"
+    )
+    p.add_argument("--username", required=True)
+    p.set_defaults(func=_cmd_reset_password)
+
+    audit = sub.add_parser("audit", help="Auditoría").add_subparsers(
+        dest="audit_command", required=True
+    )
+    audit.add_parser("verify", help="Verifica la cadena de hash").set_defaults(
+        func=_cmd_audit_verify
+    )
 
     return parser
 

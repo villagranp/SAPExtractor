@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from sapextract.core.logging import MASK, mask_secrets
+from sapextract.core.logging import mask_secrets
+from sapextract.core.masking import MASK
 
 
 def test_masks_sensitive_keys_recursively() -> None:

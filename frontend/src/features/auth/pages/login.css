@@ -5,5 +5,9 @@
   padding: var(--sx-space-4);
 }
 .sx-login__card {
-  width: min(400px, 100%);
+  width: min(420px, 100%);
+}
+.sx-login__switch {
+  margin: var(--sx-space-4) 0 0;
+  text-align: center;
 }

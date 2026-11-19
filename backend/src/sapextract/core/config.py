@@ -18,6 +18,13 @@ class Environment(StrEnum):
     PRD = "prd"
 
 
+class LocalLoginPolicy(StrEnum):
+    """Quién puede iniciar sesión con usuario y contraseña locales."""
+
+    ALL = "all"
+    BREAK_GLASS_ONLY = "break_glass_only"
+
+
 class Settings(BaseSettings):
     """Configuración validada al arrancar: si falta algo, el proceso falla de inmediato."""
 
@@ -56,6 +63,27 @@ class Settings(BaseSettings):
     master_key_id: str = "k1"
     previous_master_keys: dict[str, SecretStr] = Field(default_factory=dict)
 
+    # --- Identidad y sesiones (plan 02)
+    session_idle_minutes: int = Field(30, ge=1)
+    session_absolute_hours: int = Field(12, ge=1)
+    session_pending_minutes: int = Field(10, ge=1, description="Vida de una sesión a medio login")
+    session_cookie_secure: bool | None = Field(
+        None, description="Cookie solo por HTTPS; por defecto activo salvo en dev/test"
+    )
+    login_max_attempts: int = Field(5, ge=1)
+    login_lockout_base_minutes: int = Field(5, ge=1)
+    login_lockout_max_minutes: int = Field(24 * 60, ge=1)
+    auth_rate_limit_per_minute: int = Field(20, ge=1)
+    mfa_required_for_admins: bool | None = Field(
+        None, description="MFA obligatorio para administradores; por defecto activo en QA/PRD"
+    )
+    local_login_enabled_for: LocalLoginPolicy = LocalLoginPolicy.ALL
+    password_min_length: int = Field(12, ge=8)
+    password_history_size: int = Field(5, ge=0)
+    password_denylist_file: Path | None = None
+    bootstrap_admin_user: str | None = None
+    bootstrap_admin_password: SecretStr | None = None
+
     # --- Procesos de fondo
     scheduler_tick_seconds: float = 5.0
     worker_poll_seconds: float = 5.0
@@ -64,7 +92,7 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def _validate_production_requirements(self) -> Self:
         if self.environment in (Environment.QA, Environment.PRD):
-            if self.master_key is None:
+            if self.master_key is None or not self.master_key.get_secret_value():
                 msg = "SX_MASTER_KEY es obligatoria en QA y PRD"
                 raise ValueError(msg)
             if self.log_json is False:
@@ -75,6 +103,22 @@ class Settings(BaseSettings):
     @property
     def is_production(self) -> bool:
         return self.environment is Environment.PRD
+
+    @property
+    def is_local_dev(self) -> bool:
+        return self.environment in (Environment.DEV, Environment.TEST)
+
+    @property
+    def cookie_secure(self) -> bool:
+        if self.session_cookie_secure is not None:
+            return self.session_cookie_secure
+        return not self.is_local_dev
+
+    @property
+    def mfa_required(self) -> bool:
+        if self.mfa_required_for_admins is not None:
+            return self.mfa_required_for_admins
+        return not self.is_local_dev
 
 
 @lru_cache

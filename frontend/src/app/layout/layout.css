@@ -93,6 +93,22 @@
   background: var(--sx-color-surface);
   border-bottom: 1px solid var(--sx-color-border);
 }
+.sx-usermenu {
+  display: flex;
+  align-items: center;
+  gap: var(--sx-space-3);
+}
+.sx-usermenu__name {
+  display: grid;
+  line-height: 1.2;
+  text-align: right;
+  color: var(--sx-color-text);
+  text-decoration: none;
+}
+.sx-usermenu__name small {
+  font-size: var(--sx-text-xs);
+  color: var(--sx-color-text-muted);
+}
 .sx-content {
   flex: 1;
   padding: var(--sx-space-5);

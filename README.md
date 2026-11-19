@@ -2,7 +2,7 @@
 
 Plataforma web para **orquestar extracciones de datos desde SAP** — extractores ODP (estándar y Z) y vistas CDS publicadas vía OData — con **gestión de deltas** y carga hacia **SQL Server, archivos CSV o Snowflake**, con administración de usuarios (admin local + Microsoft Entra ID), auditoría y monitoreo.
 
-> Estado: **iteración 0 completada** (fundaciones). Ver [ROADMAP](docs/plan/ROADMAP.md).
+> Estado: **iteraciones 0 y 1 completadas** (fundaciones; usuarios, roles, MFA y auditoría). Ver [ROADMAP](docs/plan/ROADMAP.md).
 
 ## Arranque rápido (desarrollo)
 
@@ -22,6 +22,8 @@ docker compose up --build
 | PostgreSQL | localhost:5432 (`sapextract` / `sapextract`, solo desarrollo) |
 
 SQL Server de pruebas opcional: `docker compose --profile mssql up`.
+
+**Primer acceso (desarrollo):** usuario `admin` con la contraseña temporal definida en `SX_BOOTSTRAP_ADMIN_PASSWORD` (valor por defecto en `deploy/compose/docker-compose.dev.yml`). Al entrar se pide cambiarla. Si se pierde: `docker compose exec api sapextract reset-password --username admin`.
 
 ## Estructura
 

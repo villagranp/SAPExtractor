@@ -12,11 +12,32 @@ API (FastAPI), scheduler y workers. Arquitectura y decisiones en [`docs/plan`](.
 ```bash
 uv sync                                   # dependencias (incluye grupo dev)
 cp ../.env.example ../.env                # y ajustar valores
-uv run sapextract db upgrade              # aplica migraciones
+uv run sapextract db upgrade              # migraciones + catálogo de permisos/roles + admin inicial
 uv run uvicorn sapextract.main_api:create_app --factory --reload
 uv run python -m sapextract.main_scheduler
 uv run python -m sapextract.main_worker
 ```
+
+Administración desde el servidor:
+
+```bash
+uv run sapextract create-admin --username admin2 --generate   # admin local de emergencia (break-glass)
+uv run sapextract reset-password --username admin             # recuperación: contraseña temporal
+uv run sapextract audit verify                                # recalcula la cadena de hash de auditoría
+uv run sapextract generate-master-key                         # valor para SX_MASTER_KEY
+```
+
+`db upgrade` crea el administrador inicial solo si la base no tiene usuarios y están definidas
+`SX_BOOTSTRAP_ADMIN_USER` y `SX_BOOTSTRAP_ADMIN_PASSWORD` (contraseña temporal: se cambia al entrar).
+
+## Reglas del módulo de identidad y auditoría
+
+- Los endpoints exigen permisos con `require_permission("recurso:acción")` (`identity/api/deps.py`);
+  las sesiones por cookie exigen además la cabecera `X-CSRF-Token` en métodos que modifican datos.
+- Todo endpoint `POST/PUT/PATCH/DELETE` declara sus eventos con `openapi_extra=audited(...)`
+  (o `not_audited("motivo")`); una prueba lo comprueba sobre el OpenAPI.
+- La auditoría se escribe con `AuditService.record()` en la misma transacción que el cambio;
+  los intentos fallidos o denegados, en una transacción propia.
 
 Calidad:
 

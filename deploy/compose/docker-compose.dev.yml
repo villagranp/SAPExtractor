@@ -16,6 +16,12 @@ x-backend: &backend
     SX_DATABASE_URL: postgresql+psycopg://sapextract:sapextract@db:5432/sapextract
     SX_LOG_JSON: "false"
     SX_LOG_LEVEL: INFO
+    # Clave maestra FIJA de desarrollo (cifra el segundo factor y, más adelante, las credenciales).
+    # Nunca reutilizarla fuera de este entorno: en QA/PRD se genera con `sapextract generate-master-key`.
+    SX_MASTER_KEY: ${SX_MASTER_KEY:-yv8pnbTNULqfJYtz0-zH4Kkb16O-fXvP6JHc4oGmi2w}
+    # Administrador inicial (solo si la base no tiene usuarios). Debe cambiar la clave al entrar.
+    SX_BOOTSTRAP_ADMIN_USER: ${SX_BOOTSTRAP_ADMIN_USER:-admin}
+    SX_BOOTSTRAP_ADMIN_PASSWORD: ${SX_BOOTSTRAP_ADMIN_PASSWORD:-Inicial.Dev-Temporal-2026}
   volumes:
     - ../../backend/src:/app/src
   restart: unless-stopped

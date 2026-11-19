@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, ClassVar
+from typing import Any
 
 import structlog
 from fastapi import FastAPI, Request, status
@@ -12,6 +12,30 @@ from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from sapextract.core.context import get_request_id
+from sapextract.core.exceptions import (
+    AuthenticationError,
+    BusinessRuleError,
+    ConflictError,
+    DomainError,
+    FieldIssue,
+    NotFoundError,
+    PermissionDeniedError,
+    TooManyRequestsError,
+)
+
+__all__ = [
+    "AuthenticationError",
+    "BusinessRuleError",
+    "ConflictError",
+    "DomainError",
+    "FieldError",
+    "FieldIssue",
+    "NotFoundError",
+    "PermissionDeniedError",
+    "ProblemDetails",
+    "TooManyRequestsError",
+    "register_exception_handlers",
+]
 
 PROBLEM_MEDIA_TYPE = "application/problem+json"
 PROBLEM_TYPE_BASE = "https://sapextract/errors/"
@@ -36,56 +60,6 @@ class ProblemDetails(BaseModel):
     code: str = Field(description="Código estable de error de SAPExtract (SX-...)")
     request_id: str | None = None
     errors: list[FieldError] = Field(default_factory=list)
-
-
-class DomainError(Exception):
-    """Error de negocio esperado. Las subclases fijan código, estado HTTP y título."""
-
-    code: ClassVar[str] = "SX-GEN-ERROR"
-    status_code: ClassVar[int] = status.HTTP_400_BAD_REQUEST
-    title: ClassVar[str] = "Solicitud no válida"
-
-    def __init__(
-        self,
-        detail: str,
-        *,
-        code: str | None = None,
-        errors: list[FieldError] | None = None,
-    ) -> None:
-        super().__init__(detail)
-        self.detail = detail
-        self.error_code = code or self.code
-        self.errors = errors or []
-
-
-class NotFoundError(DomainError):
-    code = "SX-GEN-NOT-FOUND"
-    status_code = status.HTTP_404_NOT_FOUND
-    title = "Recurso no encontrado"
-
-
-class ConflictError(DomainError):
-    code = "SX-GEN-CONFLICT"
-    status_code = status.HTTP_409_CONFLICT
-    title = "Conflicto con el estado actual"
-
-
-class AuthenticationError(DomainError):
-    code = "SX-AUTH-UNAUTHENTICATED"
-    status_code = status.HTTP_401_UNAUTHORIZED
-    title = "Autenticación requerida"
-
-
-class PermissionDeniedError(DomainError):
-    code = "SX-AUTH-FORBIDDEN"
-    status_code = status.HTTP_403_FORBIDDEN
-    title = "Permiso denegado"
-
-
-class BusinessRuleError(DomainError):
-    code = "SX-GEN-RULE"
-    status_code = status.HTTP_422_UNPROCESSABLE_CONTENT
-    title = "Regla de negocio incumplida"
 
 
 def _problem_response(
@@ -115,8 +89,9 @@ async def _handle_domain_error(request: Request, exc: Exception) -> JSONResponse
             instance=request.url.path,
             code=exc.error_code,
             request_id=get_request_id(),
-            errors=exc.errors,
-        )
+            errors=[FieldError(field=e.field, message=e.message, code=e.code) for e in exc.errors],
+        ),
+        headers=exc.headers,
     )
 
 

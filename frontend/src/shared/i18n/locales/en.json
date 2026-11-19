@@ -4,7 +4,28 @@
     "tagline": "SAP extraction orchestrator",
     "skipToContent": "Skip to content"
   },
+  "common": {
+    "loading": "Loading…",
+    "close": "Close",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "saved": "Changes saved.",
+    "done": "Done.",
+    "create": "Create",
+    "delete": "Delete",
+    "copy": "Copy",
+    "copied": "Copied",
+    "search": "Search",
+    "all": "All",
+    "yes": "Yes",
+    "no": "No",
+    "previous": "Previous",
+    "next": "Next",
+    "pageSummary": "{from}–{to} of {total}"
+  },
   "nav": {
+    "menu": "Main menu",
     "home": "Home",
     "pipelines": "Pipelines",
     "runs": "Runs",
@@ -12,17 +33,22 @@
     "sources": "Sources",
     "destinations": "Destinations",
     "alerts": "Alerts",
-    "users": "Users & roles",
+    "users": "Users",
+    "roles": "Roles",
+    "apiTokens": "API tokens",
     "audit": "Audit",
-    "settings": "Settings",
+    "identityProvider": "Microsoft Entra ID",
     "sectionData": "Data",
     "sectionOperation": "Operations",
     "sectionAdmin": "Administration",
     "soon": "Iteration {{it}}"
   },
+  "userMenu": {
+    "logout": "Sign out"
+  },
   "home": {
     "title": "Platform status",
-    "description": "Iteration 0: technical foundation running. Modules are enabled per the roadmap.",
+    "description": "Technical foundation, users, roles and audit running. Modules are enabled per the roadmap.",
     "api": "API",
     "database": "Metadata database",
     "migrations": "Migrations",
@@ -34,15 +60,47 @@
     "checking": "Checking…",
     "unreachable": "API unreachable",
     "nextSteps": "Next steps",
-    "nextStepsBody": "Iteration 1: users, roles and audit. Iteration 2: SAP connections."
+    "nextStepsBody": "Iteration 2: SAP connections. Iteration 4: destinations (CSV, SQL Server, Snowflake)."
   },
   "login": {
     "title": "Sign in",
     "username": "Username",
     "password": "Password",
     "submit": "Sign in",
+    "signingIn": "Checking…",
     "microsoft": "Sign in with Microsoft",
-    "pending": "Sign-in is enabled in iteration 1."
+    "apiUnavailable": "The API is unreachable. Please try again in a few minutes.",
+    "mfaTitle": "Two-step verification",
+    "mfaHelp": "Enter the 6-digit code from your authenticator app.",
+    "verify": "Verify",
+    "passwordChangeTitle": "Change your password",
+    "passwordChangeHelp": "You are using a temporary password. Choose a new one to continue.",
+    "mfaSetupTitle": "Set up two-step verification",
+    "mfaSetupHelp": "Your administrator account requires a second factor before continuing.",
+    "useAnotherAccount": "Use another account"
+  },
+  "password": {
+    "current": "Current password",
+    "new": "New password",
+    "confirm": "Repeat the new password",
+    "mismatch": "Passwords do not match.",
+    "submit": "Change password",
+    "policyHint": "At least 12 characters. Avoid known passwords, sequences and your username.",
+    "changed": "Password updated. Your other sessions were closed."
+  },
+  "mfa": {
+    "intro": "Add a second factor with an app such as Microsoft Authenticator or Google Authenticator.",
+    "setupStart": "Set up second factor",
+    "scanQr": "Scan the QR code with your authenticator app.",
+    "enterCode": "Type the 6-digit code shown by the app.",
+    "qrAlt": "QR code for the authenticator app",
+    "manualKey": "Can't scan? Manual key:",
+    "code": "Verification code",
+    "enable": "Enable"
+  },
+  "forbidden": {
+    "title": "No access",
+    "body": "Your role does not grant access to this screen. Ask an administrator."
   },
   "notFound": {
     "title": "Page not found",
