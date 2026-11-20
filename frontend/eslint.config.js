@@ -26,4 +26,17 @@ export default tseslint.config(
       ],
     },
   },
+  {
+    // Los iconos también pasan por el design system (ADR 0007).
+    files: ['src/features/**/*.{ts,tsx}', 'src/app/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [{ name: '@tabler/icons-react', message: 'Importe los iconos desde @/shared/ui' }],
+          patterns: [{ group: ['**/template/**'], message: 'Use componentes de @/shared/ui' }],
+        },
+      ],
+    },
+  },
 );

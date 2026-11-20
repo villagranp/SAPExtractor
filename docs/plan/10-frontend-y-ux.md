@@ -130,10 +130,12 @@ Un pipeline es un origen hacia un destino y no habrá multi-destino (decisión d
 - [x] Job de Playwright en CI con `axe` (`tests/e2e/a11y.spec.ts`). Al activarlo apareció un contraste insuficiente (4,48:1) del verde de éxito en modo claro: el token `--sx-color-success` pasa a `#1a6e45` (5,5:1).
 - [x] Instalar React Hook Form, Zod y `@hookform/resolvers`. Ayudante `shared/api/forms.ts` (`applyServerErrors`) que vuelca los `errors[]` de Problem Details en los campos del formulario. Primer uso en el asistente de orígenes (It3); los formularios de It1–It2 se migran cuando se toquen.
 
-**Iteración 1b (al recibir la plantilla)**
-- [ ] Análisis de la plantilla y ADR de integración.
-- [ ] Tokens y `shared/ui` adaptados; layout definitivo; `/ui-kit`.
-- [ ] Revisión de accesibilidad y responsive.
+**Iteración 1b** ✅ (19.11.2026, [ADR 0007](../adr/0007-estilo-visual-tactil.md))
+- [x] Análisis de la plantilla y ADR de integración. Referencia: Atmosphere (comercial, sin licencia): diseño **propio** con el mismo lenguaje visual, sin copiar su código.
+- [x] Tokens y `shared/ui` adaptados; layout definitivo; `/ui-kit`. Material táctil (relieve, teclas, pozos), temas claro y grafito con `light-dark()`, densidad compacta, carril de teclas con iconos Tabler, fuente Onest autoalojada, inicio rediseñado con tarjetas de estado.
+- [x] Revisión de accesibilidad y responsive: contrastes ≥ 4,5:1 en ambos temas, axe en CI en claro y grafito, carril en fila superior por debajo de 900 px.
+- [x] Paleta: acento naranja con grises neutros (decidido el 19.11.2026), contrastes verificados en ambos temas.
+- [ ] Logo definitivo (hoy, monograma «SX»).
 
 **Por cada módulo**
 - [ ] Pantallas descritas en su plan, usando solo `shared/ui`.

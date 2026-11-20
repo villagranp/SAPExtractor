@@ -128,6 +128,7 @@ GET  /api/v1/settings/retention    PUT /api/v1/settings/retention
 - Cada endpoint que modifica datos declara sus eventos en el OpenAPI (`x-sx-audit`); una prueba lo exige. Otra prueba busca secretos sembrados (contraseñas, MFA, tokens) en la auditoría y en los logs.
 - Exportación CSV (con protección contra fórmulas de Excel) o JSON, síncrona hasta 100 000 eventos; la asíncrona para volúmenes mayores queda para cuando haga falta.
 - Pestaña «Actividad» reutilizable (`AuditTrail`) ya integrada en la ficha de usuario.
+- Corregido en It1b: el total de la búsqueda siempre valía 1 (el `count(*)` perdía la tabla del `FROM`), así que la paginación no avanzaba. Prueba de integración añadida.
 
 **Iteración 5**
 - [ ] `run_step`, `run_log` (particionada por fecha) y `run_metric`.

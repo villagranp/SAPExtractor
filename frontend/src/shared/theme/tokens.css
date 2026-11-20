@@ -1,80 +1,151 @@
 /*
- * Tokens de diseño PROVISIONALES.
- * Al integrar la plantilla corporativa se sustituyen aquí (ver docs/plan/10-frontend-y-ux.md §1);
- * los componentes de shared/ui y las pantallas solo usan estas variables.
+ * Tokens de diseño · estilo «táctil» de SAPExtract (iteración 1b, ADR 0007).
+ *
+ * Un solo material mate iluminado desde arriba a la izquierda: las tarjetas sobresalen, los
+ * campos y estados van hundidos («pozos») y los botones son teclas que se hunden al pulsar.
+ * Sin bordes: la profundidad la dan las sombras y el texto oscuro mantiene la legibilidad.
+ *
+ * Temas: claro y grafito con light-dark(); `data-theme` en <html> fuerza uno (si falta, se
+ * sigue al sistema). Densidad: `data-density="compact"`. Las pantallas solo usan var(--sx-*).
+ *
+ * Acento naranja con neutros grises; información en azul como color complementario.
+ * El texto sobre el acento es oscuro (--sx-color-primary-contrast): el blanco no llega a 4,5:1.
+ * Todos los pares texto/fondo cumplen WCAG AA (≥ 4,5:1) en ambos temas.
  */
+@import '@fontsource-variable/onest/index.css';
+
 :root {
-  color-scheme: light;
+  color-scheme: light dark;
 
-  --sx-font-sans: 'Segoe UI', system-ui, -apple-system, Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --sx-font-mono: 'Cascadia Code', Consolas, 'SFMono-Regular', monospace;
+  /* ---------- Marca (provisional) */
+  --sx-brand-light: #f06418;
+  --sx-brand-dark: #ff7a33;
 
-  --sx-color-bg: #f4f6f9;
-  --sx-color-surface: #ffffff;
-  --sx-color-surface-alt: #eef1f6;
-  --sx-color-border: #d9dee7;
-  --sx-color-text: #1c2430;
-  --sx-color-text-muted: #5b6676;
-  --sx-color-primary: #1f5fae;
-  --sx-color-primary-hover: #194f91;
-  --sx-color-primary-contrast: #ffffff;
-  --sx-color-focus: #3b82f6;
+  /* ---------- Tipografía */
+  --sx-font-sans: 'Onest Variable', 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+  --sx-font-display: var(--sx-font-sans);
+  --sx-font-mono: 'Cascadia Code', Consolas, 'SFMono-Regular', ui-monospace, monospace;
+  --sx-text-xs: 0.75rem;
+  --sx-text-sm: 0.875rem;
+  --sx-text-md: 1rem;
+  --sx-text-lg: 1.125rem;
+  --sx-text-xl: 1.75rem;
+  --sx-text-2xl: 2.25rem;
+  --sx-text-value: 2.5rem;
+  --sx-weight-display: 800;
+  --sx-track-display: -0.025em;
 
-  --sx-color-success: #1a6e45; /* 5,5:1 sobre success-bg (WCAG AA) */
-  --sx-color-success-bg: #e3f4ea;
-  --sx-color-warning: #9a6200;
-  --sx-color-warning-bg: #fdf1d8;
-  --sx-color-danger: #b42318;
-  --sx-color-danger-bg: #fde7e5;
-  --sx-color-info: #1f5fae;
-  --sx-color-info-bg: #e2ecf8;
-  --sx-color-neutral-bg: #eceff3;
+  /* ---------- Material */
+  --sx-color-bg: light-dark(#e3e6eb, #131518); /* suelo */
+  --sx-color-surface: light-dark(#f4f5f7, #1c1f24); /* tarjeta */
+  --sx-surface-top: light-dark(#fafbfc, #22262c);
+  --sx-surface-bottom: light-dark(#eceef2, #181a1f);
+  --sx-color-surface-alt: light-dark(#dadee5, #0f1114); /* pozo */
+  --sx-color-border: light-dark(rgb(27 36 48 / 9%), rgb(255 255 255 / 7%));
+  --sx-key-top: light-dark(#fcfcfd, #2b2f36);
+  --sx-key-bottom: light-dark(#eef0f3, #23262c);
+  --sx-key-edge: light-dark(#c8cdd5, #0a0b0d);
+  --sx-highlight: light-dark(rgb(255 255 255 / 85%), rgb(255 255 255 / 6%));
+  --sx-shade: light-dark(rgb(23 33 48 / 16%), rgb(0 0 0 / 55%));
+  --sx-shade-soft: light-dark(rgb(23 33 48 / 8%), rgb(0 0 0 / 35%));
 
-  --sx-sidebar-bg: #16202e;
-  --sx-sidebar-text: #c7d0dc;
-  --sx-sidebar-active: #ffffff;
-  --sx-sidebar-active-bg: #24344a;
+  /* ---------- Tinta */
+  --sx-color-text: light-dark(#1b2028, #eceef1);
+  --sx-color-text-2: light-dark(#3f4651, #c6cbd2);
+  --sx-color-text-muted: light-dark(#59616d, #9ca3ad);
 
-  --sx-radius-sm: 4px;
-  --sx-radius-md: 8px;
-  --sx-radius-lg: 12px;
-  --sx-shadow-sm: 0 1px 2px rgb(16 24 40 / 6%), 0 1px 3px rgb(16 24 40 / 10%);
+  /* ---------- Acento (marca) */
+  --sx-color-primary: light-dark(var(--sx-brand-light), var(--sx-brand-dark));
+  --sx-color-primary-hover: light-dark(#f7843f, #ff9555);
+  --sx-accent-top: light-dark(#f7843f, #ff9555);
+  --sx-accent-edge: light-dark(#b8460a, #a5420f);
+  --sx-color-primary-contrast: light-dark(
+    #1b2028,
+    #1f1006
+  ); /* tinta oscura: el blanco no llega a 4,5:1 */
+  --sx-accent-text: light-dark(#a8420b, #ff9b63); /* acento como texto sobre el material */
+  --sx-accent-soft: light-dark(#fde3d3, #3a2316);
+  --sx-color-focus: light-dark(#b2450c, #ff9b63);
 
+  /* ---------- Estados (texto / fondo) */
+  --sx-color-success: light-dark(#1a6e45, #63d29d);
+  --sx-color-success-bg: light-dark(#dcefe3, #12301f);
+  --sx-color-warning: light-dark(#7a5300, #f2c55c); /* ámbar: distinto del acento */
+  --sx-color-warning-bg: light-dark(#f7edc8, #332a0f);
+  --sx-color-danger: light-dark(#a8281e, #ff8f85);
+  --sx-color-danger-bg: light-dark(#f8e1de, #3a1714);
+  --sx-color-info: light-dark(#1a56a0, #8ab9f0);
+  --sx-color-info-bg: light-dark(#dde8f6, #182b42);
+  --sx-color-neutral-bg: light-dark(#e5e8ec, #272b32);
+  --sx-danger-key: light-dark(#a8281e, #ef5350); /* rojo, no salmón: se distingue del acento */
+  --sx-danger-key-edge: light-dark(#741a13, #9e2a27);
+  --sx-danger-key-ink: light-dark(#ffffff, #1b0b09);
+
+  /* Compatibilidad con el layout anterior (menú lateral). */
+  --sx-sidebar-bg: var(--sx-color-surface);
+  --sx-sidebar-text: var(--sx-color-text-2);
+  --sx-sidebar-active: var(--sx-color-text);
+  --sx-sidebar-active-bg: var(--sx-color-surface-alt);
+
+  /* ---------- Formas */
+  --sx-radius-sm: 8px;
+  --sx-radius-md: 12px;
+  --sx-radius-lg: 18px;
+  --sx-radius-xl: 26px;
+  --sx-radius-pill: 999px;
+
+  /* ---------- Profundidad (luz desde arriba a la izquierda) */
+  --sx-shadow-sm: 0 1px 2px var(--sx-shade-soft);
+  --sx-shadow-raised:
+    inset 1px 1px 0 var(--sx-highlight), 0 1px 2px var(--sx-shade-soft),
+    0 10px 24px -12px var(--sx-shade);
+  --sx-key-travel: 4px;
+  --sx-shadow-key:
+    inset 0 1px 0 var(--sx-highlight), 0 var(--sx-key-travel) 0 var(--sx-key-edge),
+    0 calc(var(--sx-key-travel) + 6px) 14px -8px var(--sx-shade);
+  --sx-shadow-key-pressed: inset 0 1px 0 var(--sx-highlight), 0 0 0 var(--sx-key-edge);
+  --sx-shadow-well: inset 1px 2px 4px var(--sx-shade), inset -1px -1px 0 var(--sx-highlight);
+
+  /* ---------- Espaciado y controles */
   --sx-space-1: 4px;
   --sx-space-2: 8px;
   --sx-space-3: 12px;
   --sx-space-4: 16px;
   --sx-space-5: 24px;
   --sx-space-6: 32px;
+  --sx-control-y: 9px;
+  --sx-control-x: 14px;
 
-  --sx-text-xs: 0.75rem;
-  --sx-text-sm: 0.875rem;
-  --sx-text-md: 1rem;
-  --sx-text-lg: 1.25rem;
-  --sx-text-xl: 1.5rem;
+  /* ---------- Movimiento */
+  --sx-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --sx-dur-press: 90ms;
+  --sx-dur: 180ms;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
-    color-scheme: dark;
-    --sx-color-bg: #0f151e;
-    --sx-color-surface: #172130;
-    --sx-color-surface-alt: #1d2a3b;
-    --sx-color-border: #2b3a4f;
-    --sx-color-text: #e6ebf2;
-    --sx-color-text-muted: #9aa7b8;
-    --sx-color-primary: #5b9be6;
-    --sx-color-primary-hover: #77ade9;
-    --sx-color-primary-contrast: #0b1320;
-    --sx-color-success: #5fd39a;
-    --sx-color-success-bg: #133525;
-    --sx-color-warning: #f0b55a;
-    --sx-color-warning-bg: #3a2a0e;
-    --sx-color-danger: #ff8a80;
-    --sx-color-danger-bg: #3d1714;
-    --sx-color-info: #8cbcf0;
-    --sx-color-info-bg: #17304d;
-    --sx-color-neutral-bg: #233044;
-    --sx-sidebar-bg: #0b1119;
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+/* Densidad compacta: tablas largas (auditoría, sistemas, ejecuciones). */
+:root[data-density='compact'] {
+  --sx-space-3: 10px;
+  --sx-space-4: 12px;
+  --sx-space-5: 18px;
+  --sx-space-6: 24px;
+  --sx-control-y: 6px;
+  --sx-control-x: 12px;
+  --sx-text-sm: 0.8125rem;
+  --sx-text-xl: 1.5rem;
+  --sx-text-value: 2.125rem;
+  --sx-key-travel: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --sx-dur-press: 0ms;
+    --sx-dur: 0ms;
   }
 }

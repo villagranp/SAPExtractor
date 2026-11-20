@@ -20,15 +20,28 @@ body {
   color: var(--sx-color-text);
   background: var(--sx-color-bg);
   -webkit-font-smoothing: antialiased;
+  font-feature-settings: 'tnum' 1; /* cifras tabulares: tablas y contadores alineados */
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--sx-font-display);
+  letter-spacing: -0.01em;
 }
 
 a {
-  color: var(--sx-color-primary);
+  color: var(--sx-accent-text);
+  text-underline-offset: 2px;
 }
 
 :focus-visible {
   outline: 2px solid var(--sx-color-focus);
-  outline-offset: 2px;
+  outline-offset: 3px;
+}
+
+::selection {
+  background: var(--sx-accent-soft);
 }
 
 code {

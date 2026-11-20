@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { usePreferences } from '@/shared/theme/preferences';
 import {
   Alert,
   Button,
@@ -9,9 +10,13 @@ import {
   DataTable,
   DetailList,
   EmptyState,
+  IconPlus,
+  Meter,
+  Metric,
   OneTimeSecret,
   PageHeader,
   Pagination,
+  SegmentedControl,
   SelectField,
   Spinner,
   StatusPill,
@@ -28,6 +33,7 @@ const rows = [
 
 /** Catálogo visual del design system (solo en desarrollo). Sirve para validar la plantilla. */
 export function UiKitPage() {
+  const [prefs, setPrefs] = usePreferences();
   const [tab, setTab] = useState('a');
   const [page, setPage] = useState(1);
   const [confirm, setConfirm] = useState(false);
@@ -91,6 +97,44 @@ export function UiKitPage() {
             copyLabel="Copiar"
             copiedLabel="Copiado"
           />
+        </Card>
+        <Card title="Apariencia">
+          <SegmentedControl
+            label="Tema"
+            value={prefs.theme}
+            onChange={(theme) => {
+              setPrefs({ theme });
+            }}
+            options={[
+              { value: 'system', label: 'Sistema' },
+              { value: 'light', label: 'Claro' },
+              { value: 'dark', label: 'Grafito' },
+            ]}
+          />
+          <SegmentedControl
+            label="Densidad"
+            value={prefs.density}
+            onChange={(density) => {
+              setPrefs({ density });
+            }}
+            options={[
+              { value: 'comfortable', label: 'Cómoda' },
+              { value: 'compact', label: 'Compacta' },
+            ]}
+          />
+        </Card>
+        <Card title="Métricas">
+          <Metric label="Filas cargadas hoy" value="1,24" unit="M" hint="8 % más que ayer">
+            <Meter
+              label="Progreso"
+              segments={['on', 'on', 'on', 'partial', 'off', 'off'].map((state, i) => ({
+                key: String(i),
+                state: state as 'on' | 'partial' | 'off',
+                title: `Etapa ${String(i + 1)}`,
+              }))}
+            />
+          </Metric>
+          <Button icon={<IconPlus size={18} aria-hidden="true" />}>Con icono</Button>
         </Card>
         <Card title="Asistente y comprobación">
           <Stepper

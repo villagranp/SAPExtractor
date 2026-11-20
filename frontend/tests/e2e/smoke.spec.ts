@@ -14,6 +14,11 @@ const SAP_URL = process.env.E2E_SAP_URL ?? 'http://sap-mock:8081';
 const SAP_USER = process.env.E2E_SAP_USER ?? 'sxmock';
 const SAP_PASSWORD = process.env.E2E_SAP_PASSWORD ?? 'sxmock';
 
+/** Enlace del menú principal (el inicio también tiene enlaces como «Ver usuarios»). */
+function menuLink(page: Page, name: string) {
+  return page.getByRole('complementary', { name: 'Menú principal' }).getByRole('link', { name });
+}
+
 async function login(page: Page, username: string, password: string) {
   await page.goto('/login');
   await page.getByLabel('Usuario').fill(username);
@@ -39,7 +44,7 @@ test.describe('con administrador', () => {
     await login(page, ADMIN_USER ?? '', ADMIN_PASSWORD ?? '');
     await expect(page.getByRole('heading', { name: 'Estado de la plataforma' })).toBeVisible();
 
-    await page.getByRole('link', { name: 'Usuarios' }).click();
+    await menuLink(page, 'Usuarios').click();
     await page.getByRole('button', { name: 'Nuevo usuario' }).click();
     const username = `e2e${Date.now().toString(36)}`;
     const dialog = page.getByRole('dialog');
@@ -60,19 +65,19 @@ test.describe('con administrador', () => {
     await other.getByRole('button', { name: 'Cambiar contraseña' }).click();
     await expect(other.getByRole('heading', { name: 'Estado de la plataforma' })).toBeVisible();
     // El visualizador no ve la administración y la URL directa no da acceso.
-    await expect(other.getByRole('link', { name: 'Usuarios' })).toHaveCount(0);
+    await expect(menuLink(other, 'Usuarios')).toHaveCount(0);
     await other.goto('/admin/audit');
     await expect(other.getByText('Sin acceso')).toBeVisible();
 
     // La acción quedó en la auditoría (antes se cierra el diálogo modal del alta).
     await dialog.getByRole('button', { name: 'Cerrar' }).last().click();
-    await page.getByRole('link', { name: 'Auditoría' }).click();
+    await menuLink(page, 'Auditoría').click();
     await expect(page.getByRole('table').getByText('user.created').first()).toBeVisible();
   });
 
   test('alta de sistema SAP → prueba por pasos → explorador ODP/CDS', async ({ page }) => {
     await login(page, ADMIN_USER ?? '', ADMIN_PASSWORD ?? '');
-    await page.getByRole('link', { name: 'Sistemas SAP' }).click();
+    await menuLink(page, 'Sistemas SAP').click();
     await page.getByRole('button', { name: 'Nuevo sistema SAP' }).click();
 
     const code = `E2E_${Date.now().toString(36).toUpperCase()}`;

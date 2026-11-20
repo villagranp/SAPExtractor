@@ -2,7 +2,8 @@
   "app": {
     "name": "SAPExtract",
     "tagline": "SAP extraction orchestrator",
-    "skipToContent": "Skip to content"
+    "skipToContent": "Skip to content",
+    "homeLink": "SAPExtract: go home"
   },
   "common": {
     "loading": "Loading…",
@@ -41,10 +42,15 @@
     "sectionData": "Data",
     "sectionOperation": "Operations",
     "sectionAdmin": "Administration",
-    "soon": "Iteration {{it}}"
+    "soon": "Iteration {{it}}",
+    "breadcrumb": "Breadcrumb",
+    "soonShort": "It{{it}}"
   },
   "userMenu": {
-    "logout": "Sign out"
+    "logout": "Sign out",
+    "profileOf": "My profile ({{name}})",
+    "lightTheme": "Switch to light theme",
+    "darkTheme": "Switch to graphite theme"
   },
   "home": {
     "title": "Platform status",
@@ -58,9 +64,7 @@
     "ok": "Operational",
     "fail": "Failing",
     "checking": "Checking…",
-    "unreachable": "API unreachable",
-    "nextSteps": "Next steps",
-    "nextStepsBody": "Iteration 2: SAP connections. Iteration 4: destinations (CSV, SQL Server, Snowflake)."
+    "unreachable": "API unreachable"
   },
   "login": {
     "title": "Sign in",

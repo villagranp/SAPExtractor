@@ -1,76 +1,110 @@
-/* Estilos del design system propio. Solo usan tokens (var(--sx-*)). */
+/*
+ * Design system «táctil» (ADR 0007). Solo usan tokens (var(--sx-*)).
+ * Material: tarjetas en relieve (.sx-card), teclas (.sx-btn) y pozos (.sx-input, .sx-pill).
+ */
 
-/* ---------- Button */
+/* ---------- Button: teclas que se hunden al pulsar */
 .sx-btn {
+  position: relative;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: var(--sx-space-2);
-  padding: var(--sx-space-2) var(--sx-space-4);
+  min-height: 38px;
+  padding: var(--sx-control-y) calc(var(--sx-control-x) + 2px);
   font: inherit;
   font-weight: 600;
-  border: 1px solid transparent;
+  line-height: 1.2;
+  color: var(--sx-color-text);
+  background: linear-gradient(180deg, var(--sx-key-top), var(--sx-key-bottom));
+  border: 0;
   border-radius: var(--sx-radius-md);
+  box-shadow: var(--sx-shadow-key);
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  translate: 0 0;
+  transition:
+    translate var(--sx-dur-press) var(--sx-ease),
+    box-shadow var(--sx-dur-press) var(--sx-ease),
+    filter var(--sx-dur) var(--sx-ease);
+  margin-bottom: var(--sx-key-travel); /* reserva el canto de la tecla */
+}
+.sx-btn:hover:not(:disabled) {
+  filter: brightness(1.03);
+}
+.sx-btn:active:not(:disabled) {
+  translate: 0 var(--sx-key-travel);
+  box-shadow: var(--sx-shadow-key-pressed);
 }
 .sx-btn:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
+.sx-btn svg {
+  flex: none;
+}
 .sx-btn--primary {
   color: var(--sx-color-primary-contrast);
-  background: var(--sx-color-primary);
-}
-.sx-btn--primary:hover:not(:disabled) {
-  background: var(--sx-color-primary-hover);
+  background: linear-gradient(180deg, var(--sx-accent-top), var(--sx-color-primary));
+  --sx-key-edge: var(--sx-accent-edge);
 }
 .sx-btn--secondary {
   color: var(--sx-color-text);
-  background: var(--sx-color-surface);
-  border-color: var(--sx-color-border);
-}
-.sx-btn--secondary:hover:not(:disabled) {
-  background: var(--sx-color-surface-alt);
 }
 .sx-btn--ghost {
-  color: var(--sx-color-primary);
+  color: var(--sx-accent-text);
   background: transparent;
+  box-shadow: none;
+  margin-bottom: 0;
+}
+.sx-btn--ghost:hover:not(:disabled) {
+  background: var(--sx-color-surface-alt);
+  filter: none;
+}
+.sx-btn--ghost:active:not(:disabled) {
+  translate: 0 1px;
+  box-shadow: none;
 }
 .sx-btn--danger {
-  color: #fff;
-  background: var(--sx-color-danger);
+  color: var(--sx-danger-key-ink);
+  background: var(--sx-danger-key);
+  --sx-key-edge: var(--sx-danger-key-edge);
 }
 
-/* ---------- Card */
+/* ---------- Card: tarjeta en relieve */
 .sx-card {
-  background: var(--sx-color-surface);
-  border: 1px solid var(--sx-color-border);
-  border-radius: var(--sx-radius-lg);
-  box-shadow: var(--sx-shadow-sm);
   padding: var(--sx-space-5);
+  background: linear-gradient(160deg, var(--sx-surface-top), var(--sx-surface-bottom));
+  border-radius: var(--sx-radius-lg);
+  box-shadow: var(--sx-shadow-raised);
 }
 .sx-card__title {
   margin: 0 0 var(--sx-space-3);
   font-size: var(--sx-text-md);
+  font-weight: 600;
+  color: var(--sx-color-text-2);
 }
 
-/* ---------- StatusPill */
+/* ---------- StatusPill: estado en un pozo pequeño con punto de color */
 .sx-pill {
   display: inline-flex;
   align-items: center;
-  gap: var(--sx-space-1);
-  padding: 2px var(--sx-space-2);
+  gap: 6px;
+  padding: 3px 10px 3px 8px;
   font-size: var(--sx-text-xs);
   font-weight: 600;
-  border-radius: 999px;
+  line-height: 1.4;
+  border-radius: var(--sx-radius-pill);
+  box-shadow: inset 1px 1px 2px var(--sx-shade-soft);
   white-space: nowrap;
 }
 .sx-pill::before {
   content: '';
+  flex: none;
   width: 7px;
   height: 7px;
   border-radius: 50%;
   background: currentColor;
+  box-shadow: 0 0 0 2px color-mix(in srgb, currentColor 18%, transparent);
 }
 .sx-pill--success {
   color: var(--sx-color-success);
@@ -96,42 +130,64 @@
 /* ---------- PageHeader */
 .sx-page-header {
   display: flex;
-  align-items: flex-start;
+  flex-wrap: wrap;
+  align-items: flex-end;
   justify-content: space-between;
   gap: var(--sx-space-4);
   margin-bottom: var(--sx-space-5);
 }
+.sx-page-header__eyebrow {
+  margin: 0 0 var(--sx-space-1);
+  font-size: var(--sx-text-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sx-color-text-muted);
+}
 .sx-page-header h1 {
   margin: 0;
   font-size: var(--sx-text-xl);
+  font-weight: var(--sx-weight-display);
+  letter-spacing: var(--sx-track-display);
+  line-height: 1.15;
 }
-.sx-page-header p {
+.sx-page-header p:not(.sx-page-header__eyebrow) {
+  max-width: 70ch;
   margin: var(--sx-space-1) 0 0;
   color: var(--sx-color-text-muted);
 }
+.sx-page-header__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sx-space-2);
+}
 
-/* ---------- EmptyState */
+/* ---------- EmptyState: pozo amplio */
 .sx-empty {
   padding: var(--sx-space-6);
   text-align: center;
   color: var(--sx-color-text-muted);
-  border: 1px dashed var(--sx-color-border);
+  background: var(--sx-color-surface-alt);
   border-radius: var(--sx-radius-lg);
+  box-shadow: var(--sx-shadow-well);
 }
 .sx-empty h2 {
   margin: 0 0 var(--sx-space-2);
-  font-size: var(--sx-text-md);
+  font-size: var(--sx-text-lg);
   color: var(--sx-color-text);
 }
 
-/* ---------- FormField / Input */
+/* ---------- FormField / Input: campos hundidos */
 .sx-field {
   display: grid;
-  gap: var(--sx-space-1);
+  align-content: start; /* en rejillas, el campo no se estira si su vecino tiene ayuda */
+  gap: 6px;
   margin-bottom: var(--sx-space-4);
 }
 .sx-field label {
   font-weight: 600;
+  color: var(--sx-color-text-2);
 }
 .sx-field__hint {
   font-size: var(--sx-text-xs);
@@ -139,26 +195,46 @@
 }
 .sx-field__error {
   font-size: var(--sx-text-xs);
+  font-weight: 600;
   color: var(--sx-color-danger);
 }
 .sx-input {
   width: 100%;
-  padding: var(--sx-space-2) var(--sx-space-3);
+  min-height: 40px;
+  padding: var(--sx-control-y) var(--sx-control-x);
   font: inherit;
   color: var(--sx-color-text);
-  background: var(--sx-color-surface);
-  border: 1px solid var(--sx-color-border);
+  background: var(--sx-color-surface-alt);
+  border: 0;
   border-radius: var(--sx-radius-md);
+  box-shadow: var(--sx-shadow-well);
+  transition: box-shadow var(--sx-dur) var(--sx-ease);
+}
+.sx-input::placeholder {
+  color: var(--sx-color-text-muted);
+  opacity: 0.85;
+}
+.sx-input:focus-visible {
+  outline: none;
+  box-shadow:
+    var(--sx-shadow-well),
+    0 0 0 2px var(--sx-color-focus);
+}
+.sx-input[aria-invalid='true'] {
+  box-shadow:
+    var(--sx-shadow-well),
+    0 0 0 2px var(--sx-color-danger);
 }
 .sx-input:disabled {
-  background: var(--sx-color-surface-alt);
+  color: var(--sx-color-text-muted);
+  cursor: not-allowed;
 }
 
 /* ---------- Grid helper */
 .sx-grid {
   display: grid;
   gap: var(--sx-space-4);
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
 }
 
 /* ---------- Description list */

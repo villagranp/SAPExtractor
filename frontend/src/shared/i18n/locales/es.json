@@ -2,7 +2,8 @@
   "app": {
     "name": "SAPExtract",
     "tagline": "Orquestador de extracciones SAP",
-    "skipToContent": "Saltar al contenido"
+    "skipToContent": "Saltar al contenido",
+    "homeLink": "SAPExtract: ir al inicio"
   },
   "common": {
     "loading": "Cargando…",
@@ -41,14 +42,19 @@
     "sectionData": "Datos",
     "sectionOperation": "Operación",
     "sectionAdmin": "Administración",
-    "soon": "Iteración {{it}}"
+    "soon": "Iteración {{it}}",
+    "breadcrumb": "Ruta",
+    "soonShort": "It{{it}}"
   },
   "userMenu": {
-    "logout": "Cerrar sesión"
+    "logout": "Cerrar sesión",
+    "profileOf": "Mi perfil ({{name}})",
+    "lightTheme": "Cambiar al tema claro",
+    "darkTheme": "Cambiar al tema grafito"
   },
   "home": {
     "title": "Estado de la plataforma",
-    "description": "Base técnica, usuarios, roles y auditoría en marcha. Los módulos se habilitan según el roadmap.",
+    "description": "Lo esencial de un vistazo: salud de la plataforma, conexiones SAP, usuarios y auditoría.",
     "api": "API",
     "database": "Base de metadatos",
     "migrations": "Migraciones",
@@ -59,8 +65,53 @@
     "fail": "Con fallos",
     "checking": "Comprobando…",
     "unreachable": "Sin conexión con la API",
-    "nextSteps": "Próximos pasos",
-    "nextStepsBody": "Iteración 2: conexiones SAP. Iteración 4: destinos (CSV, SQL Server, Snowflake)."
+    "platform": "Plataforma",
+    "allOk": "Todo en orden",
+    "review": "Revisar",
+    "sapSystems": "Sistemas SAP",
+    "sapHealthy": "Todas las conexiones con la última prueba correcta.",
+    "sapFailing_one": "1 conexión con la prueba fallida o pendiente.",
+    "sapFailing_other": "{{count}} conexiones con la prueba fallida o pendiente.",
+    "sapActive_one": "1 activo",
+    "sapActive_other": "{{count}} activos",
+    "sapDraft_one": "1 borrador",
+    "sapDraft_other": "{{count}} borradores",
+    "sapInactive_one": "1 inactivo",
+    "sapInactive_other": "{{count}} inactivos",
+    "seeSapSystems": "Ver sistemas SAP",
+    "newSapSystem": "Nuevo sistema SAP",
+    "activeUsers": "Usuarios activos",
+    "activeUsersHint": "Con acceso a la plataforma ahora mismo.",
+    "seeUsers": "Ver usuarios",
+    "audit": "Auditoría",
+    "auditOk": "Íntegra",
+    "auditBroken": "Alterada",
+    "auditNever": "Sin verificar",
+    "auditChecked_one": "1 evento comprobado el {{date}}.",
+    "auditChecked_other": "{{count}} eventos comprobados el {{date}}.",
+    "auditNeverHint": "Verifique la cadena de hash desde la pantalla de auditoría.",
+    "seeAudit": "Ver auditoría",
+    "roadmap": "Hoja de ruta",
+    "roadmapUnit": "de {{total}} etapas",
+    "roadmapNext": "En curso: Fase 0 (preparación). Siguen orígenes SAP (It3) y destinos CSV y Snowflake (It4a).",
+    "iterations": {
+      "it0": "It0 · Fundaciones",
+      "it1": "It1 · Identidad y auditoría",
+      "it2": "It2 · Conexiones SAP",
+      "fase0": "Fase 0 · Preparación",
+      "it3": "It3 · Orígenes",
+      "it4a": "It4a · Destinos",
+      "it5": "It5 · Motor y deltas",
+      "it6": "It6 · Orquestación",
+      "it7": "It7 · Entra ID",
+      "it8": "It8 · Monitoreo",
+      "it9": "It9 · PRD"
+    },
+    "iterationStates": {
+      "on": "hecha",
+      "partial": "en curso",
+      "off": "pendiente"
+    }
   },
   "login": {
     "title": "Iniciar sesión",
@@ -113,7 +164,20 @@
     "ip": "IP",
     "device": "Navegador",
     "current": "Esta sesión",
-    "revoke": "Cerrar"
+    "revoke": "Cerrar",
+    "appearance": "Apariencia",
+    "theme": "Tema",
+    "density": "Densidad",
+    "themes": {
+      "system": "Como el sistema",
+      "light": "Claro",
+      "dark": "Grafito"
+    },
+    "densities": {
+      "comfortable": "Cómoda",
+      "compact": "Compacta"
+    },
+    "appearanceHint": "Se guarda en este navegador y se aplica al instante."
   },
   "forbidden": {
     "title": "Sin acceso",

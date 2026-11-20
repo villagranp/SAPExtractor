@@ -1,8 +1,17 @@
-/* Estilos de los componentes de datos, diálogos y avisos. Solo usan tokens (var(--sx-*)). */
+/* Componentes de datos, diálogos y avisos con el material «táctil». Solo usan tokens. */
 
 /* ---------- Select / Checkbox / errores de campo */
 select.sx-input {
-  appearance: auto;
+  appearance: none;
+  padding-right: calc(var(--sx-control-x) + 18px);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--sx-color-text-muted) 50%),
+    linear-gradient(135deg, var(--sx-color-text-muted) 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) 55%,
+    calc(100% - 13px) 55%;
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
 }
 .sx-check {
   display: flex;
@@ -11,7 +20,11 @@ select.sx-input {
   padding: var(--sx-space-1) 0;
 }
 .sx-check input {
-  margin-top: 3px;
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  accent-color: var(--sx-color-primary);
 }
 .sx-check label {
   display: grid;
@@ -24,6 +37,7 @@ select.sx-input {
   margin: var(--sx-space-1) 0 0;
   padding-left: var(--sx-space-4);
   font-size: var(--sx-text-xs);
+  font-weight: 600;
   color: var(--sx-color-danger);
 }
 
@@ -44,9 +58,10 @@ select.sx-input {
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
 }
 .sx-matrix__group {
-  padding: var(--sx-space-3);
+  padding: var(--sx-space-3) var(--sx-space-4);
   background: var(--sx-color-surface-alt);
   border-radius: var(--sx-radius-md);
+  box-shadow: var(--sx-shadow-well);
 }
 
 /* ---------- FilterBar */
@@ -64,7 +79,7 @@ select.sx-input {
   gap: var(--sx-space-3);
 }
 .sx-filterbar__fields .sx-field {
-  min-width: 160px;
+  min-width: 170px;
   margin-bottom: 0;
 }
 .sx-filterbar__actions {
@@ -72,38 +87,49 @@ select.sx-input {
   gap: var(--sx-space-2);
 }
 
-/* ---------- Table */
+/* ---------- Table: dentro de una tarjeta en relieve */
 .sx-table-wrap {
   overflow-x: auto;
-  background: var(--sx-color-surface);
-  border: 1px solid var(--sx-color-border);
+  padding: var(--sx-space-2);
+  background: linear-gradient(160deg, var(--sx-surface-top), var(--sx-surface-bottom));
   border-radius: var(--sx-radius-lg);
+  box-shadow: var(--sx-shadow-raised);
 }
 .sx-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 .sx-table th,
 .sx-table td {
-  padding: var(--sx-space-2) var(--sx-space-3);
-  border-bottom: 1px solid var(--sx-color-border);
+  padding: var(--sx-space-3);
   vertical-align: top;
+  border-bottom: 1px solid var(--sx-color-border);
 }
 .sx-table th {
   font-size: var(--sx-text-xs);
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--sx-color-text-muted);
-  background: var(--sx-color-surface-alt);
+  background: transparent;
 }
 .sx-table tbody tr:last-child td {
   border-bottom: 0;
 }
+.sx-table tbody td:first-child {
+  border-top-left-radius: var(--sx-radius-sm);
+  border-bottom-left-radius: var(--sx-radius-sm);
+}
+.sx-table tbody td:last-child {
+  border-top-right-radius: var(--sx-radius-sm);
+  border-bottom-right-radius: var(--sx-radius-sm);
+}
 .sx-table__row--clickable {
   cursor: pointer;
+  transition: background-color var(--sx-dur) var(--sx-ease);
 }
-.sx-table__row--clickable:hover {
+.sx-table__row--clickable:hover td {
   background: var(--sx-color-surface-alt);
 }
 .sx-table__empty {
@@ -119,10 +145,11 @@ select.sx-input {
 /* ---------- Pagination */
 .sx-pagination {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--sx-space-3);
-  margin-top: var(--sx-space-3);
+  margin-top: var(--sx-space-4);
   color: var(--sx-color-text-muted);
 }
 .sx-pagination div {
@@ -132,60 +159,83 @@ select.sx-input {
 
 /* ---------- Dialog */
 .sx-dialog {
-  width: min(520px, calc(100vw - 32px));
+  width: min(540px, calc(100vw - 32px));
   padding: 0;
   color: var(--sx-color-text);
-  background: var(--sx-color-surface);
-  border: 1px solid var(--sx-color-border);
-  border-radius: var(--sx-radius-lg);
-  box-shadow: 0 20px 50px rgb(0 0 0 / 25%);
+  background: linear-gradient(160deg, var(--sx-surface-top), var(--sx-surface-bottom));
+  border: 0;
+  border-radius: var(--sx-radius-xl);
+  box-shadow:
+    inset 1px 1px 0 var(--sx-highlight),
+    0 30px 60px -20px rgb(0 0 0 / 45%);
 }
 .sx-dialog--lg {
-  width: min(860px, calc(100vw - 32px));
+  width: min(900px, calc(100vw - 32px));
 }
 .sx-dialog::backdrop {
-  background: rgb(10 16 26 / 55%);
+  background: rgb(10 14 20 / 45%);
+  backdrop-filter: blur(3px);
 }
 .sx-dialog__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--sx-space-4) var(--sx-space-5);
-  border-bottom: 1px solid var(--sx-color-border);
+  gap: var(--sx-space-3);
+  padding: var(--sx-space-5) var(--sx-space-5) var(--sx-space-3);
 }
 .sx-dialog__header h2 {
   margin: 0;
-  font-size: var(--sx-text-md);
+  font-size: var(--sx-text-lg);
+  font-weight: 700;
 }
 .sx-dialog__close {
-  font-size: 1.4rem;
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  font-size: 1.3rem;
   line-height: 1;
   color: var(--sx-color-text-muted);
-  background: none;
+  background: var(--sx-color-surface-alt);
   border: 0;
+  border-radius: var(--sx-radius-sm);
+  box-shadow: var(--sx-shadow-well);
   cursor: pointer;
 }
 .sx-dialog__body {
   max-height: 70vh;
   overflow-y: auto;
-  padding: var(--sx-space-5);
+  padding: var(--sx-space-2) var(--sx-space-5) var(--sx-space-5);
 }
 .sx-dialog__footer {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: var(--sx-space-2);
-  padding: var(--sx-space-3) var(--sx-space-5);
+  padding: var(--sx-space-3) var(--sx-space-5) var(--sx-space-4);
   border-top: 1px solid var(--sx-color-border);
 }
 
-/* ---------- Alert */
+/* ---------- Alert: aviso con color suave y punto de estado */
 .sx-alert {
+  position: relative;
   display: grid;
   gap: var(--sx-space-1);
   margin-bottom: var(--sx-space-4);
-  padding: var(--sx-space-3) var(--sx-space-4);
-  border-left: 4px solid currentColor;
+  padding: var(--sx-space-3) var(--sx-space-4) var(--sx-space-3) calc(var(--sx-space-4) + 18px);
   border-radius: var(--sx-radius-md);
+  box-shadow: inset 1px 1px 2px var(--sx-shade-soft);
+}
+.sx-alert::before {
+  content: '';
+  position: absolute;
+  top: calc(var(--sx-space-3) + 6px);
+  left: var(--sx-space-4);
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 18%, transparent);
 }
 .sx-alert > div {
   color: var(--sx-color-text);
@@ -220,9 +270,9 @@ select.sx-input {
   color: var(--sx-color-text-muted);
 }
 .sx-spinner__dot {
-  width: 14px;
-  height: 14px;
-  border: 2px solid var(--sx-color-border);
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--sx-color-surface-alt);
   border-top-color: var(--sx-color-primary);
   border-radius: 50%;
   animation: sx-spin 0.8s linear infinite;
@@ -238,26 +288,39 @@ select.sx-input {
   }
 }
 
-/* ---------- Tabs */
+/* ---------- Tabs: control segmentado (pozo con la pestaña activa en relieve) */
 .sx-tabs {
-  display: flex;
+  display: inline-flex;
+  flex-wrap: wrap;
   gap: var(--sx-space-1);
-  margin-bottom: var(--sx-space-4);
-  border-bottom: 1px solid var(--sx-color-border);
+  margin-bottom: var(--sx-space-5);
+  padding: 5px;
+  background: var(--sx-color-surface-alt);
+  border-radius: var(--sx-radius-md);
+  box-shadow: var(--sx-shadow-well);
 }
 .sx-tabs__tab {
-  padding: var(--sx-space-2) var(--sx-space-3);
+  padding: 7px var(--sx-space-4);
   font: inherit;
   font-weight: 600;
   color: var(--sx-color-text-muted);
   background: none;
   border: 0;
-  border-bottom: 2px solid transparent;
+  border-radius: calc(var(--sx-radius-md) - 4px);
   cursor: pointer;
+  transition:
+    background-color var(--sx-dur) var(--sx-ease),
+    color var(--sx-dur) var(--sx-ease);
+}
+.sx-tabs__tab:hover {
+  color: var(--sx-color-text);
 }
 .sx-tabs__tab[aria-selected='true'] {
-  color: var(--sx-color-primary);
-  border-bottom-color: var(--sx-color-primary);
+  color: var(--sx-color-text);
+  background: linear-gradient(180deg, var(--sx-key-top), var(--sx-key-bottom));
+  box-shadow:
+    inset 0 1px 0 var(--sx-highlight),
+    0 2px 4px var(--sx-shade-soft);
 }
 
 /* ---------- Secreto de un solo uso */
@@ -278,10 +341,11 @@ select.sx-input {
 }
 .sx-secret code {
   flex: 1;
-  padding: var(--sx-space-2);
+  padding: var(--sx-space-2) var(--sx-space-3);
   overflow-wrap: anywhere;
   background: var(--sx-color-surface);
   border-radius: var(--sx-radius-sm);
+  box-shadow: var(--sx-shadow-well);
 }
 
 /* ---------- Utilidades de disposición */
@@ -298,7 +362,7 @@ select.sx-input {
 .sx-two-columns {
   display: grid;
   gap: var(--sx-space-4);
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
 }
 
 /* ---------- Diferencias antes/después */
@@ -323,7 +387,7 @@ select.sx-input {
   background: var(--sx-color-success-bg);
 }
 .sx-code-block {
-  max-height: 240px;
+  max-height: 260px;
   margin: 0;
   padding: var(--sx-space-3);
   overflow: auto;
@@ -331,6 +395,7 @@ select.sx-input {
   font-size: var(--sx-text-xs);
   background: var(--sx-color-surface-alt);
   border-radius: var(--sx-radius-md);
+  box-shadow: var(--sx-shadow-well);
 }
 
 /* ---------- TextArea de ancho fijo */
@@ -339,32 +404,38 @@ select.sx-input {
   font-size: var(--sx-text-xs);
   white-space: pre;
 }
+textarea.sx-input {
+  resize: vertical;
+}
 
-/* ---------- Stepper (asistentes) */
+/* ---------- Stepper (asistentes): fila de teclas */
 .sx-stepper {
   display: flex;
   flex-wrap: wrap;
   gap: var(--sx-space-2);
   margin: 0 0 var(--sx-space-5);
-  padding: 0;
+  padding: 6px;
   list-style: none;
-  counter-reset: step;
+  background: var(--sx-color-surface-alt);
+  border-radius: var(--sx-radius-lg);
+  box-shadow: var(--sx-shadow-well);
 }
 .sx-stepper__step {
   display: flex;
   align-items: center;
   gap: var(--sx-space-2);
-  padding: var(--sx-space-2) var(--sx-space-3);
+  padding: 7px var(--sx-space-3);
   color: var(--sx-color-text-muted);
-  background: var(--sx-color-surface);
-  border: 1px solid var(--sx-color-border);
   border-radius: var(--sx-radius-md);
   font-size: var(--sx-text-sm);
+  font-weight: 600;
 }
 .sx-stepper__step--current {
-  color: var(--sx-color-primary);
-  border-color: var(--sx-color-primary);
-  font-weight: 600;
+  color: var(--sx-color-text);
+  background: linear-gradient(180deg, var(--sx-key-top), var(--sx-key-bottom));
+  box-shadow:
+    inset 0 1px 0 var(--sx-highlight),
+    0 2px 4px var(--sx-shade-soft);
 }
 .sx-stepper__step--done {
   color: var(--sx-color-success);
@@ -374,9 +445,15 @@ select.sx-input {
   place-items: center;
   width: 1.5rem;
   height: 1.5rem;
-  border-radius: 50%;
-  background: var(--sx-color-surface-alt);
   font-size: var(--sx-text-xs);
+  border-radius: 50%;
+  background: var(--sx-color-surface);
+  box-shadow: inset 1px 1px 2px var(--sx-shade-soft);
+}
+.sx-stepper__step--current .sx-stepper__index {
+  color: var(--sx-color-primary-contrast);
+  background: var(--sx-color-primary);
+  box-shadow: none;
 }
 .sx-stepper__button {
   display: inline-flex;
@@ -393,7 +470,7 @@ select.sx-input {
 /* ---------- Lista de pasos de una comprobación */
 .sx-checklist {
   display: grid;
-  gap: var(--sx-space-3);
+  gap: var(--sx-space-2);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -406,7 +483,117 @@ select.sx-input {
   padding: var(--sx-space-3);
   background: var(--sx-color-surface-alt);
   border-radius: var(--sx-radius-md);
+  box-shadow: var(--sx-shadow-well);
 }
 .sx-checklist__item small {
   color: var(--sx-color-text-muted);
+}
+
+/* ---------- Métricas (tarjetas del inicio y paneles) */
+.sx-metric {
+  display: grid;
+  gap: var(--sx-space-2);
+  min-width: 0;
+}
+.sx-metric__label {
+  font-size: var(--sx-text-sm);
+  font-weight: 600;
+  color: var(--sx-color-text-2);
+}
+.sx-metric__value {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  overflow-wrap: anywhere; /* valores de texto largos («Comprobando…») no desbordan */
+  gap: 6px;
+  font-family: var(--sx-font-display);
+  font-size: var(--sx-text-value);
+  font-weight: var(--sx-weight-display);
+  letter-spacing: var(--sx-track-display);
+  line-height: 1;
+}
+.sx-metric__unit {
+  font-size: var(--sx-text-md);
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--sx-color-text-muted);
+}
+.sx-metric__hint {
+  font-size: var(--sx-text-sm);
+  color: var(--sx-color-text-muted);
+}
+
+/* ---------- Medidor segmentado (progreso discreto, p. ej. iteraciones) */
+.sx-meter {
+  display: flex;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sx-meter__segment {
+  flex: 1;
+  height: 8px;
+  border-radius: var(--sx-radius-pill);
+  background: var(--sx-color-surface-alt);
+  box-shadow: inset 1px 1px 2px var(--sx-shade-soft);
+}
+.sx-meter__segment--on {
+  background: linear-gradient(180deg, var(--sx-accent-top), var(--sx-color-primary));
+  box-shadow: 0 2px 6px -2px color-mix(in srgb, var(--sx-color-primary) 60%, transparent);
+}
+.sx-meter__segment--partial {
+  background: color-mix(in srgb, var(--sx-color-primary) 45%, var(--sx-color-surface-alt));
+}
+
+/* ---------- SegmentedControl */
+.sx-segmented {
+  min-width: 0;
+  margin: 0 0 var(--sx-space-4);
+  padding: 0;
+  border: 0;
+}
+.sx-segmented legend {
+  margin-bottom: 6px;
+  padding: 0;
+  font-weight: 600;
+  color: var(--sx-color-text-2);
+}
+.sx-segmented__track {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--sx-space-1);
+  padding: 5px;
+  background: var(--sx-color-surface-alt);
+  border-radius: var(--sx-radius-md);
+  box-shadow: var(--sx-shadow-well);
+}
+.sx-segmented__option {
+  position: relative;
+}
+.sx-segmented__option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.sx-segmented__option span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px var(--sx-space-4);
+  font-weight: 600;
+  color: var(--sx-color-text-muted);
+  border-radius: calc(var(--sx-radius-md) - 4px);
+  cursor: pointer;
+}
+.sx-segmented__option input:checked + span {
+  color: var(--sx-color-text);
+  background: linear-gradient(180deg, var(--sx-key-top), var(--sx-key-bottom));
+  box-shadow:
+    inset 0 1px 0 var(--sx-highlight),
+    0 2px 4px var(--sx-shade-soft);
+}
+.sx-segmented__option input:focus-visible + span {
+  outline: 2px solid var(--sx-color-focus);
+  outline-offset: 2px;
 }

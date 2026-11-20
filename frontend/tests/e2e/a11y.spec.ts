@@ -31,24 +31,31 @@ test('login accesible', async ({ page }) => {
 test.describe('pantallas con sesión', () => {
   test.skip(!ADMIN_USER || !ADMIN_PASSWORD, 'Defina E2E_ADMIN_USER y E2E_ADMIN_PASSWORD');
 
-  test('inicio, sistemas SAP, asistente, usuarios y auditoría', async ({ page }) => {
+  test('pantallas principales en tema claro y grafito', async ({ page }) => {
     await page.goto('/login');
     await page.getByLabel('Usuario').fill(ADMIN_USER ?? '');
     await page.getByLabel('Contraseña', { exact: true }).fill(ADMIN_PASSWORD ?? '');
     await page.getByRole('button', { name: 'Entrar' }).click();
     await expect(page.getByRole('heading', { name: 'Estado de la plataforma' })).toBeVisible();
-    await expectAccessible(page, 'inicio');
 
     const screens: [string, string][] = [
       ['/sap-systems', 'Sistemas SAP'],
       ['/sap-systems/new', 'Nuevo sistema SAP'],
       ['/admin/users', 'Usuarios'],
       ['/admin/audit', 'Auditoría'],
+      ['/profile', 'Mi perfil'],
     ];
-    for (const [path, heading] of screens) {
-      await page.goto(path);
-      await expect(page.getByRole('heading', { name: heading, level: 1 })).toBeVisible();
-      await expectAccessible(page, path);
+    // Los dos temas: el contraste se comprueba en claro y en grafito.
+    for (const theme of ['light', 'dark'] as const) {
+      const prefs = JSON.stringify({ theme });
+      await page.evaluate(
+        `window.localStorage.setItem('sx-preferences', ${JSON.stringify(prefs)})`,
+      );
+      for (const [path, heading] of [['/', 'Estado de la plataforma'], ...screens]) {
+        await page.goto(path);
+        await expect(page.getByRole('heading', { name: heading, level: 1 })).toBeVisible();
+        await expectAccessible(page, `${path} (${theme})`);
+      }
     }
   });
 });

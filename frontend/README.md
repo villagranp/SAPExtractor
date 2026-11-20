@@ -20,7 +20,9 @@ Tras cambiar la API: `cd ../backend && uv run sapextract export-openapi --output
 
 ## Reglas
 
-- Las pantallas (`src/features/*`) solo usan componentes de `@/shared/ui`. La plantilla corporativa se integrará reimplementando `shared/ui` y `shared/theme/tokens.css`, sin tocar las pantallas.
+- Las pantallas (`src/features/*`) solo usan componentes e iconos de `@/shared/ui` (ESLint lo exige). El estilo «táctil» (ADR 0007) vive en `shared/ui` y `shared/theme/tokens.css`; el acento (naranja) se cambia con los tokens `--sx-brand-*` y `--sx-accent-*`.
+- Tema (claro, grafito o del sistema) y densidad: `shared/theme/preferences.ts`; `public/theme-init.js` los aplica antes del primer pintado.
+- Capturas para revisar el diseño: `E2E_SCREENSHOTS=<carpeta> pnpm exec playwright test screenshots` (con el administrador E2E).
 - Llamadas a la API solo con el cliente tipado `api` + `unwrap` (`@/shared/api/client`) dentro de hooks de TanStack Query.
 - Textos visibles en `src/shared/i18n/locales/*.json`. El español (`es.json`) es el idioma de referencia y debe estar completo; `en.json` cubre la navegación, el login y los textos comunes, y lo que falte se muestra en español (`fallbackLng: 'es'`).
 - Sesión: `useMe()` es la fuente de verdad. `RequireAuth` envía al login si no hay sesión activa; `RequirePermission` / `useCan()` solo ocultan opciones (la API responde 403 igualmente). Un 401 en cualquier consulta devuelve al login.

@@ -162,7 +162,12 @@ class AuditService:
         return select(AuditEventRow).where(*conditions)
 
     def count(self, session: Session, filters: AuditFilters) -> int:
-        stmt = self._filtered(filters).with_only_columns(func.count()).order_by(None)
+        # maintain_column_froms: sin él, count(*) se queda sin FROM y siempre devuelve 1.
+        stmt = (
+            self._filtered(filters)
+            .with_only_columns(func.count(), maintain_column_froms=True)
+            .order_by(None)
+        )
         return session.scalar(stmt) or 0
 
     def search(

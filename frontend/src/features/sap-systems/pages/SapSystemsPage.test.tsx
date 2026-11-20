@@ -14,7 +14,7 @@ describe('SapSystemsPage', () => {
     const cells = within(row as HTMLElement);
     expect(cells.getByText('DEV')).toBeInTheDocument();
     expect(cells.getByText('Activo')).toBeInTheDocument();
-    expect(cells.getByText('● Correcta')).toBeInTheDocument();
+    expect(cells.getByText('Correcta')).toBeInTheDocument();
     expect(cells.getByText('https://gw.empresa.local:44300')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Nuevo sistema SAP' })).toBeInTheDocument();
   });

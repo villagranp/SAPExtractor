@@ -107,6 +107,23 @@ def test_export_csv_and_json(admin: ApiClient) -> None:
     assert audit_actions(admin, action="audit.exported")
 
 
+def test_search_reports_the_real_total(admin: ApiClient) -> None:
+    """El total de la paginación es el recuento real, no el número de filas de la página."""
+    first = admin.get("/audit-events", params={"page_size": 2})
+    assert first.status_code == 200, first.text
+    body = first.json()
+    assert len(body["items"]) == 2
+    assert body["total"] > 2
+    everything = admin.get("/audit-events", params={"page_size": 200}).json()
+    assert body["total"] == min(everything["total"], body["total"])
+    filtered = admin.get(
+        "/audit-events", params={"action": "auth.login_succeeded", "page_size": 200}
+    )
+    items = filtered.json()["items"]
+    assert filtered.json()["total"] >= len(items) > 0
+    assert all(e["action"] == "auth.login_succeeded" for e in items)
+
+
 def test_event_detail_and_catalog(admin: ApiClient) -> None:
     event = audit_actions(admin)[0]
     detail = admin.get(f"/audit-events/{event['id']}")

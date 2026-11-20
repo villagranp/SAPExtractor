@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { formatDateTime } from '@/shared/format';
+import { usePreferences } from '@/shared/theme/preferences';
 import {
   Alert,
   Button,
@@ -7,6 +8,7 @@ import {
   DataTable,
   DetailList,
   PageHeader,
+  SegmentedControl,
   StatusPill,
   type Column,
 } from '@/shared/ui';
@@ -19,6 +21,7 @@ export function ProfilePage() {
   const me = useMe().data;
   const sessions = useMySessions();
   const revoke = useRevokeMySession();
+  const [prefs, setPrefs] = usePreferences();
   if (!me) return null;
   const isLocal = me.auth_source === 'local';
 
@@ -91,6 +94,31 @@ export function ProfilePage() {
           ) : (
             <Alert tone="info">{t('profile.entraManaged')}</Alert>
           )}
+        </Card>
+        <Card title={t('profile.appearance')}>
+          <SegmentedControl
+            label={t('profile.theme')}
+            value={prefs.theme}
+            onChange={(theme) => {
+              setPrefs({ theme });
+            }}
+            options={(['system', 'light', 'dark'] as const).map((value) => ({
+              value,
+              label: t(`profile.themes.${value}`),
+            }))}
+          />
+          <SegmentedControl
+            label={t('profile.density')}
+            value={prefs.density}
+            onChange={(density) => {
+              setPrefs({ density });
+            }}
+            options={(['comfortable', 'compact'] as const).map((value) => ({
+              value,
+              label: t(`profile.densities.${value}`),
+            }))}
+          />
+          <p className="sx-muted">{t('profile.appearanceHint')}</p>
         </Card>
         {isLocal && (
           <Card title={t('profile.changePassword')}>

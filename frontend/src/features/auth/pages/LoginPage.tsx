@@ -152,6 +152,15 @@ export function LoginPage() {
 
   return (
     <main className="sx-login">
+      <div className="sx-login__brand">
+        <span className="sx-login__mark" aria-hidden="true">
+          SX
+        </span>
+        <span>
+          <strong>{t('app.name')}</strong>
+          <small>{t('app.tagline')}</small>
+        </span>
+      </div>
       <Card title={title} className="sx-login__card">
         {body}
         {stage && (

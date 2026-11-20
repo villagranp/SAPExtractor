@@ -1,0 +1,46 @@
+/* Inicio: rejilla de tarjetas de estado. Solo usa tokens. */
+.sx-home__grid {
+  display: grid;
+  gap: var(--sx-space-4);
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+  margin-bottom: var(--sx-space-4);
+}
+.sx-home__grid--wide {
+  grid-template-columns: 2fr 1fr;
+}
+.sx-home__card {
+  display: grid;
+  min-width: 0;
+  align-content: space-between;
+  gap: var(--sx-space-4);
+}
+.sx-home__checks {
+  display: grid;
+  gap: var(--sx-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sx-home__checks li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sx-space-1) var(--sx-space-2);
+  padding: var(--sx-space-2) var(--sx-space-3);
+  background: var(--sx-color-surface-alt);
+  border-radius: var(--sx-radius-md);
+  box-shadow: var(--sx-shadow-well);
+}
+.sx-home__checks small {
+  flex-basis: 100%;
+}
+.sx-home__more {
+  justify-self: start;
+  font-weight: 600;
+}
+@media (max-width: 900px) {
+  .sx-home__grid--wide {
+    grid-template-columns: 1fr;
+  }
+}

@@ -75,16 +75,21 @@ export interface PageHeaderProps {
   title: ReactNode;
   description?: ReactNode;
   actions?: ReactNode;
+  /** Línea pequeña sobre el título (fecha, contexto, entorno). */
+  eyebrow?: ReactNode;
 }
 
-export function PageHeader({ title, description, actions }: PageHeaderProps) {
+export function PageHeader({ title, description, actions, eyebrow }: PageHeaderProps) {
   return (
     <header className="sx-page-header">
       <div>
+        {eyebrow !== undefined && <p className="sx-page-header__eyebrow">{eyebrow}</p>}
         <h1>{title}</h1>
         {description !== undefined && <p>{description}</p>}
       </div>
-      {actions !== undefined && <div>{actions}</div>}
+      {actions !== undefined && actions !== false && (
+        <div className="sx-page-header__actions">{actions}</div>
+      )}
     </header>
   );
 }
