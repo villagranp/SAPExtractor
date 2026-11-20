@@ -68,7 +68,10 @@ def _cmd_export_openapi(args: argparse.Namespace) -> int:
     spec = create_app(settings).openapi()
     out = Path(args.output)
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(spec, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    # newline="\n": el mismo archivo en Windows y en CI (Linux), que lo compara byte a byte.
+    out.write_text(
+        json.dumps(spec, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n"
+    )
     sys.stdout.write(f"OpenAPI exportado en {out}\n")
     return 0
 

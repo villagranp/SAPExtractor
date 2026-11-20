@@ -1,0 +1,34 @@
+/* Orígenes: fila del constructor de filtros y tabla ancha de la vista previa. Solo usa tokens. */
+.sx-sources__filter-row {
+  display: grid;
+  gap: var(--sx-space-3);
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 2fr) auto;
+  align-items: end;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+@media (max-width: 720px) {
+  .sx-sources__filter-row {
+    grid-template-columns: 1fr;
+  }
+}
+.sx-sources__expression {
+  overflow-wrap: anywhere;
+}
+/* La vista previa puede tener decenas de columnas: desplazamiento horizontal dentro de la tabla. */
+.sx-sources__preview .sx-table-wrap {
+  max-height: 60vh;
+  overflow: auto;
+}
+.sx-sources__preview td,
+.sx-sources__preview th {
+  white-space: nowrap;
+}
+.sx-sources__guide ol,
+.sx-sources__guide ul {
+  display: grid;
+  gap: var(--sx-space-2);
+  margin: 0;
+  padding-left: var(--sx-space-5);
+}

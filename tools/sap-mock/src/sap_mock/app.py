@@ -202,7 +202,9 @@ def build_metadata(d: ServiceDef) -> str:
 
 _CONDITION = re.compile(
     r"^\s*(?P<field>\w+)\s+(?P<op>eq|ne|ge|gt|le|lt)\s+"
-    r"(?:datetime(?:offset)?'(?P<dt>[^']+)'|'(?P<str>[^']*)'|(?P<num>-?\d+(?:\.\d+)?))\s*$"
+    # Literales V2: decimal con sufijo M, Int64 con L, Double con d (todos opcionales aquí).
+    r"(?:datetime(?:offset)?'(?P<dt>[^']+)'|'(?P<str>(?:[^']|'')*)'"
+    r"|(?P<num>-?\d+(?:\.\d+)?)[MmLlDd]?)\s*$"
 )
 
 
@@ -221,7 +223,7 @@ def _parse_filter(expr: str, d: ServiceDef) -> list[tuple[str, str, Any]]:
         elif m["num"] is not None:
             value = Decimal(m["num"])
         else:
-            value = m["str"]
+            value = m["str"].replace("''", "'")
         conditions.append((f.name, m["op"], value))
     return conditions
 

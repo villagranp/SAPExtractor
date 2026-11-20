@@ -118,16 +118,34 @@ GET    /api/v1/sources/{id}/schema/diff?from=&to=
 
 ## Tareas
 
-- [ ] Modelo `source` + `source_schema_version`, con `delta_semantics` y `watermark_kind`.
-- [ ] Tabla de semántica de delta de los extractores estándar frecuentes.
-- [ ] Formularios con React Hook Form y Zod (primera pantalla que los adopta, plan 10 §2).
-- [ ] `MetadataParser` V2 (prioridad) y V4.
-- [ ] Clasificación ODP/CDS y detección de delta.
-- [ ] Asistente backend (`inspect`) y vista previa sin suscripción.
-- [ ] Versionado y diff de esquema.
-- [ ] Pantallas 1–4.
+- [x] Modelo `source` + `source_schema_version`, con `delta_semantics` y `watermark_kind` (migración `0005_sources`).
+- [x] Tabla de semántica de delta de los extractores estándar frecuentes.
+- [x] Formularios con React Hook Form y Zod (primera pantalla que los adopta, plan 10 §2).
+- [x] `MetadataParser` V2 (prioridad) y V4 (ya en It2, `sap_connections`).
+- [x] Clasificación ODP/CDS y detección de delta (It2; el origen la reutiliza).
+- [x] Asistente backend (`inspect`) y vista previa sin suscripción.
+- [x] Versionado y diff de esquema.
+- [x] Pantallas 1–4.
 - [ ] Guía SAP revisada con el equipo SAP de AG (y nomenclatura confirmada).
-- [ ] Pruebas con fixtures del spike (extractor estándar, Z y CDS).
+- [ ] Pruebas con fixtures del spike (extractor estándar, Z y CDS): hoy con el mock; se cambian por las respuestas reales cuando se grabe el spike.
+
+## Lo construido en la iteración 3
+
+Código: `backend/src/sapextract/sources/`, `backend/src/sapextract/dataflow/domain/` (esquema compartido, ADR 0006) y `frontend/src/features/sources/`.
+
+- **Esquema.** Se guarda el que declara SAP (`EntitySchema` de `dataflow`, con su `schema_hash()`) junto con qué campos admiten `$filter`. Las claves confirmadas van en `source.key_fields`: el esquema efectivo para el motor es el de SAP con esas claves (`effective_schema`). Un tipo EDM no previsto se lleva como texto (contrato común de `dataflow`); columnas repetidas o con nombre de columna técnica (`_sx_*`) impiden crear el origen. Como `schema_hash()` no incluye `display_format`, la relectura del esquema también crea versión si el diff detecta un cambio (ADR 0006 §2, pendiente de acordar).
+- **Diferencias con el plan.**
+  - La vista previa es posterior al alta: el asistente guarda el origen como **borrador** y la vista previa y la activación se hacen en el detalle. Así la lectura queda auditada contra un origen concreto (`source.previewed`).
+  - **Excluir columnas** no está en el origen: el spool lleva todas las columnas de SAP y la exclusión es parte del mapeo del destino (ADR 0006 §2).
+  - El tipo de origen se propone por el entity set (`EntityOf` → extractor, `FactsOf`/`AttrOf`/`TextOf` → CDS vía ODP, el resto → CDS vía OData). `HierOf` y `DeltaLinksOf` se rechazan.
+  - Se añadió `preview_enabled` por origen (H16) y `service_path`, resuelto del catálogo al crear.
+- **Delta.** Delta ODQ solo en orígenes ODP con *change tracking*; marca de agua solo en CDS vía OData. La semántica se declara con ayuda de los códigos de RSA2 (`ABR`, `ADD`, `AIE`, `AIMD`…) y de una sugerencia para extractores conocidos, que hay que confirmar en SAP. Las marcas de agua `Edm.DateTimeOffset` usan UTC; el resto exige la zona horaria del sistema (H15).
+- **Filtros.** Condiciones campo-operador-valor guardadas como datos; el `$filter` se genera con los literales de OData V2 o V4 según el tipo EDM y se valida al guardar (texto con longitud máxima, enteros, decimales dentro de la precisión y la escala, fechas sin zona para `Edm.DateTime`).
+- **Vista previa.** `$top=100` sin `Prefer: odata.track-changes`, siguiendo `__next` si Gateway pagina en el servidor, con un tiempo máximo de 30 s. `$count` solo en CDS vía OData: en ODP podría lanzar la extracción completa (H16). Exige un sistema SAP activo, igual que releer el esquema y activar.
+- **Esquema versionado.** «Revisar cambios en SAP» relee el `$metadata`: si el hash cambia se crea una versión y se muestra el diff (columnas nuevas, eliminadas y modificadas; ensanchar texto o decimal es compatible, el resto rompe).
+- **Ciclo de vida.** `draft → active → deprecated → active`, baja lógica que libera el código. Un origen no obsoleto impide dar de baja su sistema SAP. Cada cambio se audita.
+- **Desde el explorador de It2.** «Crear origen» abre el asistente con el sistema, el servicio y el entity set ya elegidos.
+- **Pruebas.** Dominio (`tests/unit/test_sources_domain.py`), integración contra el mock con PostgreSQL (`tests/integration/test_sources.py`, incluido que la vista previa no emite tokens de delta), Vitest de las pantallas y E2E del flujo explorador → asistente → vista previa → activación, con axe en las pantallas nuevas.
 
 ## Criterios de aceptación
 

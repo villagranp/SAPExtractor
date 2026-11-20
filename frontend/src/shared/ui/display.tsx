@@ -62,6 +62,8 @@ export interface SegmentedControlProps<T extends string> {
   value: T;
   options: SegmentedOption<T>[];
   onChange: (value: T) => void;
+  /** Texto de ayuda bajo las opciones (p. ej. qué significa la elegida). */
+  hint?: ReactNode;
 }
 
 /** Elección única entre pocas opciones (grupo de radios con aspecto de teclas). */
@@ -70,10 +72,12 @@ export function SegmentedControl<T extends string>({
   value,
   options,
   onChange,
+  hint,
 }: SegmentedControlProps<T>) {
   const name = useId();
+  const hintId = useId();
   return (
-    <fieldset className="sx-segmented">
+    <fieldset className="sx-segmented" aria-describedby={hint ? hintId : undefined}>
       <legend>{label}</legend>
       <div className="sx-segmented__track">
         {options.map((o) => (
@@ -91,6 +95,11 @@ export function SegmentedControl<T extends string>({
           </label>
         ))}
       </div>
+      {hint && (
+        <p id={hintId} className="sx-field__hint">
+          {hint}
+        </p>
+      )}
     </fieldset>
   );
 }

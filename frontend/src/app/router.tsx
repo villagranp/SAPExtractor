@@ -12,6 +12,10 @@ import { RolesPage } from '@/features/roles/pages/RolesPage';
 import { SapSystemDetailPage } from '@/features/sap-systems/pages/SapSystemDetailPage';
 import { SapSystemsPage } from '@/features/sap-systems/pages/SapSystemsPage';
 import { SapSystemWizardPage } from '@/features/sap-systems/pages/SapSystemWizardPage';
+import { SourceDetailPage } from '@/features/sources/pages/SourceDetailPage';
+import { SourceGuidePage } from '@/features/sources/pages/SourceGuidePage';
+import { SourcesPage } from '@/features/sources/pages/SourcesPage';
+import { SourceWizardPage } from '@/features/sources/pages/SourceWizardPage';
 import { HomePage } from '@/features/system/pages/HomePage';
 import { UserDetailPage } from '@/features/users/pages/UserDetailPage';
 import { UsersPage } from '@/features/users/pages/UsersPage';
@@ -54,6 +58,11 @@ export const routes: RouteObject[] = [
       guarded('sap-systems/new', 'sap_connection:manage', <SapSystemWizardPage />),
       guarded('sap-systems/:systemId', 'sap_connection:read', <SapSystemDetailPage />),
       guarded('sap-systems/:systemId/edit', 'sap_connection:manage', <SapSystemWizardPage />),
+      guarded('sources', 'source:read', <SourcesPage />),
+      guarded('sources/new', 'source:manage', <SourceWizardPage />),
+      guarded('sources/guide', 'source:read', <SourceGuidePage />),
+      guarded('sources/:sourceId', 'source:read', <SourceDetailPage />),
+      guarded('sources/:sourceId/edit', 'source:manage', <SourceWizardPage />),
       guarded('destinations', 'destination:read', <DestinationsPage />),
       guarded('destinations/new', 'destination:manage', <DestinationWizardPage />),
       guarded('destinations/:destinationId', 'destination:read', <DestinationDetailPage />),

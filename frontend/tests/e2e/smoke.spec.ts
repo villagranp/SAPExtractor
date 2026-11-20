@@ -105,7 +105,34 @@ test.describe('con administrador', () => {
     await expect(page.getByTestId('catalog-summary')).toContainText('3 ODP · 1 CDS');
     await page.getByText('ZFI_WS_GL_ITEMS_SRV').click();
     await expect(page.getByRole('dialog').getByText('EntityOf0FI_GL_14').first()).toBeVisible();
+
+    // Origen desde el explorador: el asistente llega con el servicio y el entity set elegidos.
+    await page.getByRole('dialog').getByRole('button', { name: 'Crear origen' }).click();
+    await expect(page.getByRole('heading', { name: 'Nuevo origen', level: 1 })).toBeVisible();
+    await page.getByRole('button', { name: 'Leer esquema' }).click();
+    await expect(page.getByRole('heading', { name: 'Esquema y claves' })).toBeVisible();
+    await expect(page.getByRole('checkbox', { name: 'BELNR' })).toBeChecked();
+    await page.getByRole('button', { name: 'Siguiente' }).click();
+    await expect(page.getByRole('radio', { name: 'Delta de la ODQ' })).toBeChecked();
+    await page.getByRole('button', { name: 'Siguiente' }).click();
+    await page.getByRole('button', { name: 'Añadir condición' }).click();
+    await page.getByLabel('Valor').fill('1000');
+    await page.getByRole('button', { name: 'Siguiente' }).click();
+    const sourceCode = `SRC_${code}`;
+    await page.getByLabel('Código').fill(sourceCode);
+    await page.getByRole('button', { name: 'Siguiente' }).click();
+    await page.getByRole('button', { name: 'Guardar borrador' }).click();
+
+    await expect(page.getByRole('heading', { name: new RegExp(sourceCode) })).toBeVisible();
+    await expect(page.getByText("RBUKRS eq '1000'")).toBeVisible();
+    await page.getByRole('tab', { name: 'Vista previa' }).click();
+    await page.getByRole('button', { name: 'Leer filas' }).click();
+    const preview = page.getByRole('table', { name: new RegExp(sourceCode) });
+    await expect(preview.getByRole('cell', { name: '1000' }).first()).toBeVisible();
+    await page.getByRole('button', { name: 'Activar' }).click();
+    await expect(page.getByText('Activo', { exact: true })).toBeVisible();
   });
+
   test('alta de destino CSV → prueba → activación → auditoría', async ({ page }) => {
     await login(page, ADMIN_USER ?? '', ADMIN_PASSWORD ?? '');
     await menuLink(page, 'Destinos').click();

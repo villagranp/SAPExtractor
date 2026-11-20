@@ -779,6 +779,162 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Orígenes SAP */
+        get: operations["list_sources_api_v1_sources_get"];
+        put?: never;
+        /** Alta de origen (queda en borrador) */
+        post: operations["create_source_api_v1_sources_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sources/inspect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Esquema y capacidades de un entity set, sin guardar (asistente) */
+        post: operations["inspect_entity_set_api_v1_sources_inspect_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sources/{source_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Detalle de origen */
+        get: operations["get_source_api_v1_sources__source_id__get"];
+        put?: never;
+        post?: never;
+        /** Baja lógica de origen */
+        delete: operations["delete_source_api_v1_sources__source_id__delete"];
+        options?: never;
+        head?: never;
+        /** Edición de origen */
+        patch: operations["update_source_api_v1_sources__source_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/sources/{source_id}/activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Activar origen (borrador u obsoleto → activo) */
+        post: operations["activate_source_api_v1_sources__source_id__activate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sources/{source_id}/deprecate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Marcar origen como obsoleto */
+        post: operations["deprecate_source_api_v1_sources__source_id__deprecate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sources/{source_id}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Primeras 100 filas sin abrir suscripción en la ODQ */
+        post: operations["preview_source_api_v1_sources__source_id__preview_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sources/{source_id}/schema/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Releer el $metadata y versionar el esquema si cambió */
+        post: operations["refresh_schema_api_v1_sources__source_id__schema_refresh_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sources/{source_id}/schema/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Versiones del esquema (la más reciente primero) */
+        get: operations["schema_versions_api_v1_sources__source_id__schema_versions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sources/{source_id}/schema/diff": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Diferencias entre dos versiones del esquema */
+        get: operations["schema_diff_api_v1_sources__source_id__schema_diff_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/destination-types": {
         parameters: {
             query?: never;
@@ -1293,6 +1449,21 @@ export interface components {
          * @enum {string}
          */
         ClassificationSource: "entity_sets" | "name";
+        /** ColumnChangeResponse */
+        ColumnChangeResponse: {
+            /** Name */
+            name: string;
+            /** Before */
+            before: {
+                [key: string]: unknown;
+            };
+            /** After */
+            after: {
+                [key: string]: unknown;
+            };
+            /** Breaking */
+            breaking: boolean;
+        };
         /**
          * CredentialInfo
          * @description Datos visibles de la credencial (nunca el secreto).
@@ -1379,6 +1550,29 @@ export interface components {
          * @enum {string}
          */
         DeleteHandling: "soft" | "hard" | "ignore";
+        /** DeltaConfigBody */
+        DeltaConfigBody: {
+            method: components["schemas"]["DeltaMethod"];
+            semantics?: components["schemas"]["DeltaSemantics"] | null;
+            /** Watermark Field */
+            watermark_field?: string | null;
+            watermark_kind?: components["schemas"]["WatermarkKind"] | null;
+            /** Watermark Timezone */
+            watermark_timezone?: string | null;
+            /** Watermark Overlap Seconds */
+            watermark_overlap_seconds?: number | null;
+        };
+        /**
+         * DeltaMethod
+         * @enum {string}
+         */
+        DeltaMethod: "ODQ" | "WATERMARK" | "NONE";
+        /**
+         * DeltaSemantics
+         * @description Proceso de delta del extractor (RSA2). No se detecta: lo declara el usuario.
+         * @enum {string}
+         */
+        DeltaSemantics: "after_image" | "additive" | "before_after" | "unknown";
         /** DependentResponse */
         DependentResponse: {
             /** Kind */
@@ -1628,6 +1822,17 @@ export interface components {
             destination: components["schemas"]["DestinationDetail"];
             test?: components["schemas"]["CheckReportResponse"] | null;
         };
+        /** DiffColumnResponse */
+        DiffColumnResponse: {
+            /** Name */
+            name: string;
+            /** Edm Type */
+            edm_type: string;
+            /** Is Key */
+            is_key: boolean;
+            /** Label */
+            label: string | null;
+        };
         /** EntitySetResponse */
         EntitySetResponse: {
             /** Name */
@@ -1672,12 +1877,77 @@ export interface components {
             /** Code */
             code?: string | null;
         };
+        /** FilterConditionBody */
+        FilterConditionBody: {
+            /** Field */
+            field: string;
+            op: components["schemas"]["FilterOperator"];
+            /**
+             * Value
+             * @description Valor según el tipo del campo: texto, número, booleano o fecha ISO 8601
+             */
+            value: boolean | number | string;
+        };
+        /** FilterConditionResponse */
+        FilterConditionResponse: {
+            /** Field */
+            field: string;
+            op: components["schemas"]["FilterOperator"];
+            /** Value */
+            value: boolean | number | string;
+        };
+        /**
+         * FilterOperator
+         * @enum {string}
+         */
+        FilterOperator: "eq" | "ne" | "gt" | "ge" | "lt" | "le";
         /** HealthReport */
         HealthReport: {
             status: components["schemas"]["CheckStatus"];
             /** Checks */
             checks: {
                 [key: string]: components["schemas"]["CheckResult"];
+            };
+        };
+        /** InspectionResponse */
+        InspectionResponse: {
+            sap_system: components["schemas"]["SourceSystemRef"];
+            /** Service Name */
+            service_name: string;
+            /** Service Version */
+            service_version: number;
+            /** Service Title */
+            service_title: string | null;
+            /** Service Description */
+            service_description: string | null;
+            /** Entity Set */
+            entity_set: string;
+            /** Entity Set Label */
+            entity_set_label: string | null;
+            odp_role: components["schemas"]["OdpRole"] | null;
+            /** Odp Name */
+            odp_name: string | null;
+            /** Odata Version */
+            odata_version: string;
+            suggested_type: components["schemas"]["SourceType"];
+            /** Supports Delta */
+            supports_delta: boolean;
+            /**
+             * Keys
+             * @description Claves según el $metadata
+             */
+            keys: string[];
+            /** Columns */
+            columns: components["schemas"]["SchemaColumnResponse"][];
+            /** Watermark Candidates */
+            watermark_candidates: string[];
+            semantics_hint: components["schemas"]["SemanticsHintResponse"] | null;
+            /**
+             * Delta Processes
+             * @description Proceso de delta de RSA2 → semántica, para la ayuda del asistente
+             */
+            delta_processes: {
+                [key: string]: components["schemas"]["DeltaSemantics"];
             };
         };
         /**
@@ -1763,6 +2033,11 @@ export interface components {
             scope?: string | null;
         };
         /**
+         * OdpContext
+         * @enum {string}
+         */
+        OdpContext: "SAPI" | "ABAP_CDS";
+        /**
          * OdpRole
          * @description Papel de un *entity set* en un servicio generado con *Redefine → ODP Extraction*.
          * @enum {string}
@@ -1806,6 +2081,17 @@ export interface components {
             /** Page Size */
             page_size: number;
         };
+        /** Page[SourceSummary] */
+        Page_SourceSummary_: {
+            /** Items */
+            items: components["schemas"]["SourceSummary"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+        };
         /** Page[UserSummary] */
         Page_UserSummary_: {
             /** Items */
@@ -1837,6 +2123,27 @@ export interface components {
             module_name: string;
             /** Description */
             description: string;
+        };
+        /** PreviewResponse */
+        PreviewResponse: {
+            /** Columns */
+            columns: string[];
+            /** Rows */
+            rows: {
+                [key: string]: unknown;
+            }[];
+            /**
+             * Truncated
+             * @description SAP tiene más filas que las mostradas
+             */
+            truncated: boolean;
+            /**
+             * Count
+             * @description Recuento total (solo CDS vía OData)
+             */
+            count: number | null;
+            /** Elapsed Ms */
+            elapsed_ms: number;
         };
         /**
          * ProblemDetails
@@ -2249,11 +2556,82 @@ export interface components {
             system: components["schemas"]["SapSystemDetail"];
             test?: components["schemas"]["TestReportResponse"] | null;
         };
+        /** SchemaColumnResponse */
+        SchemaColumnResponse: {
+            /** Name */
+            name: string;
+            /** Label */
+            label: string | null;
+            /** Edm Type */
+            edm_type: string;
+            /** Arrow Type */
+            arrow_type: string;
+            /** Nullable */
+            nullable: boolean;
+            /**
+             * Is Key
+             * @description Clave según el $metadata de SAP
+             */
+            is_key: boolean;
+            /** Max Length */
+            max_length: number | null;
+            /** Precision */
+            precision: number | null;
+            /** Scale */
+            scale: number | null;
+            /** Display Format */
+            display_format: string | null;
+            /** Filterable */
+            filterable: boolean;
+        };
+        /** SchemaDiffResponse */
+        SchemaDiffResponse: {
+            /** From Version */
+            from_version: number;
+            /** To Version */
+            to_version: number;
+            /**
+             * Breaking
+             * @description Columna eliminada o cambio incompatible
+             */
+            breaking: boolean;
+            /** Reordered */
+            reordered: boolean;
+            /** Added */
+            added: components["schemas"]["DiffColumnResponse"][];
+            /** Removed */
+            removed: components["schemas"]["DiffColumnResponse"][];
+            /** Changed */
+            changed: components["schemas"]["ColumnChangeResponse"][];
+        };
         /**
          * SchemaEvolution
          * @enum {string}
          */
         SchemaEvolution: "add_columns" | "ignore" | "fail";
+        /** SchemaRefreshResponse */
+        SchemaRefreshResponse: {
+            /** Changed */
+            changed: boolean;
+            source: components["schemas"]["SourceDetail"];
+            diff: components["schemas"]["SchemaDiffResponse"];
+        };
+        /** SchemaVersionResponse */
+        SchemaVersionResponse: {
+            /** Version */
+            version: number;
+            /** Hash */
+            hash: string;
+            /**
+             * Detected At
+             * Format: date-time
+             */
+            detected_at: string;
+            /** Detected By */
+            detected_by: string | null;
+            /** Column Count */
+            column_count: number;
+        };
         /** SecretRotateRequest */
         SecretRotateRequest: {
             /** Version */
@@ -2265,6 +2643,15 @@ export interface components {
             secret: {
                 [key: string]: unknown;
             };
+        };
+        /** SemanticsHintResponse */
+        SemanticsHintResponse: {
+            /**
+             * Delta Process
+             * @description Proceso de delta habitual (RSA2); confírmelo en SAP
+             */
+            delta_process: string;
+            semantics: components["schemas"]["DeltaSemantics"];
         };
         /** ServiceEntitySetsResponse */
         ServiceEntitySetsResponse: {
@@ -2335,6 +2722,155 @@ export interface components {
         SessionStatusResponse: {
             stage: components["schemas"]["SessionStage"];
         };
+        /** SourceCreateRequest */
+        SourceCreateRequest: {
+            /**
+             * Sap System Id
+             * Format: uuid
+             */
+            sap_system_id: string;
+            /** Service Name */
+            service_name: string;
+            /**
+             * Service Version
+             * @default 1
+             */
+            service_version: number;
+            /** Entity Set */
+            entity_set: string;
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+            /** Description */
+            description?: string | null;
+            /** Tags */
+            tags?: string[];
+            /** @description Si se omite, el que corresponde al entity set */
+            source_type?: components["schemas"]["SourceType"] | null;
+            /**
+             * Key Fields
+             * @description Si se omiten, las claves del $metadata
+             */
+            key_fields?: string[] | null;
+            /** @description Si se omite, delta ODQ cuando el servicio lo admite */
+            delta?: components["schemas"]["DeltaConfigBody"] | null;
+            /** Default Filters */
+            default_filters?: components["schemas"]["FilterConditionBody"][];
+            /** Page Size */
+            page_size?: number | null;
+            /**
+             * Preview Enabled
+             * @default true
+             */
+            preview_enabled: boolean;
+        };
+        /** SourceDetail */
+        SourceDetail: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+            source_type: components["schemas"]["SourceType"];
+            status: components["schemas"]["SourceStatus"];
+            sap_system: components["schemas"]["SourceSystemRef"];
+            /** Odp Name */
+            odp_name: string | null;
+            /** Service Name */
+            service_name: string;
+            /** Entity Set */
+            entity_set: string;
+            delta_method: components["schemas"]["DeltaMethod"];
+            delta_semantics: components["schemas"]["DeltaSemantics"] | null;
+            /** Schema Version */
+            schema_version: number;
+            /** Tags */
+            tags: string[];
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Description */
+            description: string | null;
+            odp_context: components["schemas"]["OdpContext"] | null;
+            /** Service Version */
+            service_version: number;
+            /** Service Path */
+            service_path: string;
+            /** Odata Version */
+            odata_version: string;
+            /** Supports Delta */
+            supports_delta: boolean;
+            /** Watermark Field */
+            watermark_field: string | null;
+            watermark_kind: components["schemas"]["WatermarkKind"] | null;
+            /** Watermark Timezone */
+            watermark_timezone: string | null;
+            /** Watermark Overlap Seconds */
+            watermark_overlap_seconds: number | null;
+            /**
+             * Key Fields
+             * @description Claves confirmadas para el destino
+             */
+            key_fields: string[];
+            /** Default Filters */
+            default_filters: components["schemas"]["FilterConditionResponse"][];
+            /**
+             * Filter Expression
+             * @description $filter que se enviará a SAP (vacío si no hay)
+             */
+            filter_expression: string;
+            /** Page Size */
+            page_size: number;
+            /** Preview Enabled */
+            preview_enabled: boolean;
+            /** Status Reason */
+            status_reason: string | null;
+            /** Schema Checked At */
+            schema_checked_at: string | null;
+            schema: components["schemas"]["SchemaVersionResponse"];
+            /** Columns */
+            columns: components["schemas"]["SchemaColumnResponse"][];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by: string | null;
+            /** Updated By */
+            updated_by: string | null;
+            /** Version */
+            version: number;
+        };
+        /** SourceInspectRequest */
+        SourceInspectRequest: {
+            /**
+             * Sap System Id
+             * Format: uuid
+             */
+            sap_system_id: string;
+            /** Service Name */
+            service_name: string;
+            /**
+             * Service Version
+             * @default 1
+             */
+            service_version: number;
+            /** Entity Set */
+            entity_set: string;
+        };
+        /** SourceReasonRequest */
+        SourceReasonRequest: {
+            /** Reason */
+            reason?: string | null;
+        };
         /** SourceRef */
         SourceRef: {
             /**
@@ -2354,6 +2890,85 @@ export interface components {
             version: number;
             /** Entity Set */
             entity_set: string;
+        };
+        /**
+         * SourceStatus
+         * @enum {string}
+         */
+        SourceStatus: "draft" | "active" | "deprecated";
+        /** SourceSummary */
+        SourceSummary: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+            source_type: components["schemas"]["SourceType"];
+            status: components["schemas"]["SourceStatus"];
+            sap_system: components["schemas"]["SourceSystemRef"];
+            /** Odp Name */
+            odp_name: string | null;
+            /** Service Name */
+            service_name: string;
+            /** Entity Set */
+            entity_set: string;
+            delta_method: components["schemas"]["DeltaMethod"];
+            delta_semantics: components["schemas"]["DeltaSemantics"] | null;
+            /** Schema Version */
+            schema_version: number;
+            /** Tags */
+            tags: string[];
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** SourceSystemRef */
+        SourceSystemRef: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+            environment: components["schemas"]["SapEnvironment"];
+            status: components["schemas"]["SystemStatus"];
+        };
+        /**
+         * SourceType
+         * @enum {string}
+         */
+        SourceType: "ODP_EXTRACTOR" | "CDS_ODP" | "CDS_ODATA";
+        /** SourceUpdateRequest */
+        SourceUpdateRequest: {
+            /**
+             * Version
+             * @description Versión leída (control de concurrencia)
+             */
+            version?: number | null;
+            /** Name */
+            name?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Tags */
+            tags?: string[] | null;
+            /** Key Fields */
+            key_fields?: string[] | null;
+            delta?: components["schemas"]["DeltaConfigBody"] | null;
+            /** Default Filters */
+            default_filters?: components["schemas"]["FilterConditionBody"][] | null;
+            /** Page Size */
+            page_size?: number | null;
+            /** Preview Enabled */
+            preview_enabled?: boolean | null;
         };
         /** StatusReasonRequest */
         StatusReasonRequest: {
@@ -2579,6 +3194,11 @@ export interface components {
              */
             version?: number | null;
         };
+        /**
+         * WatermarkKind
+         * @enum {string}
+         */
+        WatermarkKind: "datetime" | "date" | "decimal_timestamp";
         /** X509CredentialsIn */
         X509CredentialsIn: {
             /**
@@ -4381,6 +5001,401 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ServiceMetadataResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    list_sources_api_v1_sources_get: {
+        parameters: {
+            query?: {
+                q?: string | null;
+                /** @description Sistema SAP */
+                system?: string | null;
+                type?: components["schemas"]["SourceType"] | null;
+                status?: components["schemas"]["SourceStatus"] | null;
+                delta_method?: components["schemas"]["DeltaMethod"] | null;
+                page?: number;
+                page_size?: number;
+                sort?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_SourceSummary_"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    create_source_api_v1_sources_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SourceCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceDetail"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    inspect_entity_set_api_v1_sources_inspect_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SourceInspectRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InspectionResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    get_source_api_v1_sources__source_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceDetail"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    delete_source_api_v1_sources__source_id__delete: {
+        parameters: {
+            query?: {
+                reason?: string | null;
+            };
+            header?: never;
+            path: {
+                source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    update_source_api_v1_sources__source_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SourceUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceDetail"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    activate_source_api_v1_sources__source_id__activate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceDetail"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    deprecate_source_api_v1_sources__source_id__deprecate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SourceReasonRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceDetail"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    preview_source_api_v1_sources__source_id__preview_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreviewResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    refresh_schema_api_v1_sources__source_id__schema_refresh_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SchemaRefreshResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    schema_versions_api_v1_sources__source_id__schema_versions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SchemaVersionResponse"][];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    schema_diff_api_v1_sources__source_id__schema_diff_get: {
+        parameters: {
+            query: {
+                from: number;
+                to: number;
+            };
+            header?: never;
+            path: {
+                source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SchemaDiffResponse"];
                 };
             };
             /** @description Error */

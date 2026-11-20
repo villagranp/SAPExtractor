@@ -2968,6 +2968,703 @@
         }
       }
     },
+    "/api/v1/sources": {
+      "get": {
+        "tags": [
+          "Orígenes SAP"
+        ],
+        "summary": "Orígenes SAP",
+        "operationId": "list_sources_api_v1_sources_get",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "name": "system",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Sistema SAP",
+              "title": "System"
+            },
+            "description": "Sistema SAP"
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/SourceType"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Type"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/SourceStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "delta_method",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/DeltaMethod"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Delta Method"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Page Size"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^-?[a-z_][a-z0-9_]*$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Sort"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_SourceSummary_"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Orígenes SAP"
+        ],
+        "summary": "Alta de origen (queda en borrador)",
+        "operationId": "create_source_api_v1_sources_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SourceCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceDetail"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "source.created"
+        ]
+      }
+    },
+    "/api/v1/sources/inspect": {
+      "post": {
+        "tags": [
+          "Orígenes SAP"
+        ],
+        "summary": "Esquema y capacidades de un entity set, sin guardar (asistente)",
+        "operationId": "inspect_entity_set_api_v1_sources_inspect_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SourceInspectRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InspectionResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [],
+        "x-sx-audit-exempt": "Solo lee el $metadata de SAP; no guarda ni lee datos"
+      }
+    },
+    "/api/v1/sources/{source_id}": {
+      "get": {
+        "tags": [
+          "Orígenes SAP"
+        ],
+        "summary": "Detalle de origen",
+        "operationId": "get_source_api_v1_sources__source_id__get",
+        "parameters": [
+          {
+            "name": "source_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Source Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceDetail"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Orígenes SAP"
+        ],
+        "summary": "Edición de origen",
+        "operationId": "update_source_api_v1_sources__source_id__patch",
+        "parameters": [
+          {
+            "name": "source_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Source Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SourceUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceDetail"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "source.updated"
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Orígenes SAP"
+        ],
+        "summary": "Baja lógica de origen",
+        "operationId": "delete_source_api_v1_sources__source_id__delete",
+        "parameters": [
+          {
+            "name": "source_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Source Id"
+            }
+          },
+          {
+            "name": "reason",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 500
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Reason"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "source.deleted"
+        ]
+      }
+    },
+    "/api/v1/sources/{source_id}/activate": {
+      "post": {
+        "tags": [
+          "Orígenes SAP"
+        ],
+        "summary": "Activar origen (borrador u obsoleto → activo)",
+        "operationId": "activate_source_api_v1_sources__source_id__activate_post",
+        "parameters": [
+          {
+            "name": "source_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Source Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceDetail"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "source.activated"
+        ]
+      }
+    },
+    "/api/v1/sources/{source_id}/deprecate": {
+      "post": {
+        "tags": [
+          "Orígenes SAP"
+        ],
+        "summary": "Marcar origen como obsoleto",
+        "operationId": "deprecate_source_api_v1_sources__source_id__deprecate_post",
+        "parameters": [
+          {
+            "name": "source_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Source Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SourceReasonRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceDetail"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "source.deprecated"
+        ]
+      }
+    },
+    "/api/v1/sources/{source_id}/preview": {
+      "post": {
+        "tags": [
+          "Orígenes SAP"
+        ],
+        "summary": "Primeras 100 filas sin abrir suscripción en la ODQ",
+        "operationId": "preview_source_api_v1_sources__source_id__preview_post",
+        "parameters": [
+          {
+            "name": "source_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Source Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreviewResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "source.previewed"
+        ]
+      }
+    },
+    "/api/v1/sources/{source_id}/schema/refresh": {
+      "post": {
+        "tags": [
+          "Orígenes SAP"
+        ],
+        "summary": "Releer el $metadata y versionar el esquema si cambió",
+        "operationId": "refresh_schema_api_v1_sources__source_id__schema_refresh_post",
+        "parameters": [
+          {
+            "name": "source_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Source Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SchemaRefreshResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "source.schema_refreshed"
+        ]
+      }
+    },
+    "/api/v1/sources/{source_id}/schema/versions": {
+      "get": {
+        "tags": [
+          "Orígenes SAP"
+        ],
+        "summary": "Versiones del esquema (la más reciente primero)",
+        "operationId": "schema_versions_api_v1_sources__source_id__schema_versions_get",
+        "parameters": [
+          {
+            "name": "source_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Source Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SchemaVersionResponse"
+                  },
+                  "title": "Response Schema Versions Api V1 Sources  Source Id  Schema Versions Get"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sources/{source_id}/schema/diff": {
+      "get": {
+        "tags": [
+          "Orígenes SAP"
+        ],
+        "summary": "Diferencias entre dos versiones del esquema",
+        "operationId": "schema_diff_api_v1_sources__source_id__schema_diff_get",
+        "parameters": [
+          {
+            "name": "source_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Source Id"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "title": "From"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "title": "To"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SchemaDiffResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/destination-types": {
       "get": {
         "tags": [
@@ -4614,6 +5311,36 @@
         ],
         "title": "ClassificationSource"
       },
+      "ColumnChangeResponse": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "before": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Before"
+          },
+          "after": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "After"
+          },
+          "breaking": {
+            "type": "boolean",
+            "title": "Breaking"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "before",
+          "after",
+          "breaking"
+        ],
+        "title": "ColumnChangeResponse"
+      },
       "CredentialInfo": {
         "properties": {
           "username": {
@@ -4888,6 +5615,95 @@
           "ignore"
         ],
         "title": "DeleteHandling"
+      },
+      "DeltaConfigBody": {
+        "properties": {
+          "method": {
+            "$ref": "#/components/schemas/DeltaMethod"
+          },
+          "semantics": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DeltaSemantics"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "watermark_field": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Watermark Field"
+          },
+          "watermark_kind": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WatermarkKind"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "watermark_timezone": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 60
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Watermark Timezone"
+          },
+          "watermark_overlap_seconds": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 86400.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Watermark Overlap Seconds"
+          }
+        },
+        "type": "object",
+        "required": [
+          "method"
+        ],
+        "title": "DeltaConfigBody"
+      },
+      "DeltaMethod": {
+        "type": "string",
+        "enum": [
+          "ODQ",
+          "WATERMARK",
+          "NONE"
+        ],
+        "title": "DeltaMethod"
+      },
+      "DeltaSemantics": {
+        "type": "string",
+        "enum": [
+          "after_image",
+          "additive",
+          "before_after",
+          "unknown"
+        ],
+        "title": "DeltaSemantics",
+        "description": "Proceso de delta del extractor (RSA2). No se detecta: lo declara el usuario."
       },
       "DependentResponse": {
         "properties": {
@@ -5553,6 +6369,41 @@
         ],
         "title": "DestinationWithTestResponse"
       },
+      "DiffColumnResponse": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "edm_type": {
+            "type": "string",
+            "title": "Edm Type"
+          },
+          "is_key": {
+            "type": "boolean",
+            "title": "Is Key"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "edm_type",
+          "is_key",
+          "label"
+        ],
+        "title": "DiffColumnResponse"
+      },
       "EntitySetResponse": {
         "properties": {
           "name": {
@@ -5705,6 +6556,91 @@
         ],
         "title": "FieldError"
       },
+      "FilterConditionBody": {
+        "properties": {
+          "field": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Field"
+          },
+          "op": {
+            "$ref": "#/components/schemas/FilterOperator"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Value",
+            "description": "Valor según el tipo del campo: texto, número, booleano o fecha ISO 8601"
+          }
+        },
+        "type": "object",
+        "required": [
+          "field",
+          "op",
+          "value"
+        ],
+        "title": "FilterConditionBody"
+      },
+      "FilterConditionResponse": {
+        "properties": {
+          "field": {
+            "type": "string",
+            "title": "Field"
+          },
+          "op": {
+            "$ref": "#/components/schemas/FilterOperator"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "type": "object",
+        "required": [
+          "field",
+          "op",
+          "value"
+        ],
+        "title": "FilterConditionResponse"
+      },
+      "FilterOperator": {
+        "type": "string",
+        "enum": [
+          "eq",
+          "ne",
+          "gt",
+          "ge",
+          "lt",
+          "le"
+        ],
+        "title": "FilterOperator"
+      },
       "HealthReport": {
         "properties": {
           "status": {
@@ -5724,6 +6660,151 @@
           "checks"
         ],
         "title": "HealthReport"
+      },
+      "InspectionResponse": {
+        "properties": {
+          "sap_system": {
+            "$ref": "#/components/schemas/SourceSystemRef"
+          },
+          "service_name": {
+            "type": "string",
+            "title": "Service Name"
+          },
+          "service_version": {
+            "type": "integer",
+            "title": "Service Version"
+          },
+          "service_title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Service Title"
+          },
+          "service_description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Service Description"
+          },
+          "entity_set": {
+            "type": "string",
+            "title": "Entity Set"
+          },
+          "entity_set_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entity Set Label"
+          },
+          "odp_role": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OdpRole"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "odp_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Odp Name"
+          },
+          "odata_version": {
+            "type": "string",
+            "title": "Odata Version"
+          },
+          "suggested_type": {
+            "$ref": "#/components/schemas/SourceType"
+          },
+          "supports_delta": {
+            "type": "boolean",
+            "title": "Supports Delta"
+          },
+          "keys": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Keys",
+            "description": "Claves según el $metadata"
+          },
+          "columns": {
+            "items": {
+              "$ref": "#/components/schemas/SchemaColumnResponse"
+            },
+            "type": "array",
+            "title": "Columns"
+          },
+          "watermark_candidates": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Watermark Candidates"
+          },
+          "semantics_hint": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SemanticsHintResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "delta_processes": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/DeltaSemantics"
+            },
+            "type": "object",
+            "title": "Delta Processes",
+            "description": "Proceso de delta de RSA2 → semántica, para la ayuda del asistente"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sap_system",
+          "service_name",
+          "service_version",
+          "service_title",
+          "service_description",
+          "entity_set",
+          "entity_set_label",
+          "odp_role",
+          "odp_name",
+          "odata_version",
+          "suggested_type",
+          "supports_delta",
+          "keys",
+          "columns",
+          "watermark_candidates",
+          "semantics_hint",
+          "delta_processes"
+        ],
+        "title": "InspectionResponse"
       },
       "LoadMode": {
         "type": "string",
@@ -5923,6 +7004,14 @@
         ],
         "title": "OAuth2CredentialsIn"
       },
+      "OdpContext": {
+        "type": "string",
+        "enum": [
+          "SAPI",
+          "ABAP_CDS"
+        ],
+        "title": "OdpContext"
+      },
       "OdpRole": {
         "type": "string",
         "enum": [
@@ -6038,6 +7127,37 @@
         ],
         "title": "Page[SapSystemSummary]"
       },
+      "Page_SourceSummary_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SourceSummary"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "page_size": {
+            "type": "integer",
+            "title": "Page Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "page_size"
+        ],
+        "title": "Page[SourceSummary]"
+      },
       "Page_UserSummary_": {
         "properties": {
           "items": {
@@ -6124,6 +7244,55 @@
           "description"
         ],
         "title": "PermissionResponse"
+      },
+      "PreviewResponse": {
+        "properties": {
+          "columns": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Columns"
+          },
+          "rows": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Rows"
+          },
+          "truncated": {
+            "type": "boolean",
+            "title": "Truncated",
+            "description": "SAP tiene más filas que las mostradas"
+          },
+          "count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Count",
+            "description": "Recuento total (solo CDS vía OData)"
+          },
+          "elapsed_ms": {
+            "type": "integer",
+            "title": "Elapsed Ms"
+          }
+        },
+        "type": "object",
+        "required": [
+          "columns",
+          "rows",
+          "truncated",
+          "count",
+          "elapsed_ms"
+        ],
+        "title": "PreviewResponse"
       },
       "ProblemDetails": {
         "properties": {
@@ -7413,6 +8582,158 @@
         ],
         "title": "SapSystemWithTestResponse"
       },
+      "SchemaColumnResponse": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "edm_type": {
+            "type": "string",
+            "title": "Edm Type"
+          },
+          "arrow_type": {
+            "type": "string",
+            "title": "Arrow Type"
+          },
+          "nullable": {
+            "type": "boolean",
+            "title": "Nullable"
+          },
+          "is_key": {
+            "type": "boolean",
+            "title": "Is Key",
+            "description": "Clave según el $metadata de SAP"
+          },
+          "max_length": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Length"
+          },
+          "precision": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Precision"
+          },
+          "scale": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scale"
+          },
+          "display_format": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Format"
+          },
+          "filterable": {
+            "type": "boolean",
+            "title": "Filterable"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "label",
+          "edm_type",
+          "arrow_type",
+          "nullable",
+          "is_key",
+          "max_length",
+          "precision",
+          "scale",
+          "display_format",
+          "filterable"
+        ],
+        "title": "SchemaColumnResponse"
+      },
+      "SchemaDiffResponse": {
+        "properties": {
+          "from_version": {
+            "type": "integer",
+            "title": "From Version"
+          },
+          "to_version": {
+            "type": "integer",
+            "title": "To Version"
+          },
+          "breaking": {
+            "type": "boolean",
+            "title": "Breaking",
+            "description": "Columna eliminada o cambio incompatible"
+          },
+          "reordered": {
+            "type": "boolean",
+            "title": "Reordered"
+          },
+          "added": {
+            "items": {
+              "$ref": "#/components/schemas/DiffColumnResponse"
+            },
+            "type": "array",
+            "title": "Added"
+          },
+          "removed": {
+            "items": {
+              "$ref": "#/components/schemas/DiffColumnResponse"
+            },
+            "type": "array",
+            "title": "Removed"
+          },
+          "changed": {
+            "items": {
+              "$ref": "#/components/schemas/ColumnChangeResponse"
+            },
+            "type": "array",
+            "title": "Changed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "from_version",
+          "to_version",
+          "breaking",
+          "reordered",
+          "added",
+          "removed",
+          "changed"
+        ],
+        "title": "SchemaDiffResponse"
+      },
       "SchemaEvolution": {
         "type": "string",
         "enum": [
@@ -7421,6 +8742,68 @@
           "fail"
         ],
         "title": "SchemaEvolution"
+      },
+      "SchemaRefreshResponse": {
+        "properties": {
+          "changed": {
+            "type": "boolean",
+            "title": "Changed"
+          },
+          "source": {
+            "$ref": "#/components/schemas/SourceDetail"
+          },
+          "diff": {
+            "$ref": "#/components/schemas/SchemaDiffResponse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "changed",
+          "source",
+          "diff"
+        ],
+        "title": "SchemaRefreshResponse"
+      },
+      "SchemaVersionResponse": {
+        "properties": {
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "hash": {
+            "type": "string",
+            "title": "Hash"
+          },
+          "detected_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Detected At"
+          },
+          "detected_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detected By"
+          },
+          "column_count": {
+            "type": "integer",
+            "title": "Column Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version",
+          "hash",
+          "detected_at",
+          "detected_by",
+          "column_count"
+        ],
+        "title": "SchemaVersionResponse"
       },
       "SecretRotateRequest": {
         "properties": {
@@ -7448,6 +8831,24 @@
           "secret"
         ],
         "title": "SecretRotateRequest"
+      },
+      "SemanticsHintResponse": {
+        "properties": {
+          "delta_process": {
+            "type": "string",
+            "title": "Delta Process",
+            "description": "Proceso de delta habitual (RSA2); confírmelo en SAP"
+          },
+          "semantics": {
+            "$ref": "#/components/schemas/DeltaSemantics"
+          }
+        },
+        "type": "object",
+        "required": [
+          "delta_process",
+          "semantics"
+        ],
+        "title": "SemanticsHintResponse"
       },
       "ServiceEntitySetsResponse": {
         "properties": {
@@ -7618,6 +9019,479 @@
         "title": "SessionStatusResponse",
         "description": "Paso en el que queda la sesión tras la operación."
       },
+      "SourceCreateRequest": {
+        "properties": {
+          "sap_system_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Sap System Id"
+          },
+          "service_name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Service Name"
+          },
+          "service_version": {
+            "type": "integer",
+            "maximum": 999.0,
+            "minimum": 1.0,
+            "title": "Service Version",
+            "default": 1
+          },
+          "entity_set": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Entity Set"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 3,
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Tags"
+          },
+          "source_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SourceType"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Si se omite, el que corresponde al entity set"
+          },
+          "key_fields": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array",
+                "maxItems": 50
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Key Fields",
+            "description": "Si se omiten, las claves del $metadata"
+          },
+          "delta": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DeltaConfigBody"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Si se omite, delta ODQ cuando el servicio lo admite"
+          },
+          "default_filters": {
+            "items": {
+              "$ref": "#/components/schemas/FilterConditionBody"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Default Filters"
+          },
+          "page_size": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 50000.0,
+                "minimum": 100.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page Size"
+          },
+          "preview_enabled": {
+            "type": "boolean",
+            "title": "Preview Enabled",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "sap_system_id",
+          "service_name",
+          "entity_set",
+          "code",
+          "name"
+        ],
+        "title": "SourceCreateRequest"
+      },
+      "SourceDetail": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "source_type": {
+            "$ref": "#/components/schemas/SourceType"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SourceStatus"
+          },
+          "sap_system": {
+            "$ref": "#/components/schemas/SourceSystemRef"
+          },
+          "odp_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Odp Name"
+          },
+          "service_name": {
+            "type": "string",
+            "title": "Service Name"
+          },
+          "entity_set": {
+            "type": "string",
+            "title": "Entity Set"
+          },
+          "delta_method": {
+            "$ref": "#/components/schemas/DeltaMethod"
+          },
+          "delta_semantics": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DeltaSemantics"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "schema_version": {
+            "type": "integer",
+            "title": "Schema Version"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "odp_context": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OdpContext"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "service_version": {
+            "type": "integer",
+            "title": "Service Version"
+          },
+          "service_path": {
+            "type": "string",
+            "title": "Service Path"
+          },
+          "odata_version": {
+            "type": "string",
+            "title": "Odata Version"
+          },
+          "supports_delta": {
+            "type": "boolean",
+            "title": "Supports Delta"
+          },
+          "watermark_field": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Watermark Field"
+          },
+          "watermark_kind": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WatermarkKind"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "watermark_timezone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Watermark Timezone"
+          },
+          "watermark_overlap_seconds": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Watermark Overlap Seconds"
+          },
+          "key_fields": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Key Fields",
+            "description": "Claves confirmadas para el destino"
+          },
+          "default_filters": {
+            "items": {
+              "$ref": "#/components/schemas/FilterConditionResponse"
+            },
+            "type": "array",
+            "title": "Default Filters"
+          },
+          "filter_expression": {
+            "type": "string",
+            "title": "Filter Expression",
+            "description": "$filter que se enviará a SAP (vacío si no hay)"
+          },
+          "page_size": {
+            "type": "integer",
+            "title": "Page Size"
+          },
+          "preview_enabled": {
+            "type": "boolean",
+            "title": "Preview Enabled"
+          },
+          "status_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status Reason"
+          },
+          "schema_checked_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Schema Checked At"
+          },
+          "schema": {
+            "$ref": "#/components/schemas/SchemaVersionResponse"
+          },
+          "columns": {
+            "items": {
+              "$ref": "#/components/schemas/SchemaColumnResponse"
+            },
+            "type": "array",
+            "title": "Columns"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          },
+          "updated_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated By"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "name",
+          "source_type",
+          "status",
+          "sap_system",
+          "odp_name",
+          "service_name",
+          "entity_set",
+          "delta_method",
+          "delta_semantics",
+          "schema_version",
+          "tags",
+          "updated_at",
+          "description",
+          "odp_context",
+          "service_version",
+          "service_path",
+          "odata_version",
+          "supports_delta",
+          "watermark_field",
+          "watermark_kind",
+          "watermark_timezone",
+          "watermark_overlap_seconds",
+          "key_fields",
+          "default_filters",
+          "filter_expression",
+          "page_size",
+          "preview_enabled",
+          "status_reason",
+          "schema_checked_at",
+          "schema",
+          "columns",
+          "created_at",
+          "created_by",
+          "updated_by",
+          "version"
+        ],
+        "title": "SourceDetail"
+      },
+      "SourceInspectRequest": {
+        "properties": {
+          "sap_system_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Sap System Id"
+          },
+          "service_name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Service Name"
+          },
+          "service_version": {
+            "type": "integer",
+            "maximum": 999.0,
+            "minimum": 1.0,
+            "title": "Service Version",
+            "default": 1
+          },
+          "entity_set": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Entity Set"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sap_system_id",
+          "service_name",
+          "entity_set"
+        ],
+        "title": "SourceInspectRequest"
+      },
+      "SourceReasonRequest": {
+        "properties": {
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "title": "SourceReasonRequest"
+      },
       "SourceRef": {
         "properties": {
           "sap_system_id": {
@@ -7653,6 +9527,271 @@
           "entity_set"
         ],
         "title": "SourceRef"
+      },
+      "SourceStatus": {
+        "type": "string",
+        "enum": [
+          "draft",
+          "active",
+          "deprecated"
+        ],
+        "title": "SourceStatus"
+      },
+      "SourceSummary": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "source_type": {
+            "$ref": "#/components/schemas/SourceType"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SourceStatus"
+          },
+          "sap_system": {
+            "$ref": "#/components/schemas/SourceSystemRef"
+          },
+          "odp_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Odp Name"
+          },
+          "service_name": {
+            "type": "string",
+            "title": "Service Name"
+          },
+          "entity_set": {
+            "type": "string",
+            "title": "Entity Set"
+          },
+          "delta_method": {
+            "$ref": "#/components/schemas/DeltaMethod"
+          },
+          "delta_semantics": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DeltaSemantics"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "schema_version": {
+            "type": "integer",
+            "title": "Schema Version"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "name",
+          "source_type",
+          "status",
+          "sap_system",
+          "odp_name",
+          "service_name",
+          "entity_set",
+          "delta_method",
+          "delta_semantics",
+          "schema_version",
+          "tags",
+          "updated_at"
+        ],
+        "title": "SourceSummary"
+      },
+      "SourceSystemRef": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "environment": {
+            "$ref": "#/components/schemas/SapEnvironment"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SystemStatus"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "name",
+          "environment",
+          "status"
+        ],
+        "title": "SourceSystemRef"
+      },
+      "SourceType": {
+        "type": "string",
+        "enum": [
+          "ODP_EXTRACTOR",
+          "CDS_ODP",
+          "CDS_ODATA"
+        ],
+        "title": "SourceType"
+      },
+      "SourceUpdateRequest": {
+        "properties": {
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version",
+            "description": "Versión leída (control de concurrencia)"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "tags": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array",
+                "maxItems": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tags"
+          },
+          "key_fields": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array",
+                "maxItems": 50,
+                "minItems": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Key Fields"
+          },
+          "delta": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DeltaConfigBody"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "default_filters": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/FilterConditionBody"
+                },
+                "type": "array",
+                "maxItems": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default Filters"
+          },
+          "page_size": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 50000.0,
+                "minimum": 100.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page Size"
+          },
+          "preview_enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preview Enabled"
+          }
+        },
+        "type": "object",
+        "title": "SourceUpdateRequest"
       },
       "StatusReasonRequest": {
         "properties": {
@@ -8258,6 +10397,15 @@
         },
         "type": "object",
         "title": "UserUpdateRequest"
+      },
+      "WatermarkKind": {
+        "type": "string",
+        "enum": [
+          "datetime",
+          "date",
+          "decimal_timestamp"
+        ],
+        "title": "WatermarkKind"
       },
       "X509CredentialsIn": {
         "properties": {

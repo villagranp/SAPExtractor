@@ -19,6 +19,7 @@ from sapextract.identity.infrastructure.models import (
     UserSession,
 )
 from sapextract.sap_connections.infrastructure.models import SapCatalogCache, SapSystem
+from sapextract.sources.infrastructure.models import Source, SourceSchemaVersion
 
 __all__ = [
     "ApiToken",
@@ -32,6 +33,8 @@ __all__ = [
     "SapCatalogCache",
     "SapSystem",
     "Secret",
+    "Source",
+    "SourceSchemaVersion",
     "SystemSetting",
     "UserAccount",
     "UserRole",

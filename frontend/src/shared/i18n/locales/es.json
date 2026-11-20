@@ -24,7 +24,9 @@
     "previous": "Anterior",
     "next": "Siguiente",
     "pageSummary": "{from}–{to} de {total}",
-    "choose": "Seleccione…"
+    "choose": "Seleccione…",
+    "back": "Atrás",
+    "actions": "Acciones"
   },
   "nav": {
     "menu": "Menú principal",
@@ -610,7 +612,6 @@
       "readingMetadata": "Leyendo $metadata…",
       "propertiesOf": "Propiedades de {{name}}",
       "createSource": "Crear origen",
-      "createSourceSoon": "El asistente de orígenes llega en la iteración 3",
       "columns": {
         "service": "Servicio",
         "kind": "Tipo",
@@ -850,6 +851,285 @@
       },
       "reason": "Motivo",
       "typeCode": "Escriba {{code}} para confirmar"
+    }
+  },
+  "sources": {
+    "title": "Orígenes",
+    "description": "Extractores y vistas CDS publicados en SAP que la plataforma puede leer.",
+    "guideLink": "Cómo publicarlos en SAP",
+    "new": "Nuevo origen",
+    "searchPlaceholder": "Código, nombre, ODP o servicio",
+    "empty": "Ningún origen coincide con los filtros.",
+    "emptyFirstTitle": "Todavía no hay orígenes",
+    "emptyFirst": "Un origen es un extractor o una vista CDS publicada en SAP. Elíjalo del catálogo de un sistema SAP activo.",
+    "savedDraft": "Origen guardado como borrador. Lea unas filas en «Vista previa» y actívelo cuando esté listo.",
+    "fields": {
+      "source": "Origen",
+      "system": "Sistema SAP",
+      "type": "Tipo",
+      "delta": "Delta",
+      "schemaVersion": "Esquema",
+      "status": "Estado",
+      "updatedAt": "Última modificación",
+      "code": "Código",
+      "name": "Nombre",
+      "description": "Descripción",
+      "tags": "Etiquetas",
+      "pageSize": "Filas por página",
+      "previewEnabled": "Permitir vista previa",
+      "service": "Servicio y entity set",
+      "entitySet": "Entity set",
+      "odp": "ODP (contexto)",
+      "odataVersion": "Versión OData",
+      "keyFields": "Campos clave",
+      "filters": "Filtros por defecto",
+      "deltaMethod": "Cómo se leen los cambios",
+      "deltaSemantics": "Proceso de delta del extractor",
+      "watermarkField": "Campo de última modificación",
+      "watermarkKind": "Tipo de marca de agua",
+      "watermarkTimezone": "Zona horaria del campo",
+      "watermarkOverlap": "Solapamiento (segundos)",
+      "statusReason": "Motivo del estado"
+    },
+    "types": {
+      "ODP_EXTRACTOR": "Extractor ODP",
+      "CDS_ODP": "CDS vía ODP",
+      "CDS_ODATA": "CDS vía OData"
+    },
+    "typeHints": {
+      "ODP_EXTRACTOR": "DataSource estándar o Z publicado con SEGW (Redefine → ODP Extraction, contexto SAPI). Admite delta de la ODQ.",
+      "CDS_ODP": "Vista CDS con extracción habilitada, publicada con SEGW en contexto ABAP_CDS. Admite delta si la CDS lo declara.",
+      "CDS_ODATA": "Vista CDS publicada directamente como servicio OData. Sin delta nativo: carga completa o marca de agua."
+    },
+    "statuses": {
+      "draft": "Borrador",
+      "active": "Activo",
+      "deprecated": "Obsoleto"
+    },
+    "deltaMethods": {
+      "ODQ": "Delta de la ODQ",
+      "WATERMARK": "Marca de agua",
+      "NONE": "Solo carga completa"
+    },
+    "deltaHints": {
+      "ODQ": "SAP guarda los cambios en la cola ODQ y la plataforma los pide desde el último token confirmado.",
+      "WATERMARK": "La plataforma pide las filas cuyo campo de última modificación es posterior a la última lectura.",
+      "NONE": "Cada ejecución lee el origen completo."
+    },
+    "semantics": {
+      "after_image": "Imagen posterior",
+      "additive": "Aditivo",
+      "before_after": "Imagen anterior y posterior",
+      "unknown": "Sin declarar"
+    },
+    "semanticsHints": {
+      "after_image": "Cada cambio trae el registro completo. El destino puede actualizar por clave.",
+      "additive": "Cada cambio trae diferencias que se suman. El destino solo puede añadir filas.",
+      "before_after": "Cada cambio trae la imagen anterior en negativo y la nueva (extractores LO, 2LIS_*). El destino solo puede añadir filas.",
+      "unknown": "Mientras no se declare, el destino solo puede añadir filas."
+    },
+    "watermarkKinds": {
+      "datetime": "Fecha y hora",
+      "date": "Solo fecha",
+      "decimal_timestamp": "Timestamp decimal (DEC 15 o 21,7)"
+    },
+    "operators": {
+      "eq": "es igual a",
+      "ne": "es distinto de",
+      "gt": "es mayor que",
+      "ge": "es mayor o igual que",
+      "lt": "es menor que",
+      "le": "es menor o igual que"
+    },
+    "valueHints": {
+      "date": "Fecha AAAA-MM-DD",
+      "datetime": "Fecha y hora local de SAP, sin zona: AAAA-MM-DDTHH:MM:SS",
+      "datetimeOffset": "Instante con zona: AAAA-MM-DDTHH:MM:SSZ",
+      "decimal": "Número con punto decimal",
+      "integer": "Número entero",
+      "text": "Texto",
+      "textMax": "Texto, hasta {{n}} caracteres"
+    },
+    "errors": {
+      "required": "Este campo es obligatorio.",
+      "keys": "Marque al menos un campo clave: el destino los necesita para no duplicar filas.",
+      "serviceRequired": "Elija un servicio del catálogo.",
+      "code": "De 3 a 40 caracteres: letras, números y guion bajo, empezando por una letra.",
+      "pageSize": "Entre 100 y 50 000 filas.",
+      "overlap": "Entre 0 y 86 400 segundos.",
+      "tooLong": "Es demasiado largo.",
+      "tooMany": "Como máximo 20 condiciones."
+    },
+    "wizard": {
+      "title": "Nuevo origen",
+      "editTitle": "Editar {{code}}",
+      "description": "Elija un entity set publicado en SAP. La plataforma lee su esquema y propone claves y delta.",
+      "progress": "Pasos del asistente",
+      "steps": {
+        "service": "Servicio en SAP",
+        "schema": "Esquema y claves",
+        "delta": "Cambios",
+        "filters": "Filtros",
+        "general": "Datos generales",
+        "summary": "Resumen"
+      },
+      "chooseSystem": "Elija un sistema",
+      "systemHint": "Solo aparecen los sistemas activos (con una prueba de conexión correcta).",
+      "searchService": "Buscar servicio",
+      "searchServicePlaceholder": "Nombre técnico o descripción",
+      "services": "Servicios del catálogo",
+      "service": "Servicio",
+      "noServices": "El catálogo no tiene servicios de este tipo.",
+      "choose": "Elegir",
+      "chosen": "Elegido",
+      "readingMetadata": "Leyendo el $metadata del servicio…",
+      "noEntitySets": "Este servicio no tiene entity sets de este tipo. Pruebe con otro tipo de origen.",
+      "chooseEntitySet": "Elija un entity set",
+      "withDelta": "con delta",
+      "readSchema": "Leer esquema",
+      "reading": "Leyendo…",
+      "saving": "Guardando…",
+      "keysIntro": "Marque los campos que identifican una fila. Se proponen las claves que declara SAP.",
+      "columnsCaption": "Columnas del esquema",
+      "keyForDestination": "Clave",
+      "key": "Clave",
+      "column": "Campo",
+      "sapKey": "Clave en SAP",
+      "sapType": "Tipo en SAP",
+      "filterable": "Filtrable",
+      "noChangeTracking": "El servicio no declara change tracking: solo admite carga completa.",
+      "deltaProcess": "Proceso de delta en RSA2 (opcional)",
+      "deltaProcessHint": "Escriba el código que muestra RSA2 (p. ej. ABR o AIE) y se elige la opción correspondiente.",
+      "unknownProcess": "Código no reconocido. Elija el proceso de delta en la lista.",
+      "processHint": "Este extractor suele usar el proceso {{process}} ({{semantics}}). Confírmelo en RSA2.",
+      "chooseField": "Elija un campo",
+      "chooseTimezone": "Elija una zona",
+      "timezoneHint": "Las horas de SAP no llevan zona: indique la del sistema (transacción STZAC).",
+      "overlapHint": "Se vuelve a leer este margen para no perder cambios que lleguen con retraso.",
+      "overlapShort": "solapamiento {{seconds}} s",
+      "filtersIntro": "Opcional. Limite qué filas se leen, p. ej. una sociedad o un ejercicio.",
+      "filtersOdpWarning": "En un origen ODP, los filtros con que se inicializa el delta quedan fijos para esa suscripción: cambiarlos obliga a reinicializar.",
+      "noFilters": "Sin filtros: se leen todas las filas.",
+      "noFiltersShort": "Sin filtros",
+      "condition": "Condición {{n}}",
+      "field": "Campo",
+      "operator": "Operador",
+      "value": "Valor",
+      "addCondition": "Añadir condición",
+      "removeCondition": "Quitar",
+      "and": "y",
+      "codeHint": "Identificador único del origen. No se puede cambiar después.",
+      "codeFixed": "El código no se puede cambiar.",
+      "tagsHint": "Separadas por comas.",
+      "pageSizeHint": "Filas que se piden a SAP en cada página.",
+      "previewHint": "Desactívela si leer unas filas lanza la extracción completa en SAP.",
+      "savesDraft": "Se guarda como borrador. Después podrá ver unas filas y activarlo.",
+      "saveDraft": "Guardar borrador",
+      "saveChanges": "Guardar cambios"
+    },
+    "tabs": {
+      "label": "Secciones del origen",
+      "general": "General",
+      "schema": "Esquema",
+      "preview": "Vista previa",
+      "activity": "Actividad"
+    },
+    "actions": {
+      "activate": "Activar",
+      "edit": "Editar",
+      "deprecate": "Marcar como obsoleto",
+      "delete": "Eliminar"
+    },
+    "dialogs": {
+      "deprecateTitle": "¿Marcar {{code}} como obsoleto?",
+      "deprecateMessage": "No se podrá usar en pipelines nuevos. Puede volver a activarlo cuando quiera.",
+      "deleteTitle": "¿Eliminar {{code}}?",
+      "deleteMessage": "El origen desaparece de la lista y su código queda libre. El historial de auditoría se conserva.",
+      "reason": "Motivo",
+      "typeCode": "Escriba {{code}} para confirmar"
+    },
+    "schema": {
+      "title": "Esquema · versión {{version}}",
+      "checkedAt": "Última comprobación: {{when}}",
+      "check": "Revisar cambios en SAP",
+      "checking": "Revisando…",
+      "unchanged": "El esquema en SAP no ha cambiado.",
+      "newVersion": "SAP cambió el esquema: se guardó la versión {{version}}.",
+      "noDifferences": "Sin diferencias.",
+      "breaking": "Hay cambios incompatibles: las ejecuciones se detendrán hasta revisarlos.",
+      "compatible": "Los cambios son compatibles: las columnas nuevas se pueden añadir al destino.",
+      "added": "Columnas nuevas:",
+      "removed": "Columnas eliminadas:",
+      "changed": "Columnas modificadas",
+      "change": "Cambio",
+      "impact": "Efecto",
+      "breakingShort": "Incompatible",
+      "compatibleShort": "Compatible",
+      "arrowType": "Tipo en la plataforma",
+      "history": "Versiones anteriores",
+      "compareWith": "Comparar la versión {{version}} con",
+      "versionOption": "Versión {{version}} · {{when}}"
+    },
+    "preview": {
+      "intro": "Lee las primeras 100 filas sin abrir una suscripción de delta en SAP. Queda registrado en la auditoría.",
+      "read": "Leer filas",
+      "reading": "Leyendo…",
+      "summary": "{{rows}} filas en {{ms}} ms.",
+      "count": "SAP informa {{count}} filas en total.",
+      "truncated": "Hay más filas en SAP.",
+      "caption": "Primeras filas de {{code}}",
+      "empty": "SAP no devolvió filas con estos filtros.",
+      "disabled": "La vista previa está desactivada para este origen.",
+      "noPermission": "Su rol no permite ver datos de los orígenes."
+    },
+    "guide": {
+      "title": "Cómo publicar un origen en SAP",
+      "description": "Pasos para el equipo SAP. La plataforma solo lee servicios OData publicados en SAP Gateway.",
+      "extractors": {
+        "title": "Extractores (DataSources estándar y Z)",
+        "intro": "Se publican como servicio OData de extracción ODP, contexto SAPI.",
+        "steps": [
+          "Active el DataSource: los estándar en RSA5 y RSA6; los Z ya creados en RSO2.",
+          "Libérelo para ODP: los estándar según la nota SAP 2232584; los Z con el programa RODPS_OS_EXPOSE.",
+          "Extractores LO (2LIS_*): llene las setup tables antes de inicializar el delta y acuerde con negocio una ventana sin contabilizaciones.",
+          "En SEGW cree un proyecto, use Data Model → Redefine → ODP Extraction, contexto SAPI, elija el DataSource y genere los objetos de runtime.",
+          "Registre el servicio en /IWFND/MAINT_SERVICE y asígnelo al rol del usuario técnico (S_SERVICE).",
+          "Consulte en RSA2 el proceso de delta del DataSource (p. ej. ABR o AIE) e indíquelo al crear el origen.",
+          "Revise las suscripciones en ODQMON: el suscriptor aparece como el servicio OData."
+        ]
+      },
+      "cdsOdp": {
+        "title": "Vistas CDS con delta vía ODP",
+        "intro": "Se publican igual que un extractor, en contexto ABAP_CDS.",
+        "steps": [
+          "Anote la CDS con @Analytics.dataExtraction.enabled: true.",
+          "Declare el delta: por CDC con @Analytics.dataExtraction.delta.changeDataCapture.automatic: true (o mapping si hay joins), o por elemento con @Analytics.dataExtraction.delta.byElement.name.",
+          "En SEGW use Redefine → ODP Extraction, contexto ABAP_CDS, elija la CDS y genere.",
+          "Registre el servicio en /IWFND/MAINT_SERVICE."
+        ]
+      },
+      "cdsOdata": {
+        "title": "Vistas CDS publicadas como OData",
+        "intro": "Sin delta nativo: la plataforma hace carga completa o lee por marca de agua.",
+        "steps": [
+          "Publique la CDS con @OData.publish: true o con service definition y service binding (RAP).",
+          "Incluya un campo de última modificación fiable si quiere leer solo los cambios, y exponga las claves.",
+          "Para volúmenes grandes es mejor la vía ODP."
+        ]
+      },
+      "user": {
+        "title": "Usuario técnico",
+        "intro": "La plataforma lee SAP con un único usuario técnico de solo lectura.",
+        "steps": [
+          "Usuario de tipo System, sin acceso de diálogo.",
+          "Autorización S_SERVICE sobre los servicios publicados y lectura sobre los datos que se extraen.",
+          "La vista previa enseña cualquier dato que este usuario pueda leer: el permiso de vista previa se da solo a personas formadas."
+        ]
+      },
+      "naming": {
+        "title": "Nomenclatura de objetos Z",
+        "text": "Proyectos SEGW y servicios: ZMM_WS_<DESCRIPCIÓN>; vistas CDS: ZMM_CV_<DESCRIPCIÓN>, donde MM es el módulo (FI, SD, MM…) o BC para objetos de la plataforma. Siga el estándar de nomenclatura de AG y confirme los casos que no cubre."
+      }
     }
   }
 }

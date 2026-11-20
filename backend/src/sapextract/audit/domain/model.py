@@ -67,6 +67,15 @@ ACTIONS: dict[str, Category] = {
     "sap_connection.credentials_rotated": Category.SECURITY,
     "sap_connection.activated": Category.CONFIG,
     "sap_connection.deactivated": Category.CONFIG,
+    # sources (plan 05)
+    "source.created": Category.CONFIG,
+    "source.updated": Category.CONFIG,
+    "source.deleted": Category.CONFIG,
+    "source.activated": Category.CONFIG,
+    "source.deprecated": Category.CONFIG,
+    "source.schema_refreshed": Category.CONFIG,
+    # Lee datos de SAP con el usuario técnico: queda registrado quién vio qué origen.
+    "source.previewed": Category.EXECUTION,
     # config: destinos (plan 07)
     "destination.created": Category.CONFIG,
     "destination.updated": Category.CONFIG,

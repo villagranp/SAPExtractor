@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router';
+import { useCan } from '@/features/auth/api/queries';
 import { describeError } from '@/shared/api/errors';
 import { formatDateTime } from '@/shared/format';
 import {
@@ -117,6 +119,8 @@ function ServiceDialog({
 }) {
   const { t } = useTranslation();
   const detail = useEntitySets(systemId, service);
+  const navigate = useNavigate();
+  const canCreateSource = useCan('source:manage');
   const [selected, setSelected] = useState<string | null>(null);
   const sets = detail.data?.entity_sets ?? [];
   const current =
@@ -133,9 +137,22 @@ function ServiceDialog({
       title={service?.technical_name ?? ''}
       closeLabel={t('common.close')}
       footer={
-        <Button disabled title={t('sapSystems.explorer.createSourceSoon')}>
-          {t('sapSystems.explorer.createSource')}
-        </Button>
+        canCreateSource && service && current && current.odp_role !== 'delta_links' ? (
+          <Button
+            onClick={() =>
+              void navigate(
+                `/sources/new?${new URLSearchParams({
+                  system: systemId,
+                  service: service.technical_name,
+                  version: String(service.version),
+                  entitySet: current.name,
+                }).toString()}`,
+              )
+            }
+          >
+            {t('sapSystems.explorer.createSource')}
+          </Button>
+        ) : undefined
       }
     >
       {service?.description && <p>{service.description}</p>}

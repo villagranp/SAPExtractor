@@ -59,6 +59,7 @@ class EntitySchema:
 ```
 
 - Se construye a partir del `ServiceMetadata` que ya produce el parser de `$metadata` (`sap_connections/infrastructure/metadata_parser.py`). Lo que versiona el plan 05 (`source_schema_version.hash`) es `schema_hash()`.
+- **Pendiente de acordar (20.11.2026):** `schema_hash()` no incluye `display_format`, pero ese campo cambia el tipo Arrow (`date32` o `timestamp`). Si SAP cambia solo el formato, el hash no cambia y un spool antiguo seguiría pareciendo válido. Los orígenes (It3) lo compensan: crean versión nueva si cambia el hash **o** si el diff de columnas detecta el cambio. Propuesta: añadir `display_format` al hash (cambio en `dataflow/`, revisión de los dos).
 - Los campos ODQ (`ODQ_CHANGEMODE`, `ODQ_ENTITYCNTR`) son columnas de origen normales: se conservan tal cual (en `append` sobre orígenes aditivos son necesarias, plan 06 §3.4).
 - El renombrado y la exclusión de columnas (`column_mapping`, plan 07 §2) **no** se aplican en el spool: los aplica el destino al crear la tabla y al cargar. Así el spool es igual para cualquier destino.
 

@@ -79,7 +79,7 @@ describe('SapSystemDetailPage', () => {
       ),
     );
     const user = userEvent.setup();
-    renderDetail();
+    const { router } = renderDetail();
     await user.click(await screen.findByRole('tab', { name: 'Servicios' }));
     expect(await screen.findByTestId('catalog-summary')).toHaveTextContent('1 ODP · 1 CDS');
     const cds = (await screen.findByText('ZMM_CV_MATERIAL_CDS')).closest('tr') as HTMLElement;
@@ -91,7 +91,15 @@ describe('SapSystemDetailPage', () => {
     expect(await within(dialog).findByText('Extractor (EntityOf)')).toBeInTheDocument();
     expect(within(dialog).getByText('Documento')).toBeInTheDocument();
     expect(within(dialog).getByText('Edm.String(10)')).toBeInTheDocument();
-    expect(within(dialog).getByRole('button', { name: 'Crear origen' })).toBeDisabled();
+    // «Crear origen» abre el asistente de orígenes con el servicio y el entity set elegidos.
+    await user.click(within(dialog).getByRole('button', { name: 'Crear origen' }));
+    expect(router.state.location.pathname).toBe('/sources/new');
+    expect(Object.fromEntries(new URLSearchParams(router.state.location.search))).toEqual({
+      system: sapSystem.id,
+      service: 'ZFI_WS_GL_ITEMS_SRV',
+      version: '1',
+      entitySet: 'EntityOf0FI_GL_14',
+    });
   });
 
   it('eliminar exige escribir el código y un motivo', async () => {

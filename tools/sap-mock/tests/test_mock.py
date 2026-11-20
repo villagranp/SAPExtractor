@@ -135,3 +135,10 @@ def test_error_scenario(client: TestClient) -> None:
     client.post("/_mock/scenario", json={"status": 503, "times": 1})
     assert client.get(f"{GL}/$metadata").status_code == 503
     assert client.get(f"{GL}/$metadata").status_code == 200
+
+
+def test_filter_accepts_v2_literal_suffixes(client: TestClient) -> None:
+    rows, _ = _read_all(client, f"{GL}/EntityOf0FI_GL_14?$filter=DMBTR ge 0M")
+    assert len(rows) == 100
+    none, _ = _read_all(client, f"{GL}/EntityOf0FI_GL_14?$filter=RBUKRS eq 'O''B'")
+    assert none == []

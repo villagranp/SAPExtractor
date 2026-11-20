@@ -32,7 +32,7 @@ v2   Streaming (plan 12)
 | **1** ✅ | Identidad local, RBAC y auditoría base | [02](02-usuarios-autenticacion-roles.md) (local), [03](03-auditoria-y-logs.md) (base) | Login admin local + MFA; gestión de usuarios y roles; pantalla de auditoría con integridad verificable | 0 |
 | **1b** ✅ | Estilo visual propio (acento naranja; falta el logo definitivo) | [10](10-frontend-y-ux.md) §1, [ADR 0007](../adr/0007-estilo-visual-tactil.md) | Layout y design system «táctil», temas claro y grafito, densidad compacta; `/ui-kit` | 0 |
 | **2** ✅ | Conexiones SAP (falta validar contra el SAP real) | [04](04-conexiones-sap.md) | Alta de sistema SAP, prueba de conexión por pasos, explorador de servicios ODP/CDS | 1 |
-| **3** | Orígenes SAP | [05](05-origenes-sap.md) | Asistente de origen (extractor estándar, Z y CDS), esquema versionado, vista previa sin suscripción; guía SAP validada | 2 |
+| **3** ✅ | Orígenes SAP (falta revisar la guía con el equipo SAP y cambiar el mock por respuestas reales del spike) | [05](05-origenes-sap.md) | Asistente de origen (extractor estándar, Z y CDS), esquema versionado, vista previa sin suscripción; guía SAP validada | 2 |
 | **4a** | Destinos: CSV y Snowflake | [07](07-destinos.md) | CSV y Snowflake con prueba de conexión, DDL previsualizado y tabla de control | 1 + cuenta de pruebas de Snowflake |
 | **5** | Motor y deltas | [06](06-motor-extraccion-y-deltas.md), [03](03-auditoria-y-logs.md) (logs de ejecución) | Ejecución manual: init + delta + repetición desde SAP a CSV y Snowflake; logs en vivo; pruebas de caída en cada paso | 3, 4a, spike |
 | **6** | Orquestación | [08](08-orquestacion-y-programacion.md) | Asistente de pipelines, programación cron/simple, cola, workers, reintentos, pausa, clonado entre entornos | 5 |
