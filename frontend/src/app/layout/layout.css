@@ -29,10 +29,10 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--sx-space-3);
+  gap: var(--sx-space-2);
   width: 92px;
   height: calc(100vh - 2 * var(--sx-space-4));
-  padding: var(--sx-space-3) var(--sx-space-2);
+  padding: var(--sx-space-2);
   background: linear-gradient(180deg, var(--sx-surface-top), var(--sx-surface-bottom));
   border-radius: var(--sx-radius-xl);
   box-shadow: var(--sx-shadow-raised);
@@ -41,11 +41,11 @@
   display: grid;
   place-items: center;
   flex: none;
-  width: 64px;
-  height: 64px;
+  width: 54px;
+  height: 54px;
   margin-bottom: var(--sx-key-travel);
   font-family: var(--sx-font-display);
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   font-weight: var(--sx-weight-display);
   letter-spacing: -0.02em;
   color: var(--sx-color-primary-contrast);
@@ -64,14 +64,19 @@
   width: 100%;
   margin: 0 calc(-1 * var(--sx-space-1));
   padding: 0 var(--sx-space-1) var(--sx-space-1);
-  overflow-y: auto; /* solo el menú se desplaza; la marca y el avatar quedan siempre a la vista */
-  scrollbar-width: thin;
+  /* Solo el menú se desplaza (pantallas muy bajas), sin barra visible: la marca y el avatar
+     quedan siempre a la vista. */
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.sx-rail__nav::-webkit-scrollbar {
+  display: none;
 }
 .sx-rail__group {
   display: grid;
-  gap: 2px;
+  gap: 1px;
   margin: 0;
-  padding: var(--sx-space-2) 0 0;
+  padding: 6px 0 0;
   list-style: none;
   border-top: 1px solid var(--sx-color-border);
 }
@@ -83,8 +88,8 @@
   position: relative;
   display: grid;
   justify-items: center;
-  gap: 3px;
-  padding: 8px 4px 6px;
+  gap: 2px;
+  padding: 6px 4px 5px;
   font-size: 0.6875rem;
   font-weight: 600;
   line-height: 1.15;
@@ -123,22 +128,32 @@
 .sx-rail__key:active:not(.sx-rail__key--soon) {
   translate: 0 2px;
 }
+/* Iteraciones futuras: solo icono (nombre en el tooltip y para lectores de pantalla). */
 .sx-rail__key--soon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 7px 4px;
   color: var(--sx-color-text-muted);
   cursor: default;
+}
+.sx-rail__key--soon .sx-rail__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 .sx-rail__key--soon:hover {
   background: transparent;
   color: var(--sx-color-text-muted);
 }
-.sx-rail__key--soon svg,
-.sx-rail__key--soon > span {
+.sx-rail__key--soon svg {
   opacity: 0.75;
 }
 .sx-rail__badge {
-  position: absolute;
-  top: 3px;
-  right: 6px;
   padding: 0 4px;
   line-height: 1.4;
   font-size: 0.625rem;
@@ -151,8 +166,8 @@
   display: grid;
   place-items: center;
   flex: none;
-  width: 52px;
-  height: 52px;
+  width: 46px;
+  height: 46px;
   margin-bottom: var(--sx-key-travel);
   font-weight: 700;
   color: light-dark(#ffffff, var(--sx-color-text));
@@ -161,6 +176,24 @@
   border-radius: var(--sx-radius-md);
   --sx-key-edge: light-dark(#1d232c, #0a0c10);
   box-shadow: var(--sx-shadow-key);
+}
+
+/* Pantallas bajas (portátiles de 720–800 px): el menú queda solo con iconos y tooltips. */
+@media (max-height: 820px) and (min-width: 901px) {
+  .sx-rail__key {
+    padding: 8px 4px;
+  }
+  .sx-rail__key.active::before {
+    top: 3px;
+  }
+  .sx-rail__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
 }
 
 /* ---------- Cabecera */

@@ -59,18 +59,23 @@ export function AppShell() {
                 return (
                   <li key={item.to}>
                     {item.iteration === undefined ? (
-                      <NavLink to={item.to} end={item.to === '/'} className="sx-rail__key">
+                      <NavLink
+                        to={item.to}
+                        end={item.to === '/'}
+                        className="sx-rail__key"
+                        title={label}
+                      >
                         <Icon size={20} stroke={1.75} aria-hidden="true" />
-                        <span>{label}</span>
+                        <span className="sx-rail__label">{label}</span>
                       </NavLink>
                     ) : (
                       <span
                         className="sx-rail__key sx-rail__key--soon"
                         aria-disabled="true"
-                        title={t('nav.soon', { it: item.iteration })}
+                        title={`${label} · ${t('nav.soon', { it: item.iteration })}`}
                       >
                         <Icon size={20} stroke={1.75} aria-hidden="true" />
-                        <span>{label}</span>
+                        <span className="sx-rail__label">{label}</span>
                         <small className="sx-rail__badge">
                           {t('nav.soonShort', { it: item.iteration })}
                         </small>
