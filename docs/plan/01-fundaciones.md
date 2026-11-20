@@ -138,7 +138,7 @@ Tareas:
 3. Revisar en ODQMON la suscripción creada y cómo se elimina.
 4. Grabar respuestas para el mock y documentar resultados en `docs/adr/0002-extraccion-sap-odp-odata.md`.
 
-El ADR lista las hipótesis H1–H18. H8–H18 se añadieron el 19.11.2026 y el script `tools/spike-sap/spike_odp.py` todavía no las cubre: hay que ampliarlo antes de ejecutar. Orden: primero H6, H12 y H18, porque deciden si dos pipelines pueden leer en delta el mismo origen.
+El ADR lista las hipótesis H1–H18. Desde el 20.11.2026 el script `tools/spike-sap/spike_odp.py` las cubre todas; cada prueba se elige con `--hypotheses` y el plan de sesiones está en `tools/spike-sap/README.md`. Orden: primero H6, H12 y H18, porque deciden si dos pipelines pueden leer en delta el mismo origen.
 
 ## 8. ADRs iniciales
 
@@ -165,7 +165,7 @@ El ADR lista las hipótesis H1–H18. H8–H18 se añadieron el 19.11.2026 y el 
 - [ ] **Ejecutar el spike contra el SAP real de AG** y registrar resultados en ADR 0002 (requiere servicios publicados por el equipo SAP).
 
 **Fase 0 (plan 13)**
-- [ ] Ampliar `spike_odp.py` con H8–H18 y comparar la repetición por claves y `ODQ_ENTITYCNTR`, no por recuento.
+- [x] Ampliar `spike_odp.py` con H8–H18 y comparar la repetición por claves y `ODQ_ENTITYCNTR`, no por recuento (20.11.2026). La comparación usa una huella por registro: claves, `ODQ_CHANGEMODE`, `ODQ_ENTITYCNTR` y contenido. `tools/sap-mock/tests/test_spike_against_mock.py` ejecuta todas las pruebas contra el mock en CI. Se corrigió además un fallo del script anterior: con `--client`, httpx sustituía la query de los enlaces de SAP y se perdían `$skiptoken` y `!deltatoken`.
 - [ ] Mock: `SubscribedTo…` y `TerminateDeltasFor…` cuando H12 se confirme; respuestas reales grabadas en el spike.
 - [x] CI: `fail_under` de cobertura, job de Playwright con `axe`, aserción de una sola cabeza de Alembic.
   - Cobertura: `coverage report --fail-under=80` sobre `*/domain/*` y `*/application/*` (hoy, 90 %).

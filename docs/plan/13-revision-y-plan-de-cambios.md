@@ -53,7 +53,7 @@ Todos están trasladados a los planes, salvo C-07 e, que no se aplica (decisión
 
 **Problema.** El ADR 0002 tiene H1–H7 en "pendiente". It3 depende de cómo es un `$metadata` real y It5 depende de todo lo demás. Varias decisiones del plan 06 se apoyan en comportamientos que nadie ha comprobado y que no figuran entre las hipótesis.
 
-**Cambio.** El equipo SAP está disponible y el spike empieza de inmediato (decisión 1). Antes de ejecutarlo hay que ampliar `tools/spike-sap/spike_odp.py`; el ADR ya lista las hipótesis nuevas. Primero H6, H12 y H18: condicionan el modelo "otro destino = otro pipeline" (decisión 2).
+**Cambio.** El equipo SAP está disponible y el spike empieza de inmediato (decisión 1). El script `tools/spike-sap/spike_odp.py` cubre las hipótesis nuevas desde el 20.11.2026 (plan de sesiones en su README). Primero H6, H12 y H18: condicionan el modelo "otro destino = otro pipeline" (decisión 2).
 
 | # | Hipótesis nueva | Por qué importa |
 |---|---|---|

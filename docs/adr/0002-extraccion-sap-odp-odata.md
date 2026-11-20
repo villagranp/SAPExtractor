@@ -12,28 +12,30 @@ Hay que extraer extractores (DataSources estándar y Z) y vistas CDS con gestió
 
 ## Hipótesis a validar en el spike
 
+Cada hipótesis se ejecuta con `spike_odp.py --hypotheses Hn`. La columna "Cómo se valida" resume lo que hace el script; el `report.md` añade las comprobaciones manuales de cada una (ODQMON, SAP GUI, Basis).
+
 | # | Hipótesis | Cómo se valida | Resultado |
 |---|---|---|---|
-| H1 | La init con `odata.track-changes` devuelve `__delta` en la última página | `spike_odp.py` paso 3 | _pendiente_ |
-| H2 | Re-solicitar con el token anterior repite el mismo delta (*repeat*) | Paso 6: `same_row_count` y `same_token` | _pendiente_ |
-| H3 | Los registros delta traen `ODQ_CHANGEMODE` / `ODQ_ENTITYCNTR` | Paso 5 | _pendiente_ |
-| H4 | La lectura full con `$top` no crea suscripción en ODQMON | Revisar ODQMON tras el paso 2 | _pendiente_ |
-| H5 | Rendimiento aceptable (filas/seg) con `odata.maxpagesize` | Paso 3 con distintos `--page-size` | _pendiente_ |
-| H6 | Comportamiento de dos suscripciones sobre el mismo servicio/usuario | Repetir init con otro filtro y revisar ODQMON | _pendiente_ |
-| H7 | La suscripción puede cerrarse desde ODQMON y el token deja de valer | Borrar en ODQMON y reintentar delta | _pendiente_ |
-| H8 | Una init grande devuelve la primera página dentro de los límites de Gateway (tiempo máximo de proceso de diálogo, *timeout* de ICM). ¿Admite el servicio `Prefer: respond-async`? | Init del extractor más grande disponible; medir el tiempo hasta la primera página | _pendiente_ |
-| H9 | Existe una init **sin datos** vía OData | Probar la init sin transferencia de datos y revisar ODQMON | _pendiente_ |
-| H10 | Volver a pedir la misma página (`$skiptoken`) tras un corte devuelve lo mismo; volver a lanzar la init no crea otra suscripción | Cortar una init a medias, repetir la página y relanzar; revisar ODQMON | _pendiente_ |
-| H11 | La repetición con el token anterior devuelve el mismo conjunto, o bien todo lo ocurrido desde ese token hasta ahora | Generar cambios entre las dos lecturas y comparar por claves y `ODQ_ENTITYCNTR`, no por recuento | _pendiente_ |
-| H12 | `SubscribedTo<EntitySet>` y `TerminateDeltasFor<EntitySet>` existen en el `$metadata` de AG | Método HTTP, efecto en ODQMON y alcance: ¿cierra todas las suscripciones del entity set para el usuario técnico? | _pendiente_ |
-| H13 | Retención de la ODQ: cuánto tiempo sigue siendo repetible un delta ya confirmado y qué pasa con una suscripción que deja de leer | Consultar el periodo de recuperación con Basis; repetir un delta al día siguiente | _pendiente_ |
-| H14 | Importes en monedas sin decimales (CLP, JPY…): llegan en formato interno o externo | Comparar un documento con SAP GUI | _pendiente_ |
-| H15 | `Edm.DateTime`: hora local del sistema o UTC, según el tipo ABAP del campo | Comparar campos de fecha y hora con SAP GUI | _pendiente_ |
-| H16 | La vista previa con `$top` sobre un extractor grande no lanza la extracción completa | Medir duración y revisar ODQMON | _pendiente_ |
-| H17 | Los registros con `ODQ_CHANGEMODE = D` solo traen informadas las claves | Borrar un registro en SAP y leer el delta | _pendiente_ |
-| H18 | Dos inits sobre el mismo entity set, con los mismos filtros y el mismo usuario técnico, dejan dos cadenas de delta independientes | Dos inits seguidas, cambios en SAP y lectura de ambos deltas; revisar ODQMON. **Prioritaria**: un segundo destino es un segundo pipeline sobre el mismo origen | _pendiente_ |
+| H1 | La init con `odata.track-changes` devuelve `__delta` en la última página | Prueba núcleo: init completa | _pendiente_ |
+| H2 | Re-solicitar con el token anterior repite el mismo delta (*repeat*) | Prueba núcleo: la repetición contiene todos los registros del primer delta (por huella, no por recuento) | _pendiente_ |
+| H3 | Los registros delta traen `ODQ_CHANGEMODE` / `ODQ_ENTITYCNTR` | Prueba núcleo: todos los registros del delta los traen | _pendiente_ |
+| H4 | La lectura full con `$top` no crea suscripción en ODQMON | `SubscribedTo…` y `DeltaLinksOf…` antes y después de la vista previa; ODQMON | _pendiente_ |
+| H5 | Rendimiento aceptable (filas/seg) con `odata.maxpagesize` | Filas/s de la init; repetir con distintos `--page-size` | _pendiente_ |
+| H6 | Comportamiento de dos suscripciones sobre el mismo servicio/usuario | Inits con `--filter` y `--filter-b`; la repetición de B sigue disponible después de que A avance; ODQMON | _pendiente_ |
+| H7 | La suscripción puede cerrarse desde ODQMON y el token deja de valer | El script pide borrarla en ODQMON y reintenta el delta; registra el código de error de SAP | _pendiente_ |
+| H8 | Una init grande devuelve la primera página dentro de los límites de Gateway (tiempo máximo de proceso de diálogo, *timeout* de ICM). ¿Admite el servicio `Prefer: respond-async`? | Tiempo hasta la primera página frente a `--dialog-limit-seconds` (dato de Basis); petición con `respond-async` | _pendiente_ |
+| H9 | Existe una init **sin datos** vía OData | Init con `$top=0` (vía candidata, sin documentación de SAP que la respalde); ODQMON y equipo SAP | _pendiente_ |
+| H10 | Volver a pedir la misma página (`$skiptoken`) tras un corte devuelve lo mismo; volver a lanzar la init no crea otra suscripción | Corte tras la primera página, la segunda se pide dos veces y se relanza la init; ODQMON | _pendiente_ |
+| H11 | La repetición con el token anterior devuelve el mismo conjunto, o bien todo lo ocurrido desde ese token hasta ahora | Prueba núcleo: cambios entre la lectura y la repetición; comparación por huella (claves, `ODQ_CHANGEMODE`, `ODQ_ENTITYCNTR`, contenido). Registra qué token sigue valiendo después | _pendiente_ |
+| H12 | `SubscribedTo<EntitySet>` y `TerminateDeltasFor<EntitySet>` existen en el `$metadata` de AG | `FunctionImport` y método HTTP en el `$metadata`; con `--allow-terminate`, dos inits, cierre y comprobación de qué tokens siguen valiendo (alcance) | _pendiente_ |
+| H13 | Retención de la ODQ: cuánto tiempo sigue siendo repetible un delta ya confirmado y qué pasa con una suscripción que deja de leer | `--previous-results` de una ejecución de hace ≥ 24 h: repite el delta confirmado y lee el último token; periodo de recuperación con Basis | _pendiente_ |
+| H14 | Importes en monedas sin decimales (CLP, JPY…): llegan en formato interno o externo | Registros en `--currencies`; cuenta importes con decimales no nulos y deja `h14_importes.md` para SAP GUI | _pendiente_ |
+| H15 | `Edm.DateTime`: hora local del sistema o UTC, según el tipo ABAP del campo | `h15_fechas.md` con valor bruto y leído sin zona, para SAP GUI | _pendiente_ |
+| H16 | La vista previa con `$top` sobre un extractor grande no lanza la extracción completa | Tiempo de `$top=1` y `$top=100`; ODQMON y SM50 | _pendiente_ |
+| H17 | Los registros con `ODQ_CHANGEMODE = D` solo traen informadas las claves | Prueba núcleo: campos no clave informados en los registros D | _pendiente_ |
+| H18 | Dos inits sobre el mismo entity set, con los mismos filtros y el mismo usuario técnico, dejan dos cadenas de delta independientes | Dos inits iguales; B recibe los mismos cambios que A y su repetición sigue disponible después de que A avance; ODQMON. **Prioritaria**: un segundo destino es un segundo pipeline sobre el mismo origen | _pendiente_ |
 
-H8–H18 se añadieron el 19.11.2026 (plan 13, C-01). El script del spike todavía no las cubre y hay que ampliarlo antes de ejecutar. Orden: primero H6, H12 y H18. El método de H2 se sustituye por el de H11: `same_row_count` da falso si entran cambios entre las dos lecturas aunque la repetición funcione.
+H8–H18 se añadieron el 19.11.2026 (plan 13, C-01) y el script las cubre desde el 20.11.2026. Orden: primero H6, H12 y H18. El método de H2 se sustituyó por el de H11: comparar recuentos daba falso si entraban cambios entre las dos lecturas aunque la repetición funcionara.
 
 ## Cómo ejecutar el spike
 Ver [`tools/spike-sap/README.md`](../../tools/spike-sap/README.md). Pegar aquí el `report.md` generado por cada servicio probado (un extractor estándar con delta, un Z y una CDS) y actualizar el estado del ADR.
