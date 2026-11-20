@@ -312,7 +312,7 @@ class DestinationWriter(Protocol):          # módulo 07
     def cleanup(self, stage: StageInfo) -> None: ...
 ```
 
-`stage` recibe el spool y no solo lotes: Snowflake sube los archivos Parquet tal cual, sin reescribirlos. Estos contratos se congelan en el ADR 0006 antes de que los dos desarrolladores trabajen en paralelo.
+`stage` recibe el spool y no solo lotes: Snowflake sube los archivos Parquet tal cual, sin reescribirlos. Las firmas definitivas, las columnas técnicas, el formato de `batch_id` y del manifiesto del spool y la tabla de control están en el [ADR 0006](../adr/0006-contratos-del-motor.md); si difieren de este resumen, manda el ADR.
 
 Registro de plugins por tipo (`ODP_EXTRACTOR`, `CDS_ODP`, `CDS_ODATA` / `csv`, `snowflake`, `sqlserver`). El motor (`ExtractionEngine`) solo conoce las interfaces.
 
@@ -328,7 +328,8 @@ Registro de plugins por tipo (`ODP_EXTRACTOR`, `CDS_ODP`, `CDS_ODATA` / `csv`, `
 ## Tareas
 
 - [x] Diseño del estado de delta: transiciones, *fencing*, `commit_delta` y cierre en SAP (§3.6, borrador del 20.11.2026; se cierra con el spike).
-- [ ] ADR 0006 con los contratos (`SourceConnector`, `DestinationWriter`, spool, run, estado de delta), en la Fase 0.
+- [x] ADR 0006 con los contratos (`SourceConnector`, `DestinationWriter`, spool, run e intentos, `batch_id`, tabla de control), propuesto el 20.11.2026 y pendiente de revisión conjunta. El estado de delta queda fuera hasta el spike (§3.6).
+- [ ] Paquete `dataflow/` con esos tipos, batería de conformidad y dobles de prueba (inicio de la Fase 1).
 - [ ] Modelo `run`, `run_attempt`, `run_step`, `delta_state`, `delta_state_history`.
 - [ ] Conectores `ODP_EXTRACTOR` / `CDS_ODP` (comparten implementación ODP) y `CDS_ODATA` (paginación por clave).
 - [ ] Iterador de páginas del motor, conversión de tipos EDM → Arrow, spool Parquet con manifiesto.

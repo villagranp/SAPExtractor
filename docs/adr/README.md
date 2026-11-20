@@ -9,5 +9,5 @@ Cada decisión técnica relevante se documenta en un archivo `NNNN-titulo.md` co
 | [0003](0003-postgresql-metadatos-y-cola.md) | PostgreSQL como base de metadatos y cola de trabajos | Aceptado (pendiente D3) |
 | [0004](0004-sesiones-servidor-bff.md) | Sesiones de servidor con cookie httpOnly (BFF) | Aceptado |
 | [0005](0005-cifrado-envelope-secretos.md) | Cifrado *envelope* de secretos | Aceptado |
-| 0006 | Contratos del motor (plan 13) | Pendiente (Fase 0) |
+| [0006](0006-contratos-del-motor.md) | Contratos del motor: esquema, lote, spool, run y puertos | **Propuesto — revisión de ambos desarrolladores** |
 | [0007](0007-estilo-visual-tactil.md) | Estilo visual «táctil» propio (It1b) | Aceptado |

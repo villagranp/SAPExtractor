@@ -149,7 +149,7 @@ El ADR lista las hipótesis H1–H18. Desde el 20.11.2026 el script `tools/spike
 | 0003 | PostgreSQL como base de metadatos y cola de trabajos |
 | 0004 | Sesiones de servidor con cookie httpOnly (patrón BFF) en lugar de JWT en el navegador |
 | 0005 | Cifrado *envelope* de secretos |
-| 0006 | Contratos del motor: `SourceConnector`, `DestinationWriter`, spool, run y estado de delta (pendiente, Fase 0) |
+| 0006 | Contratos del motor: esquema, lote, spool, run y puertos (propuesto; el estado de delta va en un ADR posterior al spike) |
 
 ## Tareas
 
@@ -171,7 +171,7 @@ El ADR lista las hipótesis H1–H18. Desde el 20.11.2026 el script `tools/spike
   - Cobertura: `coverage report --fail-under=80` sobre `*/domain/*` y `*/application/*` (hoy, 90 %).
   - Alembic: `tests/unit/test_migrations.py` exige una sola cabeza, cadena lineal y numeración correlativa.
   - E2E: job `e2e` que levanta `docker compose`, activa el administrador inicial (`tests/e2e/global-setup.ts`) y ejecuta Playwright con el flujo de usuarios, el de sistemas SAP y `axe` (cero incumplimientos graves o críticos en login, inicio, sistemas SAP, asistente, usuarios y auditoría).
-- [ ] ADR 0006 con los contratos del motor.
+- [x] ADR 0006 con los contratos del motor ([propuesto el 20.11.2026](../adr/0006-contratos-del-motor.md), pendiente de revisión conjunta). El estado de delta se fija en un ADR posterior, tras el spike.
 
 ## Criterios de aceptación
 
