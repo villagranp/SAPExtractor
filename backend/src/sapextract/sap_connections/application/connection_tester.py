@@ -12,6 +12,7 @@ from collections.abc import Callable
 from datetime import UTC, datetime
 
 from sapextract.core.clock import utcnow
+from sapextract.core.network import HostNotAllowedError
 from sapextract.sap_connections.application.toolkit import SapToolkit
 from sapextract.sap_connections.domain.errors import SapError, SapResponseError
 from sapextract.sap_connections.domain.model import ConnectionSpec, X509Credentials
@@ -42,14 +43,14 @@ def _ms(started: float) -> int:
     return int((time.perf_counter() - started) * 1000)
 
 
-def _failed(name: StepName, error: SapError, started: float) -> TestStep:
+def _failed(name: StepName, error: SapError | HostNotAllowedError, started: float) -> TestStep:
     return TestStep(
         name=name,
         status=StepStatus.FAILED,
         message=error.detail,
         duration_ms=_ms(started),
         error_code=error.error_code,
-        details=error.as_details(),
+        details=error.as_details() if isinstance(error, SapError) else {},
     )
 
 
@@ -65,13 +66,18 @@ class ConnectionTester:
         started_at = utcnow()
         steps: list[TestStep] = [self._network(spec)]
         if not _last_failed(steps):
-            with self.tk.client_factory(spec, NO_RETRY) as client:
-                step, response = self._authentication(spec, client.catalog_root)
-                steps.append(step)
-                if response is not None:
-                    steps.append(self._server_info(response))
-                if not _last_failed(steps):
-                    steps.append(self._latency(client.catalog_root))
+            try:
+                client = self.tk.client_factory(spec, NO_RETRY)
+            except HostNotAllowedError as exc:  # destino detrás de proxy no permitido
+                steps.append(_failed(StepName.AUTHENTICATION, exc, time.perf_counter()))
+            else:
+                with client:
+                    step, response = self._authentication(spec, client.catalog_root)
+                    steps.append(step)
+                    if response is not None:
+                        steps.append(self._server_info(response))
+                    if not _last_failed(steps):
+                        steps.append(self._latency(client.catalog_root))
         done = {s.name for s in steps}
         steps += [
             TestStep(
@@ -89,7 +95,7 @@ class ConnectionTester:
         started = time.perf_counter()
         try:
             result = self.tk.probe(spec)
-        except SapError as exc:
+        except (SapError, HostNotAllowedError) as exc:
             return _failed(StepName.NETWORK, exc, started)
         details = {"host": result.host, "port": result.port, "addresses": result.addresses}
         details.update(result.details)
@@ -127,7 +133,7 @@ class ConnectionTester:
         started = time.perf_counter()
         try:
             response = call()
-        except SapError as exc:
+        except (SapError, HostNotAllowedError) as exc:
             return _failed(StepName.AUTHENTICATION, exc, started), None
         status, message = StepStatus.OK, "Gateway aceptó las credenciales (catálogo accesible)."
         details: dict[str, object] = {"http_status": response.status_code}
@@ -188,7 +194,7 @@ class ConnectionTester:
                 tick = time.perf_counter()
                 call()
                 samples.append(_ms(tick))
-        except SapError as exc:
+        except (SapError, HostNotAllowedError) as exc:
             return _failed(StepName.LATENCY, exc, started)
         avg = int(statistics.mean(samples))
         status = StepStatus.WARNING if avg > LATENCY_WARNING_MS else StepStatus.OK

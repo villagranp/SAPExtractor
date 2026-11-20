@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from sapextract.audit.application.service import AuditService
 from sapextract.core.config import Settings
+from sapextract.core.network import HostPolicy
 from sapextract.core.security.crypto import SecretCipher
 from sapextract.sap_connections.domain.model import ConnectionSpec
 from sapextract.sap_connections.infrastructure.network_probe import ProbeResult, probe
@@ -45,6 +46,7 @@ class SapToolkit:
     client_factory: ClientFactory
     probe: Probe
     catalog_ttl: timedelta
+    host_policy: HostPolicy
     explorer_retry: RetryPolicy = field(default_factory=lambda: RetryPolicy(max_attempts=2))
     # Los módulos de orígenes (It3) y pipelines (It6) registran aquí sus dependencias.
     dependents: list[DependentsProvider] = field(default_factory=list)
@@ -59,9 +61,13 @@ class SapToolkit:
         probe_fn: Probe | None = None,
     ) -> SapToolkit:
         limiter = ConcurrencyLimiter()
+        policy = settings.sap_host_policy
 
         def default_factory(spec: ConnectionSpec, retry: RetryPolicy) -> SapODataClient:
-            return SapODataClient(spec, retry=retry, limiter=limiter)
+            return SapODataClient(spec, retry=retry, limiter=limiter, host_policy=policy)
+
+        def default_probe(spec: ConnectionSpec) -> ProbeResult:
+            return probe(spec, policy)
 
         return cls(
             settings=settings,
@@ -69,8 +75,9 @@ class SapToolkit:
             cipher=SecretCipher.from_settings(settings) if settings.master_key else None,
             limiter=limiter,
             client_factory=client_factory or default_factory,
-            probe=probe_fn or probe,
+            probe=probe_fn or default_probe,
             catalog_ttl=timedelta(minutes=settings.sap_catalog_ttl_minutes),
+            host_policy=policy,
         )
 
     def dependents_of(self, session: Session, system_id: uuid.UUID) -> list[Dependent]:

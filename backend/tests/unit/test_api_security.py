@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.testclient import TestClient
 
 from sapextract.audit.api.openapi import AUDIT_EXEMPT_EXTENSION, AUDIT_EXTENSION
 from sapextract.audit.domain.model import ACTIONS
+from sapextract.core.config import Settings
+from sapextract.main_api import create_app
 
 MUTATING = {"post", "put", "patch", "delete"}
 
@@ -56,3 +58,26 @@ def test_logout_without_session_clears_cookies(client: TestClient) -> None:
     response = client.post("/api/v1/auth/logout")
     assert response.status_code == 204
     assert "sx_session" in response.headers.get("set-cookie", "")
+
+
+def _client_ip_app(settings: Settings) -> FastAPI:
+    app = create_app(settings)
+
+    def whoami(request: Request) -> dict[str, str | None]:
+        return {"ip": request.client.host if request.client else None}
+
+    app.add_api_route("/_test/ip", whoami)
+    return app
+
+
+def test_forwarded_for_is_ignored_from_untrusted_clients(settings: Settings) -> None:
+    client = TestClient(_client_ip_app(settings))  # TestClient llega como «testclient»
+    response = client.get("/_test/ip", headers={"X-Forwarded-For": "203.0.113.9"})
+    assert response.json()["ip"] == "testclient"
+
+
+def test_forwarded_for_is_used_from_trusted_proxies(settings: Settings) -> None:
+    trusted = settings.model_copy(update={"trusted_proxies": ["testclient"]})
+    client = TestClient(_client_ip_app(trusted))
+    response = client.get("/_test/ip", headers={"X-Forwarded-For": "203.0.113.9"})
+    assert response.json()["ip"] == "203.0.113.9"

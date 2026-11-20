@@ -26,7 +26,9 @@ import structlog
 from defusedxml import ElementTree
 from defusedxml.common import DefusedXmlException
 
+from sapextract.core.http_guard import guarded_transport
 from sapextract.core.masking import mask_value
+from sapextract.core.network import HostPolicy
 from sapextract.sap_connections.domain.catalog import (
     CatalogService,
     classify,
@@ -48,7 +50,7 @@ from sapextract.sap_connections.domain.errors import (
     SapTimeoutError,
     SapTlsError,
 )
-from sapextract.sap_connections.domain.model import ConnectionSpec
+from sapextract.sap_connections.domain.model import ConnectionSpec, OAuth2Credentials
 from sapextract.sap_connections.infrastructure.auth import build_auth
 from sapextract.sap_connections.infrastructure.certificates import build_ssl_context
 
@@ -264,6 +266,7 @@ class SapODataClient:
         retry: RetryPolicy | None = None,
         limiter: ConcurrencyLimiter | None = None,
         transport: httpx.BaseTransport | None = None,
+        host_policy: HostPolicy | None = None,
         sleep: Sleep = time.sleep,
     ) -> None:
         self.spec = spec
@@ -277,13 +280,22 @@ class SapODataClient:
             "trust_env": False,  # el proxy se configura explícitamente por sistema
             "follow_redirects": False,
         }
+        token_common = dict(common)
         if transport is not None:
-            common["transport"] = transport
+            common["transport"] = token_common["transport"] = transport
         else:
-            common["verify"] = build_ssl_context(spec)
-            if spec.proxy_url:
-                common["proxy"] = spec.proxy_url
-        self._token_client = httpx.Client(**common)
+            # Cada conexión TCP pasa por la política de hosts (plan 13, C-07 a).
+            policy = host_policy or HostPolicy(allow_loopback=True)
+            if spec.proxy_url:  # el proxy resuelve el destino: se comprueba por nombre
+                policy.check_host(self._host)
+                if isinstance(spec.credentials, OAuth2Credentials):
+                    policy.check_host(urlsplit(spec.credentials.token_url).hostname or "")
+            context = build_ssl_context(spec)
+            common["transport"] = guarded_transport(policy, verify=context, proxy=spec.proxy_url)
+            token_common["transport"] = guarded_transport(
+                policy, verify=context, proxy=spec.proxy_url
+            )
+        self._token_client = httpx.Client(**token_common)
         self._http = httpx.Client(
             auth=build_auth(spec.credentials, self._token_client),
             headers={"User-Agent": "SAPExtract", "Accept-Language": spec.language.lower()},

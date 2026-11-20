@@ -20,7 +20,7 @@
   --sx-color-primary-contrast: #ffffff;
   --sx-color-focus: #3b82f6;
 
-  --sx-color-success: #1e7d4f;
+  --sx-color-success: #1a6e45; /* 5,5:1 sobre success-bg (WCAG AA) */
   --sx-color-success-bg: #e3f4ea;
   --sx-color-warning: #9a6200;
   --sx-color-warning-bg: #fdf1d8;

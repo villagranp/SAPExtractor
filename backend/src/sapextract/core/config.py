@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ipaddress
 from enum import StrEnum
 from functools import lru_cache
 from pathlib import Path
@@ -9,6 +10,8 @@ from typing import Self
 
 from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from sapextract.core.network import HostPolicy, parse_entry
 
 
 class Environment(StrEnum):
@@ -52,6 +55,13 @@ class Settings(BaseSettings):
     api_prefix: str = "/api/v1"
     docs_enabled: bool = True
     cors_origins: list[str] = Field(default_factory=list)
+    trusted_proxies: list[str] = Field(
+        default_factory=lambda: ["127.0.0.1"],
+        description=(
+            "IP o redes (CIDR) de los proxies inversos cuyas cabeceras X-Forwarded-For/Proto "
+            "se aceptan; el resto de clientes no puede falsear su IP"
+        ),
+    )
     max_request_body_bytes: int = 10 * 1024 * 1024
 
     # --- Logs
@@ -88,11 +98,32 @@ class Settings(BaseSettings):
     sap_catalog_ttl_minutes: int = Field(
         60, ge=1, description="Vigencia de la caché del catálogo de servicios de Gateway"
     )
+    sap_allowed_hosts: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Hosts SAP, proxies y servidores de tokens permitidos: sufijos DNS "
+            "(empresa.local) o redes (10.0.0.0/8). Vacío = cualquiera; obligatorio en PRD"
+        ),
+    )
 
     # --- Procesos de fondo
     scheduler_tick_seconds: float = 5.0
     worker_poll_seconds: float = 5.0
     spool_dir: Path = Path("spool")
+
+    @model_validator(mode="after")
+    def _validate_network(self) -> Self:
+        for entry in self.sap_allowed_hosts:
+            parse_entry(entry)  # ValueError con la entrada concreta
+        for proxy in self.trusted_proxies:
+            if proxy.strip() == "*":
+                continue
+            try:
+                ipaddress.ip_network(proxy.strip(), strict=False)
+            except ValueError:
+                msg = f"SX_TRUSTED_PROXIES: «{proxy}» no es una IP ni una red CIDR"
+                raise ValueError(msg) from None
+        return self
 
     @model_validator(mode="after")
     def _validate_production_requirements(self) -> Self:
@@ -103,6 +134,12 @@ class Settings(BaseSettings):
             if self.log_json is False:
                 msg = "SX_LOG_JSON debe ser true en QA y PRD"
                 raise ValueError(msg)
+            if any(p.strip() == "*" for p in self.trusted_proxies):
+                msg = "SX_TRUSTED_PROXIES no puede ser '*' en QA y PRD: indique la red del proxy"
+                raise ValueError(msg)
+        if self.environment is Environment.PRD and not self.sap_allowed_hosts:
+            msg = 'SX_SAP_ALLOWED_HOSTS es obligatoria en PRD (p. ej. ["empresa.local"])'
+            raise ValueError(msg)
         return self
 
     @property
@@ -118,6 +155,14 @@ class Settings(BaseSettings):
         if self.session_cookie_secure is not None:
             return self.session_cookie_secure
         return not self.is_local_dev
+
+    @property
+    def sap_host_policy(self) -> HostPolicy:
+        return HostPolicy(
+            allowed=tuple(self.sap_allowed_hosts),
+            allow_loopback=self.is_local_dev,
+            label="SX_SAP_ALLOWED_HOSTS",
+        )
 
     @property
     def mfa_required(self) -> bool:

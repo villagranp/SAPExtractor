@@ -93,10 +93,13 @@ class AuthService:
     ) -> IssuedSession:
         uname = normalize_username(username)[:100]
         now = utcnow()
+        # FOR UPDATE: los inicios de sesión simultáneos del mismo usuario se serializan.
+        # Sin el bloqueo, el control de versión de user_account hacía fallar al segundo
+        # (StaleDataError → 500) y los intentos fallidos en paralelo podían contarse de menos.
         user = self.session.scalar(
-            select(UserAccount).where(
-                UserAccount.username == uname, UserAccount.deleted_at.is_(None)
-            )
+            select(UserAccount)
+            .where(UserAccount.username == uname, UserAccount.deleted_at.is_(None))
+            .with_for_update()
         )
         credential = (
             user.credential if user is not None and user.auth_source == AuthSource.LOCAL else None
@@ -356,6 +359,7 @@ class AuthService:
     def verify_mfa(self, principal: Principal, code: str, request: RequestInfo) -> IssuedSession:
         row = self._session_row(principal)
         user = row.user
+        self.session.refresh(user, with_for_update=True)  # igual que en login()
         credential = self._local_credential(user)
         now = utcnow()
         cipher = self.tk.require_cipher()

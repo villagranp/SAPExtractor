@@ -15,9 +15,12 @@ from typing import Any
 import pytest
 from sqlalchemy import func, select
 
+from sapextract.core.config import Settings
 from sapextract.core.db import Database
 from sapextract.core.secret_store import Secret
+from sapextract.main_api import create_app
 from tests.integration.conftest import (
+    ADMIN_USERNAME,
     ApiClient,
     activate_user,
     audit_actions,
@@ -374,3 +377,24 @@ def test_permissions(
     assert denied.status_code == 403
     assert viewer.post(f"/sap-systems/{system['id']}/test").status_code == 403
     assert viewer.delete(f"/sap-systems/{system['id']}").status_code == 403
+
+
+def test_allowed_hosts_restrict_where_the_platform_connects(
+    app_settings: Settings, admin_password: str, gateway: RunningGateway
+) -> None:
+    restricted = create_app(
+        app_settings.model_copy(update={"sap_allowed_hosts": ["empresa.local"]})
+    )
+    client = ApiClient(restricted)
+    assert client.login(ADMIN_USERNAME, admin_password) == "active"
+
+    blocked = client.post("/sap-systems/test", _body(gateway.base_url))
+    assert blocked.status_code == 422, blocked.text
+    problem = blocked.json()
+    assert problem["code"] == "SX-NET-HOST-NOT-ALLOWED"
+    assert problem["errors"][0]["field"] == "base_url"
+
+    saved = client.post("/sap-systems", _body(gateway.base_url))
+    assert saved.status_code == 422
+    metadata = client.post("/sap-systems/test", _body("http://169.254.169.254"))
+    assert metadata.json()["code"] == "SX-NET-HOST-NOT-ALLOWED"

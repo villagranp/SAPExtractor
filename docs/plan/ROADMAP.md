@@ -56,7 +56,7 @@ Dev A lleva el flujo SAP y Dev B los destinos y la plataforma. Los dos construye
 
 | Fase | Duración | Dev A (flujo SAP) | Dev B (destinos y plataforma) | Entregable |
 |---|---|---|---|---|
-| **0 · Preparación** | 1 semana | Spike ampliado con el equipo SAP; respuestas reales al mock; diseño del estado de delta | Seguridad de conectores (hosts permitidos, proxies de confianza); E2E y cobertura en CI; stack del frontend; pedir cuenta de Snowflake y *App registration* | Juntos: ADR 0006 con los contratos del motor |
+| **0 · Preparación** | 1 semana | Spike ampliado con el equipo SAP; respuestas reales al mock; diseño del estado de delta | ✅ Seguridad de conectores (hosts permitidos, proxies de confianza); ✅ E2E y cobertura en CI; ✅ stack del frontend; pedir cuenta de Snowflake y *App registration* (borradores en [`docs/solicitudes/fase-0.md`](../solicitudes/fase-0.md)) | Juntos: ADR 0006 con los contratos del motor |
 | **1 · Origen y destino** | 2–3 semanas | **It3** Orígenes | **It4a** CSV y Snowflake | Origen y destino creados desde la UI |
 | **2 · Motor** | 3 semanas | **It5**, extracción: conectores, paginación, spool, máquina de delta | **It5**, carga: `load`, `commit_delta`, idempotencia, inyección de fallos, pantalla mínima de run | **H2 · Primer dato** |
 | **3 · Orquestación** | 3 semanas | **It6** backend | **It6** pantallas; después **It4b** SQL Server | **H3 · Autónoma** |

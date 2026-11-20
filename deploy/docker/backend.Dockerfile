@@ -26,7 +26,7 @@ RUN --mount=type=cache,target=/root/.cache/uv uv sync --locked --no-install-proj
 COPY backend/ ./
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --locked
 EXPOSE 8000
-CMD ["uvicorn", "sapextract.main_api:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000", "--reload", "--reload-dir", "/app/src"]
+CMD ["uvicorn", "sapextract.main_api:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000", "--no-proxy-headers", "--reload", "--reload-dir", "/app/src"]
 
 # ---- build de producción
 FROM deps AS build
@@ -49,4 +49,5 @@ USER sx
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
     CMD ["python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health/live', timeout=4).status == 200 else 1)"]
-CMD ["uvicorn", "sapextract.main_api:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "*"]
+# Cabeceras X-Forwarded-*: las aplica la API solo para SX_TRUSTED_PROXIES (plan 13, C-07 d).
+CMD ["uvicorn", "sapextract.main_api:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000", "--no-proxy-headers"]

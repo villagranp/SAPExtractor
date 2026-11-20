@@ -120,7 +120,11 @@ GET    /api/v1/sap-systems/{id}/services/{service}/metadata
 - [ ] Validar contra el SAP real de AG (depende del spike de It0 y de que Basis publique los servicios).
 
 **Fase 0 (plan 13, C-07 a)**
-- [ ] `SX_SAP_ALLOWED_HOSTS`: validación de `base_url`, `proxy_url` y URL de token antes de conectar, con pruebas (host no permitido, IP de metadatos, *loopback* fuera de DEV, DNS que resuelve a una IP bloqueada).
+- [x] `SX_SAP_ALLOWED_HOSTS`: validación de `base_url`, `proxy_url` y URL de token antes de conectar, con pruebas (host no permitido, IP de metadatos, *loopback* fuera de DEV, DNS que resuelve a una IP bloqueada).
+  - Política reutilizable en `core/network.py` (`HostPolicy`) para destinos (It4) y *webhooks* (It8). Entradas: sufijos DNS (`empresa.local`) o redes (`10.20.0.0/16`); vacía = cualquiera salvo lo bloqueado siempre.
+  - Al guardar o probar se comprueba sin resolver DNS y el error va al campo (`base_url`, `proxy_url`, `credentials.token_url`; código `SX-NET-HOST-NOT-ALLOWED`, 422).
+  - Al conectar, `core/http_guard.py` resuelve el host, valida **todas** sus IP y conecta con la IP ya validada (el SNI y el certificado siguen usando el nombre): un DNS que cambie de respuesta entre la validación y la conexión no lleva a una dirección bloqueada. La sonda de red hace lo mismo. Con proxy se valida el proxy por IP y el destino por nombre.
+  - Se aplica al cliente OData, al servidor de tokens OAuth y a la prueba de conexión. *Loopback* solo en `dev`/`test`.
 
 ## Lo construido en la iteración 2
 

@@ -127,8 +127,8 @@ Un pipeline es un origen hacia un destino y no habrá multi-destino (decisión d
 - [x] `shared/ui` mínimo (botón, input, tabla, modal, toast) y tokens.
 
 **Fase 0 (plan 13, C-21 y C-22)**
-- [ ] Job de Playwright en CI con `axe`; hoy solo existe `tests/e2e/smoke.spec.ts` y no se ejecuta en CI.
-- [ ] Instalar React Hook Form y Zod (primer uso en It3).
+- [x] Job de Playwright en CI con `axe` (`tests/e2e/a11y.spec.ts`). Al activarlo apareció un contraste insuficiente (4,48:1) del verde de éxito en modo claro: el token `--sx-color-success` pasa a `#1a6e45` (5,5:1).
+- [x] Instalar React Hook Form, Zod y `@hookform/resolvers`. Ayudante `shared/api/forms.ts` (`applyServerErrors`) que vuelca los `errors[]` de Problem Details en los campos del formulario. Primer uso en el asistente de orígenes (It3); los formularios de It1–It2 se migran cuando se toquen.
 
 **Iteración 1b (al recibir la plantilla)**
 - [ ] Análisis de la plantilla y ADR de integración.

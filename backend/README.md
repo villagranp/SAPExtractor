@@ -13,7 +13,7 @@ API (FastAPI), scheduler y workers. Arquitectura y decisiones en [`docs/plan`](.
 uv sync                                   # dependencias (incluye grupo dev)
 cp ../.env.example ../.env                # y ajustar valores
 uv run sapextract db upgrade              # migraciones + catálogo de permisos/roles + admin inicial
-uv run uvicorn sapextract.main_api:create_app --factory --reload
+uv run uvicorn sapextract.main_api:create_app --factory --reload --no-proxy-headers
 uv run python -m sapextract.main_scheduler
 uv run python -m sapextract.main_worker
 ```
@@ -47,6 +47,8 @@ uv run sapextract generate-master-key                         # valor para SX_MA
 - Las credenciales se guardan cifradas con `SecretStore` (`core/secret_store.py`) y solo se
   descifran en memoria (`SapSystemService.spec_for`); las respuestas exponen `credential_info`.
 - Las llamadas a SAP se hacen con la transacción de BD cerrada; el resultado se guarda después.
+- Las conexiones salientes pasan por `HostPolicy` (`core/network.py`, `SX_SAP_ALLOWED_HOSTS`):
+  se resuelve el host, se validan sus IP y se conecta con la IP validada (`core/http_guard.py`).
 - Las pruebas de integración levantan `tools/sap-mock` en proceso (`tests/support/sap_gateway.py`),
   también con TLS autofirmado, sin contenedores adicionales.
 

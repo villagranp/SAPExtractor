@@ -167,7 +167,10 @@ El ADR lista las hipótesis H1–H18. H8–H18 se añadieron el 19.11.2026 y el 
 **Fase 0 (plan 13)**
 - [ ] Ampliar `spike_odp.py` con H8–H18 y comparar la repetición por claves y `ODQ_ENTITYCNTR`, no por recuento.
 - [ ] Mock: `SubscribedTo…` y `TerminateDeltasFor…` cuando H12 se confirme; respuestas reales grabadas en el spike.
-- [ ] CI: `fail_under` de cobertura, job de Playwright con `axe`, aserción de una sola cabeza de Alembic.
+- [x] CI: `fail_under` de cobertura, job de Playwright con `axe`, aserción de una sola cabeza de Alembic.
+  - Cobertura: `coverage report --fail-under=80` sobre `*/domain/*` y `*/application/*` (hoy, 90 %).
+  - Alembic: `tests/unit/test_migrations.py` exige una sola cabeza, cadena lineal y numeración correlativa.
+  - E2E: job `e2e` que levanta `docker compose`, activa el administrador inicial (`tests/e2e/global-setup.ts`) y ejecuta Playwright con el flujo de usuarios, el de sistemas SAP y `axe` (cero incumplimientos graves o críticos en login, inicio, sistemas SAP, asistente, usuarios y auditoría).
 - [ ] ADR 0006 con los contratos del motor.
 
 ## Criterios de aceptación

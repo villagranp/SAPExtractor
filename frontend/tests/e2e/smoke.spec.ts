@@ -87,7 +87,7 @@ test.describe('con administrador', () => {
     await page.getByRole('button', { name: 'Siguiente' }).click();
 
     await page.getByRole('button', { name: 'Probar conexión' }).click();
-    await expect(page.getByText('Conexión correcta')).toBeVisible();
+    await expect(page.getByText('Conexión correcta', { exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Siguiente' }).click();
     await page.getByRole('button', { name: 'Guardar' }).click();
 

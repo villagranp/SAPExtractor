@@ -208,6 +208,7 @@ Código: `backend/src/sapextract/identity/` y `frontend/src/features/{auth,users
 **Flujo de login por pasos.** Cada sesión tiene un `stage`: `mfa` → `password_change` → `mfa_setup` → `active`. Solo `active` da acceso a la API; `GET /me` responde en cualquier paso para que el SPA muestre el siguiente. Cada avance rota el token de sesión y el token CSRF. Las sesiones a medio login caducan a los 10 minutos.
 
 **Reglas añadidas:**
+- El login y la verificación MFA bloquean la fila del usuario (`SELECT … FOR UPDATE`): varios inicios de sesión simultáneos del mismo usuario ya no fallan con 500 por el control de versión, y los intentos fallidos en paralelo se cuentan todos (corregido en la Fase 0 al ejecutar el E2E en paralelo).
 - *Anti-escalada*: nadie concede (ni quita) roles, permisos de un rol ni alcances de un token API que no tenga él mismo.
 - El administrador *break-glass* no se puede desactivar, bloquear, anonimizar ni cambiar de roles.
 - Anonimizar exige desactivar antes e indicar un motivo.

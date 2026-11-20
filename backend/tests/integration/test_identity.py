@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import time
 from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 from sqlalchemy import text
@@ -65,6 +66,24 @@ def test_session_id_rotates_after_each_step(
     first = client.http.cookies.get("sx_session")
     client.post("/auth/password/change", {"new_password": "Rotacion.De-Sesion-9"})
     assert client.http.cookies.get("sx_session") not in (None, first)
+
+
+def test_concurrent_logins_of_the_same_user(
+    client_factory: ClientFactory, admin: ApiClient
+) -> None:
+    """Varias pestañas o procesos entrando a la vez no dan 500 (bloqueo de la fila)."""
+    created = create_user(admin, "viewer")
+    username = created["user"]["username"]
+    password = activate_user(client_factory(), username, created["temporary_password"])
+    clients = [client_factory() for _ in range(6)]
+
+    def login(client: ApiClient) -> int:
+        response = client.post("/auth/login", {"username": username, "password": password})
+        return response.status_code
+
+    with ThreadPoolExecutor(max_workers=len(clients)) as pool:
+        statuses = list(pool.map(login, clients))
+    assert statuses == [200] * len(clients)
 
 
 def test_wrong_password_locks_account_temporarily(

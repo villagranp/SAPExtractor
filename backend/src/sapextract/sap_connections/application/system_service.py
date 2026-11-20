@@ -10,6 +10,7 @@ import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
+from urllib.parse import urlsplit
 
 from sqlalchemy import func, or_, select, update
 from sqlalchemy.orm import Session
@@ -17,7 +18,8 @@ from sqlalchemy.orm import Session
 from sapextract.audit.domain.diff import diff, snapshot
 from sapextract.audit.domain.model import AuditEntry, Outcome, RequestInfo
 from sapextract.core.clock import utcnow
-from sapextract.core.exceptions import BusinessRuleError, ConflictError, NotFoundError
+from sapextract.core.exceptions import BusinessRuleError, ConflictError, FieldIssue, NotFoundError
+from sapextract.core.network import HostNotAllowedError
 from sapextract.core.pagination import PageParams
 from sapextract.core.secret_store import SecretStore
 from sapextract.identity.domain.model import Principal
@@ -339,6 +341,7 @@ class SapSystemService:
         check_production_security(
             SapEnvironment(system.environment), system.base_url, tls_verify=system.tls_verify
         )
+        self._check_hosts(system.base_url, system.proxy_url, None)
 
         after = _snapshot(system)
         delta = diff(before, after)
@@ -368,6 +371,7 @@ class SapSystemService:
             msg = "El sistema fue modificado por otra persona; recargue y vuelva a intentarlo."
             raise ConflictError(msg, code="SX-GEN-STALE")
         credentials = validate_credentials(credentials)
+        self._check_hosts(system.base_url, system.proxy_url, credentials)
         info = credential_info(credentials)
         before = {"auth_type": system.auth_type, "auth_identity": system.credential_info}
         payload = credentials_to_payload(credentials)
@@ -574,7 +578,7 @@ class SapSystemService:
         ca = (data.ca_bundle_pem or "").strip() or None
         if ca:
             parse_ca_bundle(ca)
-        return ConnectionSpec(
+        spec = ConnectionSpec(
             base_url=normalize_base_url(data.base_url),
             sap_client=normalize_client(data.sap_client),
             language=normalize_language(data.language),
@@ -586,6 +590,30 @@ class SapSystemService:
             max_concurrent_requests=data.max_concurrent_requests,
             label=label,
         )
+        self._check_hosts(spec.base_url, spec.proxy_url, credentials)
+        return spec
+
+    def _check_hosts(
+        self, base_url: str, proxy_url: str | None, credentials: Credentials | None
+    ) -> None:
+        """Comprobación de hosts sin resolver DNS, para dar el error en su campo.
+
+        La comprobación definitiva (con las IP resueltas) se hace al conectar.
+        """
+        targets = [("base_url", base_url), ("proxy_url", proxy_url)]
+        if isinstance(credentials, OAuth2Credentials):
+            targets.append(("credentials.token_url", credentials.token_url))
+        for fieldname, url in targets:
+            if not url:
+                continue
+            try:
+                self.tk.host_policy.check_host(urlsplit(url).hostname or "")
+            except HostNotAllowedError as exc:
+                raise BusinessRuleError(
+                    exc.detail,
+                    code=exc.error_code,
+                    errors=[FieldIssue(fieldname, exc.detail, exc.error_code)],
+                ) from exc
 
     def _set_ca_bundle(self, system: SapSystem, pem: str, actor: Principal) -> None:
         pem = pem.strip()

@@ -117,7 +117,7 @@ Requisitos de red: salida HTTPS hacia SAP Gateway (DEV, QAS y PRD), Snowflake (4
 - [ ] Runbooks 1–10.
 - [ ] Pipeline CD con aprobaciones.
 - [ ] Revisión de seguridad previa a PRD.
-- [ ] `SX_TRUSTED_PROXIES` en lugar de `--forwarded-allow-ips "*"` (Fase 0, plan 13 C-07 d).
+- [x] `SX_TRUSTED_PROXIES` en lugar de `--forwarded-allow-ips "*"` (Fase 0, plan 13 C-07 d). La API aplica `X-Forwarded-For`/`Proto` solo si la petición llega de esas IP o redes (por defecto `127.0.0.1`); uvicorn arranca con `--no-proxy-headers` para no aplicarlo dos veces. `"*"` se rechaza en QA y PRD. En el despliegue hay que indicar la red del Nginx.
 - [ ] Permisos, retención y exclusión de backups del directorio de spool.
 - [ ] Entra ID configurado y probado en PRD antes de abrir el acceso.
 

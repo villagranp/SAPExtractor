@@ -8,6 +8,7 @@ from contextlib import asynccontextmanager
 import structlog
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from sapextract import __version__
 from sapextract.audit.api import routes as audit_routes
@@ -81,5 +82,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         max_body_bytes=settings.max_request_body_bytes,
         hsts=settings.is_production,
     )
+    # El más externo: la IP del cliente (auditoría, límite de intentos) solo se toma de
+    # X-Forwarded-For si la petición llega de un proxy de confianza (plan 13, C-07 d).
+    # uvicorn se arranca con --no-proxy-headers para no aplicarlo dos veces.
+    app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=settings.trusted_proxies)
     app.include_router(build_api_router(), prefix=prefix)
     return app
