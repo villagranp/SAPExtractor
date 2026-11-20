@@ -106,4 +106,29 @@ test.describe('con administrador', () => {
     await page.getByText('ZFI_WS_GL_ITEMS_SRV').click();
     await expect(page.getByRole('dialog').getByText('EntityOf0FI_GL_14').first()).toBeVisible();
   });
+  test('alta de destino CSV → prueba → activación → auditoría', async ({ page }) => {
+    await login(page, ADMIN_USER ?? '', ADMIN_PASSWORD ?? '');
+    await menuLink(page, 'Destinos').click();
+    await page.getByRole('button', { name: 'Nuevo destino Archivos CSV' }).click();
+
+    const code = `E2E_CSV_${Date.now().toString(36).toUpperCase()}`;
+    await page.getByLabel('Código').fill(code);
+    await page.getByLabel('Nombre').fill('Carpeta E2E');
+    await page.getByRole('button', { name: 'Siguiente' }).click();
+    await page.getByLabel('Carpeta raíz').selectOption({ index: 1 });
+    await page.getByLabel(/^Subcarpeta/).fill(`e2e/${code.toLowerCase()}`);
+    await page.getByRole('button', { name: 'Siguiente' }).click();
+
+    await page.getByRole('button', { name: 'Probar destino' }).click();
+    await expect(page.getByText('Destino accesible', { exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Siguiente' }).click();
+    await page.getByRole('button', { name: 'Guardar' }).click();
+
+    await expect(page.getByRole('heading', { name: new RegExp(code) })).toBeVisible();
+    await expect(page.getByText('Activo', { exact: true })).toBeVisible();
+    await expect(page.getByText('Escritura y espacio libre')).toBeVisible();
+
+    await page.getByRole('tab', { name: 'Actividad' }).click();
+    await expect(page.getByText('destination.created').first()).toBeVisible();
+  });
 });

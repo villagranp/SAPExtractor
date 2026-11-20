@@ -256,6 +256,15 @@ Para que cada uno avance sin el otro:
 - **Dobles:** `InMemoryWriter` (destino en memoria que cumple la batería) para que Dev A pruebe la extracción, y un `Spool` de muestra generado desde el mock SAP para que Dev B pruebe la carga.
 - La batería se escribe al empezar la Fase 1, junto a los dobles, antes que los conectores y destinos reales.
 
+## Notas de implementación (It4a, 20.11.2026)
+
+Lo construido en la It4a sigue este ADR con estas diferencias, que la revisión conjunta debe confirmar:
+
+- **`dataflow/infrastructure/parquet_spool.py`.** El ADR dejaba en `dataflow/` solo `domain/`. La lectura y escritura del spool (`SpoolWriter`, `DirectorySpool`) es igual para la extracción y para la carga, así que vive aquí y no se duplica en `extraction/` y `destinations/`. No accede a la base de datos ni a la red; solo al disco del spool.
+- **Escritura atómica en Windows.** Para sincronizar el archivo antes de renombrarlo se abre en modo `r+b` (Windows no permite `fsync` sobre un descriptor de solo lectura).
+- **`_sx_deleted` en CSV.** Se escribe como columna del archivo (`true`/`false`) igual que en Snowflake.
+- **Dobles de prueba.** `tests/support/dataflow.py` (`GL_SCHEMA`, `make_spool`, `InMemoryWriter`) y la batería `tests/contract/destination_contract.py`, que pasan memoria, CSV y CSV gzip; Snowflake la pasa con la cuenta de pruebas.
+
 ## Fuera de este ADR (pendiente del spike)
 
 | Tema | Dónde | Depende de |

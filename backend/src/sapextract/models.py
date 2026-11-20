@@ -7,6 +7,7 @@ from sapextract.audit.infrastructure.models import AuditEventRow
 from sapextract.core.db import Base
 from sapextract.core.secret_store import Secret
 from sapextract.core.system_settings import SystemSetting
+from sapextract.destinations.infrastructure.models import Destination
 from sapextract.identity.infrastructure.models import (
     ApiToken,
     LocalCredential,
@@ -23,6 +24,7 @@ __all__ = [
     "ApiToken",
     "AuditEventRow",
     "Base",
+    "Destination",
     "LocalCredential",
     "Permission",
     "Role",

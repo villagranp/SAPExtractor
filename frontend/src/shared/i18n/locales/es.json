@@ -23,7 +23,8 @@
     "no": "No",
     "previous": "Anterior",
     "next": "Siguiente",
-    "pageSummary": "{from}–{to} de {total}"
+    "pageSummary": "{from}–{to} de {total}",
+    "choose": "Seleccione…"
   },
   "nav": {
     "menu": "Menú principal",
@@ -631,6 +632,224 @@
         "hierarchy": "Jerarquía (HierOf)",
         "delta_links": "Tokens de delta"
       }
+    }
+  },
+  "destinations": {
+    "title": "Destinos",
+    "description": "Dónde se cargan los datos extraídos: Snowflake o archivos CSV. Cada destino se prueba antes de activarse.",
+    "new": "Nuevo destino",
+    "newOfType": "Nuevo destino {{type}}",
+    "searchPlaceholder": "Código, nombre o descripción",
+    "empty": "Ningún destino coincide con los filtros.",
+    "emptyFirstTitle": "Aún no hay destinos",
+    "emptyFirst": "Registre un destino Snowflake o una carpeta CSV para poder crear pipelines.",
+    "types": {
+      "snowflake": {
+        "label": "Snowflake",
+        "description": "Carga en tablas de Snowflake con par de claves: Parquet a un stage temporal, COPY y MERGE en una transacción."
+      },
+      "csv": {
+        "label": "Archivos CSV",
+        "description": "Archivos CSV (opcionalmente gzip) en una carpeta permitida del servidor, publicados de forma atómica con manifiesto y _SUCCESS."
+      }
+    },
+    "loadModes": {
+      "append": "Añadir",
+      "upsert": "Upsert (MERGE)",
+      "replace": "Reemplazar"
+    },
+    "statuses": {
+      "active": "Activo",
+      "draft": "Borrador",
+      "inactive": "Inactivo"
+    },
+    "environments": {
+      "DEV": "Desarrollo (DEV)",
+      "QAS": "Calidad (QAS)",
+      "PRD": "Producción (PRD)"
+    },
+    "test": {
+      "never": "Sin probar",
+      "outdated": "Desactualizada",
+      "ok": "Correcta",
+      "failed": "Fallida"
+    },
+    "fields": {
+      "destination": "Destino",
+      "type": "Tipo",
+      "environment": "Entorno",
+      "target": "Ubicación",
+      "status": "Estado",
+      "lastTest": "Última prueba",
+      "loadModes": "Modos de carga",
+      "loadMode": "Modo de carga",
+      "code": "Código",
+      "name": "Nombre",
+      "tags": "Etiquetas",
+      "description": "Descripción",
+      "credentials": "Credenciales"
+    },
+    "hints": {
+      "code": "Identificador único: letras, números y guion bajo (3 a 30). No se puede cambiar.",
+      "tags": "Separadas por comas, p. ej. finanzas, diario"
+    },
+    "validation": {
+      "required": "Campo obligatorio.",
+      "code": "Use de 3 a 30 letras, números o guion bajo, empezando por letra.",
+      "invalid": "Revise este campo: es obligatorio o está fuera de rango."
+    },
+    "form": {
+      "optional": "(opcional)",
+      "pemHint": "Pegue la clave privada PKCS#8 en formato PEM. Se guarda cifrada y nunca se vuelve a mostrar.",
+      "enumLabels": {
+        "tab": "Tabulador",
+        "lf": "LF (Linux)",
+        "crlf": "CRLF (Windows)",
+        "none": "Sin compresión"
+      }
+    },
+    "config": {
+      "root": "Carpeta raíz",
+      "path": "Subcarpeta",
+      "delimiter": "Separador",
+      "encoding": "Codificación",
+      "header": "Fila de encabezado",
+      "line_terminator": "Fin de línea",
+      "compression": "Compresión",
+      "max_rows_per_file": "Filas máximas por archivo",
+      "account": "Cuenta",
+      "user": "Usuario de servicio",
+      "role": "Rol",
+      "warehouse": "Warehouse",
+      "database": "Base de datos",
+      "schema_name": "Esquema",
+      "login_timeout_seconds": "Timeout de conexión (s)"
+    },
+    "report": {
+      "title": "Resultado de la prueba",
+      "ok": "Destino accesible",
+      "failed": "La prueba falló",
+      "testedAt": "Probado el {{date}}",
+      "outdated": "La configuración o las credenciales cambiaron después de esta prueba: repítala antes de activar.",
+      "steps": {
+        "path": "Carpeta de destino",
+        "write": "Escritura y espacio libre",
+        "network": "Red y DNS",
+        "authentication": "Autenticación (par de claves)",
+        "context": "Rol, warehouse, base y esquema",
+        "privileges": "Privilegios de carga"
+      },
+      "statuses": {
+        "ok": "Correcto",
+        "warning": "Aviso",
+        "failed": "Error",
+        "skipped": "Omitido"
+      }
+    },
+    "wizard": {
+      "titleNew": "Nuevo destino",
+      "titleEdit": "Editar {{code}}",
+      "description": "Configure el destino, pruébelo y guárdelo. Solo los destinos activos reciben cargas.",
+      "progress": "Pasos del asistente",
+      "steps": {
+        "type": "Tipo",
+        "general": "Datos generales",
+        "config": "Configuración",
+        "credentials": "Credenciales",
+        "test": "Prueba",
+        "summary": "Resumen"
+      },
+      "typeHelp": "Elija el tipo de destino. El formulario siguiente depende del tipo.",
+      "noCsvRoots": "El servidor no tiene carpetas raíz para CSV (SX_CSV_ROOTS). Pida al administrador que configure al menos una.",
+      "keyPairTitle": "Autenticación con par de claves",
+      "keyPairHelp": "Genere un par RSA, registre la clave pública en el usuario de servicio de Snowflake (ALTER USER … SET RSA_PUBLIC_KEY) y pegue aquí la clave privada.",
+      "testHelp": {
+        "snowflake": "Se comprueba la red, la autenticación, el contexto (rol, warehouse, base y esquema) y los privilegios para crear tablas y stages.",
+        "csv": "Se comprueba que la carpeta esté dentro de una raíz permitida, que se pueda escribir y que haya espacio libre."
+      },
+      "testReusesCredentials": "La prueba usa las credenciales guardadas. Para cambiarlas use «Rotar claves» en el detalle.",
+      "testButton": "Probar destino",
+      "testing": "Probando…",
+      "credentialsElsewhere": "Las credenciales se cambian desde el detalle con «Rotar claves».",
+      "activate": "Activar al guardar",
+      "activateHelp": "La prueba fue correcta: el destino quedará disponible para los pipelines.",
+      "activateBlocked": "Solo se puede activar con una prueba correcta.",
+      "fixFields": "Revise los campos marcados.",
+      "back": "Atrás",
+      "next": "Siguiente",
+      "save": "Guardar",
+      "saving": "Guardando…"
+    },
+    "rotate": {
+      "title": "Rotar claves de {{code}}",
+      "help": "Registre primero la nueva clave pública en Snowflake (puede tener dos activas: RSA_PUBLIC_KEY_2). Al guardar se prueba el destino con la clave nueva.",
+      "submit": "Guardar y probar",
+      "working": "Guardando…"
+    },
+    "ddl": {
+      "title": "Vista previa del DDL",
+      "help": "Elija un entity set de un sistema SAP para ver la tabla o los archivos que se crearían en este destino. No se ejecuta nada.",
+      "system": "Sistema SAP",
+      "service": "Servicio",
+      "entitySet": "Entity set",
+      "targetName": "Nombre en destino",
+      "targetHint": "Tabla o carpeta: letras, números y guion bajo.",
+      "targetInvalid": "Use letras, números y guion bajo, empezando por letra o guion bajo.",
+      "technicalColumns": "Columnas técnicas",
+      "technicalHelp": "_SX_BATCH_ID, _SX_RUN_ID, _SX_EXTRACTED_AT, _SX_CHANGE_MODE, _SX_RECORD_SEQ y _SX_DELETED.",
+      "generate": "Generar vista previa",
+      "statements": "Sentencias",
+      "columns": "Columnas",
+      "source": "Origen",
+      "key": "clave",
+      "target": "Destino",
+      "excluded": "Excluida",
+      "edmType": "Tipo OData",
+      "arrowType": "Tipo intermedio"
+    },
+    "detail": {
+      "back": "Volver a destinos",
+      "tabsLabel": "Secciones del destino",
+      "tabs": {
+        "general": "General",
+        "ddl": "Vista previa de DDL",
+        "pipelines": "Pipelines",
+        "activity": "Actividad"
+      },
+      "configTitle": "Configuración",
+      "lastTestTitle": "Última prueba",
+      "noTest": "Este destino aún no se ha probado.",
+      "keyPair": "Par de claves",
+      "updated": "Última modificación",
+      "actions": {
+        "test": "Probar ahora",
+        "edit": "Editar",
+        "rotate": "Rotar claves",
+        "activate": "Activar",
+        "deactivate": "Desactivar",
+        "delete": "Eliminar"
+      },
+      "activateBlocked": "Necesita una prueba correcta y vigente.",
+      "draftBanner": "Borrador: pruebe el destino y actívelo para usarlo en pipelines.",
+      "inactiveBanner": "Destino inactivo: no recibe cargas.",
+      "pipelinesTitle": "Pipelines que usan este destino",
+      "pipelinesSoon": "Los pipelines llegan en la iteración 6; aquí aparecerán los que carguen en este destino."
+    },
+    "confirm": {
+      "activate": {
+        "title": "¿Activar {{code}}?",
+        "message": "El destino quedará disponible para los pipelines."
+      },
+      "deactivate": {
+        "title": "¿Desactivar {{code}}?",
+        "message": "Los pipelines que lo usan no podrán cargar hasta que se reactive."
+      },
+      "delete": {
+        "title": "¿Eliminar {{code}}?",
+        "message": "Se da de baja el destino y se destruyen sus credenciales. Los datos ya cargados no se tocan."
+      },
+      "reason": "Motivo",
+      "typeCode": "Escriba {{code}} para confirmar"
     }
   }
 }

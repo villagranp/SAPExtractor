@@ -32,6 +32,7 @@ test.describe('pantallas con sesión', () => {
   test.skip(!ADMIN_USER || !ADMIN_PASSWORD, 'Defina E2E_ADMIN_USER y E2E_ADMIN_PASSWORD');
 
   test('pantallas principales en tema claro y grafito', async ({ page }) => {
+    test.setTimeout(120_000); // 8 pantallas × 2 temas con axe
     await page.goto('/login');
     await page.getByLabel('Usuario').fill(ADMIN_USER ?? '');
     await page.getByLabel('Contraseña', { exact: true }).fill(ADMIN_PASSWORD ?? '');
@@ -41,6 +42,8 @@ test.describe('pantallas con sesión', () => {
     const screens: [string, string][] = [
       ['/sap-systems', 'Sistemas SAP'],
       ['/sap-systems/new', 'Nuevo sistema SAP'],
+      ['/destinations', 'Destinos'],
+      ['/destinations/new', 'Nuevo destino'],
       ['/admin/users', 'Usuarios'],
       ['/admin/audit', 'Auditoría'],
       ['/profile', 'Mi perfil'],

@@ -52,7 +52,12 @@ export const navigation: NavSection[] = [
         permission: 'sap_connection:read',
       },
       { to: '/sources', labelKey: 'nav.sources', icon: IconDatabaseImport, iteration: 3 },
-      { to: '/destinations', labelKey: 'nav.destinations', icon: IconDatabaseExport, iteration: 4 },
+      {
+        to: '/destinations',
+        labelKey: 'nav.destinations',
+        icon: IconDatabaseExport,
+        permission: 'destination:read',
+      },
     ],
   },
   {

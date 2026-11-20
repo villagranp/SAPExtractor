@@ -14,6 +14,8 @@ const SCREENS: [string, string][] = [
   ['home', '/'],
   ['sap-systems', '/sap-systems'],
   ['sap-wizard', '/sap-systems/new'],
+  ['destinations', '/destinations'],
+  ['destination-wizard', '/destinations/new?type=snowflake'],
   ['users', '/admin/users'],
   ['audit', '/admin/audit'],
   ['profile', '/profile'],
@@ -30,6 +32,7 @@ test.describe('capturas', () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 
   test('pantallas principales', async ({ page }) => {
+    test.setTimeout(180_000);
     mkdirSync(OUT ?? '.', { recursive: true });
     await page.goto('/login');
     await page.screenshot({ path: `${OUT ?? '.'}/login-light.png` });

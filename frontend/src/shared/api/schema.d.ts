@@ -779,6 +779,179 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/destination-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Tipos de destino disponibles */
+        get: operations["list_types_api_v1_destination_types_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/destination-types/{destination_type}/schema": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** JSON Schema del formulario de configuración y credenciales */
+        get: operations["type_schema_api_v1_destination_types__destination_type__schema_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/destinations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Destinos */
+        get: operations["list_destinations_api_v1_destinations_get"];
+        put?: never;
+        /** Alta de destino (y prueba/activación opcionales) */
+        post: operations["create_destination_api_v1_destinations_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/destinations/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Prueba del destino sin guardar (asistente) */
+        post: operations["test_unsaved_api_v1_destinations_test_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/destinations/{destination_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Destination */
+        get: operations["get_destination_api_v1_destinations__destination_id__get"];
+        put?: never;
+        post?: never;
+        /** Baja lógica (destruye las credenciales); no se permite con pipelines activos */
+        delete: operations["delete_destination_api_v1_destinations__destination_id__delete"];
+        options?: never;
+        head?: never;
+        /** Edita datos generales y configuración (las credenciales tienen su propio endpoint) */
+        patch: operations["update_destination_api_v1_destinations__destination_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/destinations/{destination_id}/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Prueba del destino por pasos (guarda el resultado) */
+        post: operations["test_destination_api_v1_destinations__destination_id__test_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/destinations/{destination_id}/credentials/rotate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sustituye las credenciales y prueba el destino */
+        post: operations["rotate_credentials_api_v1_destinations__destination_id__credentials_rotate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/destinations/{destination_id}/activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Activa el destino (exige una prueba correcta y vigente) */
+        post: operations["activate_destination_api_v1_destinations__destination_id__activate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/destinations/{destination_id}/deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Desactiva el destino: impide nuevas cargas */
+        post: operations["deactivate_destination_api_v1_destinations__destination_id__deactivate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/destinations/{destination_id}/ddl-preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Vista previa del DDL para un entity set SAP (no ejecuta nada) */
+        post: operations["ddl_preview_api_v1_destinations__destination_id__ddl_preview_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1066,6 +1239,27 @@ export interface components {
             /** Serial */
             serial?: string | null;
         };
+        /** CheckReportResponse */
+        CheckReportResponse: {
+            /** Ok */
+            ok: boolean;
+            /** Summary */
+            summary: string;
+            /** Error Code */
+            error_code?: string | null;
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /**
+             * Finished At
+             * Format: date-time
+             */
+            finished_at: string;
+            /** Steps */
+            steps: components["schemas"]["CheckStepResponse"][];
+        };
         /** CheckResult */
         CheckResult: {
             status: components["schemas"]["CheckStatus"];
@@ -1077,6 +1271,23 @@ export interface components {
          * @enum {string}
          */
         CheckStatus: "ok" | "fail";
+        /** CheckStepResponse */
+        CheckStepResponse: {
+            /** Name */
+            name: string;
+            /** Status */
+            status: string;
+            /** Message */
+            message: string;
+            /** Duration Ms */
+            duration_ms: number;
+            /** Error Code */
+            error_code?: string | null;
+            /** Details */
+            details?: {
+                [key: string]: unknown;
+            };
+        };
         /**
          * ClassificationSource
          * @enum {string}
@@ -1109,6 +1320,65 @@ export interface components {
             /** Version */
             version?: number | null;
         };
+        /** DdlColumnResponse */
+        DdlColumnResponse: {
+            /** Source */
+            source: string;
+            /**
+             * Target
+             * @description null = columna excluida
+             */
+            target: string | null;
+            /** Edm Type */
+            edm_type: string;
+            /** Arrow Type */
+            arrow_type: string;
+            /** Is Key */
+            is_key: boolean;
+            /** Label */
+            label: string | null;
+        };
+        /** DdlPreviewRequest */
+        DdlPreviewRequest: {
+            source: components["schemas"]["SourceRef"];
+            /**
+             * Target Name
+             * @example GL_ITEMS
+             */
+            target_name: string;
+            /** @default upsert */
+            load_mode: components["schemas"]["LoadMode"];
+            /** @default add_columns */
+            schema_evolution: components["schemas"]["SchemaEvolution"];
+            /** @default soft */
+            delete_handling: components["schemas"]["DeleteHandling"];
+            /**
+             * Technical Columns
+             * @default true
+             */
+            technical_columns: boolean;
+            /**
+             * Column Mapping
+             * @description Origen → nombre en destino (null = excluir)
+             */
+            column_mapping?: {
+                [key: string]: string | null;
+            };
+        };
+        /** DdlPreviewResponse */
+        DdlPreviewResponse: {
+            /** Statements */
+            statements: string[];
+            /** Columns */
+            columns: components["schemas"]["DdlColumnResponse"][];
+            /** Keys */
+            keys: string[];
+        };
+        /**
+         * DeleteHandling
+         * @enum {string}
+         */
+        DeleteHandling: "soft" | "hard" | "ignore";
         /** DependentResponse */
         DependentResponse: {
             /** Kind */
@@ -1119,6 +1389,244 @@ export interface components {
             name: string;
             /** Active */
             active: boolean;
+        };
+        /** DestinationCreateRequest */
+        DestinationCreateRequest: {
+            /**
+             * Code
+             * @example SNOW_FIN_PRD
+             */
+            code: string;
+            /** Name */
+            name: string;
+            /** Description */
+            description?: string | null;
+            type: components["schemas"]["DestinationType"];
+            environment: components["schemas"]["DestinationEnvironment"];
+            /** Tags */
+            tags?: string[];
+            /** Config */
+            config: {
+                [key: string]: unknown;
+            };
+            /**
+             * Secret
+             * @description Credenciales del destino (solo escritura; nunca se devuelven).
+             */
+            secret?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Run Test
+             * @description Probar el destino al guardar
+             * @default true
+             */
+            run_test: boolean;
+            /**
+             * Activate
+             * @description Activar si la prueba es correcta
+             * @default false
+             */
+            activate: boolean;
+        };
+        /** DestinationDetail */
+        DestinationDetail: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+            /** Description */
+            description: string | null;
+            type: components["schemas"]["DestinationType"];
+            environment: components["schemas"]["DestinationEnvironment"];
+            status: components["schemas"]["DestinationStatus"];
+            /** Tags */
+            tags: string[];
+            /**
+             * Target
+             * @description Resumen legible del destino (cuenta/base o carpeta)
+             */
+            target: string;
+            /** Credential Info */
+            credential_info: {
+                [key: string]: unknown;
+            };
+            /** Last Test At */
+            last_test_at: string | null;
+            /** Last Test Ok */
+            last_test_ok: boolean | null;
+            /** Test Outdated */
+            test_outdated: boolean;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Version */
+            version: number;
+            /** Config */
+            config: {
+                [key: string]: unknown;
+            };
+            /** Status Reason */
+            status_reason: string | null;
+            last_test_result: components["schemas"]["CheckReportResponse"] | null;
+            /** Dependents */
+            dependents?: components["schemas"]["DependentResponse"][];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by: string | null;
+            /** Updated By */
+            updated_by: string | null;
+        };
+        /**
+         * DestinationEnvironment
+         * @enum {string}
+         */
+        DestinationEnvironment: "DEV" | "QAS" | "PRD";
+        /**
+         * DestinationStatus
+         * @description Igual que los sistemas SAP: activar exige una prueba correcta y vigente.
+         * @enum {string}
+         */
+        DestinationStatus: "draft" | "active" | "inactive";
+        /** DestinationSummary */
+        DestinationSummary: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+            /** Description */
+            description: string | null;
+            type: components["schemas"]["DestinationType"];
+            environment: components["schemas"]["DestinationEnvironment"];
+            status: components["schemas"]["DestinationStatus"];
+            /** Tags */
+            tags: string[];
+            /**
+             * Target
+             * @description Resumen legible del destino (cuenta/base o carpeta)
+             */
+            target: string;
+            /** Credential Info */
+            credential_info: {
+                [key: string]: unknown;
+            };
+            /** Last Test At */
+            last_test_at: string | null;
+            /** Last Test Ok */
+            last_test_ok: boolean | null;
+            /** Test Outdated */
+            test_outdated: boolean;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Version */
+            version: number;
+        };
+        /**
+         * DestinationTestRequest
+         * @description Prueba del asistente sin guardar.
+         */
+        DestinationTestRequest: {
+            type: components["schemas"]["DestinationType"];
+            /** Code */
+            code?: string | null;
+            /** Config */
+            config: {
+                [key: string]: unknown;
+            };
+            /**
+             * Secret
+             * @description Credenciales del destino (solo escritura; nunca se devuelven).
+             */
+            secret?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Reuse Credentials From
+             * @description Usar las credenciales guardadas de este destino (edición)
+             */
+            reuse_credentials_from?: string | null;
+        };
+        /**
+         * DestinationType
+         * @enum {string}
+         */
+        DestinationType: "csv" | "snowflake";
+        /** DestinationTypeResponse */
+        DestinationTypeResponse: {
+            type: components["schemas"]["DestinationType"];
+            /** Label */
+            label: string;
+            /** Requires Secret */
+            requires_secret: boolean;
+            /** Supported Modes */
+            supported_modes: components["schemas"]["LoadMode"][];
+        };
+        /** DestinationTypeSchemaResponse */
+        DestinationTypeSchemaResponse: {
+            type: components["schemas"]["DestinationType"];
+            /** Label */
+            label: string;
+            /** Requires Secret */
+            requires_secret: boolean;
+            /** Supported Modes */
+            supported_modes: components["schemas"]["LoadMode"][];
+            /**
+             * Config Schema
+             * @description JSON Schema de la configuración
+             */
+            config_schema: {
+                [key: string]: unknown;
+            };
+            /**
+             * Secret Schema
+             * @description JSON Schema de las credenciales (si el tipo las usa)
+             */
+            secret_schema?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /** DestinationUpdateRequest */
+        DestinationUpdateRequest: {
+            /**
+             * Version
+             * @description Versión leída (bloqueo optimista)
+             */
+            version?: number | null;
+            /** Name */
+            name?: string | null;
+            /** Description */
+            description?: string | null;
+            environment?: components["schemas"]["DestinationEnvironment"] | null;
+            /** Tags */
+            tags?: string[] | null;
+            /** Config */
+            config?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /** DestinationWithTestResponse */
+        DestinationWithTestResponse: {
+            destination: components["schemas"]["DestinationDetail"];
+            test?: components["schemas"]["CheckReportResponse"] | null;
         };
         /** EntitySetResponse */
         EntitySetResponse: {
@@ -1172,6 +1680,11 @@ export interface components {
                 [key: string]: components["schemas"]["CheckResult"];
             };
         };
+        /**
+         * LoadMode
+         * @enum {string}
+         */
+        LoadMode: "append" | "upsert" | "replace";
         /** LoginRequest */
         LoginRequest: {
             /** Username */
@@ -1264,6 +1777,17 @@ export interface components {
         Page_AuditEventResponse_: {
             /** Items */
             items: components["schemas"]["AuditEventResponse"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+        };
+        /** Page[DestinationSummary] */
+        Page_DestinationSummary_: {
+            /** Items */
+            items: components["schemas"]["DestinationSummary"][];
             /** Total */
             total: number;
             /** Page */
@@ -1725,6 +2249,23 @@ export interface components {
             system: components["schemas"]["SapSystemDetail"];
             test?: components["schemas"]["TestReportResponse"] | null;
         };
+        /**
+         * SchemaEvolution
+         * @enum {string}
+         */
+        SchemaEvolution: "add_columns" | "ignore" | "fail";
+        /** SecretRotateRequest */
+        SecretRotateRequest: {
+            /** Version */
+            version?: number | null;
+            /**
+             * Secret
+             * @description Credenciales nuevas (solo escritura).
+             */
+            secret: {
+                [key: string]: unknown;
+            };
+        };
         /** ServiceEntitySetsResponse */
         ServiceEntitySetsResponse: {
             service: components["schemas"]["CatalogServiceResponse"];
@@ -1793,6 +2334,26 @@ export interface components {
          */
         SessionStatusResponse: {
             stage: components["schemas"]["SessionStage"];
+        };
+        /** SourceRef */
+        SourceRef: {
+            /**
+             * Sap System Id
+             * Format: uuid
+             */
+            sap_system_id: string;
+            /**
+             * Service
+             * @description Nombre técnico del servicio
+             */
+            service: string;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
+            /** Entity Set */
+            entity_set: string;
         };
         /** StatusReasonRequest */
         StatusReasonRequest: {
@@ -3820,6 +4381,433 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ServiceMetadataResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    list_types_api_v1_destination_types_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DestinationTypeResponse"][];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    type_schema_api_v1_destination_types__destination_type__schema_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                destination_type: components["schemas"]["DestinationType"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DestinationTypeSchemaResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    list_destinations_api_v1_destinations_get: {
+        parameters: {
+            query?: {
+                q?: string | null;
+                type?: components["schemas"]["DestinationType"] | null;
+                environment?: components["schemas"]["DestinationEnvironment"] | null;
+                status?: components["schemas"]["DestinationStatus"] | null;
+                page?: number;
+                page_size?: number;
+                sort?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_DestinationSummary_"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    create_destination_api_v1_destinations_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DestinationCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DestinationWithTestResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    test_unsaved_api_v1_destinations_test_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DestinationTestRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckReportResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    get_destination_api_v1_destinations__destination_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                destination_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DestinationDetail"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    delete_destination_api_v1_destinations__destination_id__delete: {
+        parameters: {
+            query?: {
+                reason?: string | null;
+            };
+            header?: never;
+            path: {
+                destination_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    update_destination_api_v1_destinations__destination_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                destination_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DestinationUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DestinationDetail"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    test_destination_api_v1_destinations__destination_id__test_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                destination_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DestinationWithTestResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    rotate_credentials_api_v1_destinations__destination_id__credentials_rotate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                destination_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SecretRotateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DestinationWithTestResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    activate_destination_api_v1_destinations__destination_id__activate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                destination_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DestinationDetail"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    deactivate_destination_api_v1_destinations__destination_id__deactivate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                destination_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StatusReasonRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DestinationDetail"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    ddl_preview_api_v1_destinations__destination_id__ddl_preview_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                destination_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DdlPreviewRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DdlPreviewResponse"];
                 };
             };
             /** @description Error */

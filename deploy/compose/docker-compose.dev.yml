@@ -22,8 +22,12 @@ x-backend: &backend
     # Administrador inicial (solo si la base no tiene usuarios). Debe cambiar la clave al entrar.
     SX_BOOTSTRAP_ADMIN_USER: ${SX_BOOTSTRAP_ADMIN_USER:-admin}
     SX_BOOTSTRAP_ADMIN_PASSWORD: ${SX_BOOTSTRAP_ADMIN_PASSWORD:-Inicial.Dev-Temporal-2026}
+    # Destinos (plan 07): carpeta raíz para CSV y hosts de Snowflake permitidos.
+    SX_CSV_ROOTS: '["/data/csv"]'
+    SX_DEST_ALLOWED_HOSTS: '["snowflakecomputing.com"]'
   volumes:
     - ../../backend/src:/app/src
+    - csvdata:/data/csv
   restart: unless-stopped
 
 services:
@@ -120,4 +124,5 @@ services:
 
 volumes:
   pgdata:
+  csvdata:
   frontend_node_modules:

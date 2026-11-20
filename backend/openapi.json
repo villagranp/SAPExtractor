@@ -2967,6 +2967,719 @@
           }
         }
       }
+    },
+    "/api/v1/destination-types": {
+      "get": {
+        "tags": [
+          "Destinos"
+        ],
+        "summary": "Tipos de destino disponibles",
+        "operationId": "list_types_api_v1_destination_types_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DestinationTypeResponse"
+                  },
+                  "type": "array",
+                  "title": "Response List Types Api V1 Destination Types Get"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/destination-types/{destination_type}/schema": {
+      "get": {
+        "tags": [
+          "Destinos"
+        ],
+        "summary": "JSON Schema del formulario de configuración y credenciales",
+        "operationId": "type_schema_api_v1_destination_types__destination_type__schema_get",
+        "parameters": [
+          {
+            "name": "destination_type",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/DestinationType"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DestinationTypeSchemaResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/destinations": {
+      "get": {
+        "tags": [
+          "Destinos"
+        ],
+        "summary": "Destinos",
+        "operationId": "list_destinations_api_v1_destinations_get",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/DestinationType"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Type"
+            }
+          },
+          {
+            "name": "environment",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/DestinationEnvironment"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Environment"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/DestinationStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Page Size"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^-?[a-z_][a-z0-9_]*$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Sort"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_DestinationSummary_"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Destinos"
+        ],
+        "summary": "Alta de destino (y prueba/activación opcionales)",
+        "operationId": "create_destination_api_v1_destinations_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DestinationCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DestinationWithTestResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "destination.created",
+          "destination.tested",
+          "destination.activated"
+        ]
+      }
+    },
+    "/api/v1/destinations/test": {
+      "post": {
+        "tags": [
+          "Destinos"
+        ],
+        "summary": "Prueba del destino sin guardar (asistente)",
+        "operationId": "test_unsaved_api_v1_destinations_test_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DestinationTestRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckReportResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "destination.tested"
+        ]
+      }
+    },
+    "/api/v1/destinations/{destination_id}": {
+      "get": {
+        "tags": [
+          "Destinos"
+        ],
+        "summary": "Get Destination",
+        "operationId": "get_destination_api_v1_destinations__destination_id__get",
+        "parameters": [
+          {
+            "name": "destination_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Destination Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DestinationDetail"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Destinos"
+        ],
+        "summary": "Edita datos generales y configuración (las credenciales tienen su propio endpoint)",
+        "operationId": "update_destination_api_v1_destinations__destination_id__patch",
+        "parameters": [
+          {
+            "name": "destination_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Destination Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DestinationUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DestinationDetail"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "destination.updated"
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Destinos"
+        ],
+        "summary": "Baja lógica (destruye las credenciales); no se permite con pipelines activos",
+        "operationId": "delete_destination_api_v1_destinations__destination_id__delete",
+        "parameters": [
+          {
+            "name": "destination_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Destination Id"
+            }
+          },
+          {
+            "name": "reason",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 500
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Reason"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "destination.deleted"
+        ]
+      }
+    },
+    "/api/v1/destinations/{destination_id}/test": {
+      "post": {
+        "tags": [
+          "Destinos"
+        ],
+        "summary": "Prueba del destino por pasos (guarda el resultado)",
+        "operationId": "test_destination_api_v1_destinations__destination_id__test_post",
+        "parameters": [
+          {
+            "name": "destination_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Destination Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DestinationWithTestResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "destination.tested"
+        ]
+      }
+    },
+    "/api/v1/destinations/{destination_id}/credentials/rotate": {
+      "post": {
+        "tags": [
+          "Destinos"
+        ],
+        "summary": "Sustituye las credenciales y prueba el destino",
+        "operationId": "rotate_credentials_api_v1_destinations__destination_id__credentials_rotate_post",
+        "parameters": [
+          {
+            "name": "destination_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Destination Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SecretRotateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DestinationWithTestResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "destination.credentials_rotated",
+          "destination.tested"
+        ]
+      }
+    },
+    "/api/v1/destinations/{destination_id}/activate": {
+      "post": {
+        "tags": [
+          "Destinos"
+        ],
+        "summary": "Activa el destino (exige una prueba correcta y vigente)",
+        "operationId": "activate_destination_api_v1_destinations__destination_id__activate_post",
+        "parameters": [
+          {
+            "name": "destination_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Destination Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DestinationDetail"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "destination.activated"
+        ]
+      }
+    },
+    "/api/v1/destinations/{destination_id}/deactivate": {
+      "post": {
+        "tags": [
+          "Destinos"
+        ],
+        "summary": "Desactiva el destino: impide nuevas cargas",
+        "operationId": "deactivate_destination_api_v1_destinations__destination_id__deactivate_post",
+        "parameters": [
+          {
+            "name": "destination_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Destination Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StatusReasonRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DestinationDetail"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "destination.deactivated"
+        ]
+      }
+    },
+    "/api/v1/destinations/{destination_id}/ddl-preview": {
+      "post": {
+        "tags": [
+          "Destinos"
+        ],
+        "summary": "Vista previa del DDL para un entity set SAP (no ejecuta nada)",
+        "operationId": "ddl_preview_api_v1_destinations__destination_id__ddl_preview_post",
+        "parameters": [
+          {
+            "name": "destination_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Destination Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DdlPreviewRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DdlPreviewResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [],
+        "x-sx-audit-exempt": "Solo lectura: calcula sentencias sin ejecutarlas"
+      }
     }
   },
   "components": {
@@ -3769,6 +4482,55 @@
         ],
         "title": "CertificateInfo"
       },
+      "CheckReportResponse": {
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "title": "Ok"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At"
+          },
+          "finished_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Finished At"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/CheckStepResponse"
+            },
+            "type": "array",
+            "title": "Steps"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ok",
+          "summary",
+          "started_at",
+          "finished_at",
+          "steps"
+        ],
+        "title": "CheckReportResponse"
+      },
       "CheckResult": {
         "properties": {
           "status": {
@@ -3799,6 +4561,50 @@
           "fail"
         ],
         "title": "CheckStatus"
+      },
+      "CheckStepResponse": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "duration_ms": {
+            "type": "integer",
+            "title": "Duration Ms"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "details": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Details"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "status",
+          "message",
+          "duration_ms"
+        ],
+        "title": "CheckStepResponse"
       },
       "ClassificationSource": {
         "type": "string",
@@ -3935,6 +4741,154 @@
         ],
         "title": "CredentialRotateRequest"
       },
+      "DdlColumnResponse": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target",
+            "description": "null = columna excluida"
+          },
+          "edm_type": {
+            "type": "string",
+            "title": "Edm Type"
+          },
+          "arrow_type": {
+            "type": "string",
+            "title": "Arrow Type"
+          },
+          "is_key": {
+            "type": "boolean",
+            "title": "Is Key"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source",
+          "target",
+          "edm_type",
+          "arrow_type",
+          "is_key",
+          "label"
+        ],
+        "title": "DdlColumnResponse"
+      },
+      "DdlPreviewRequest": {
+        "properties": {
+          "source": {
+            "$ref": "#/components/schemas/SourceRef"
+          },
+          "target_name": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Target Name",
+            "examples": [
+              "GL_ITEMS"
+            ]
+          },
+          "load_mode": {
+            "$ref": "#/components/schemas/LoadMode",
+            "default": "upsert"
+          },
+          "schema_evolution": {
+            "$ref": "#/components/schemas/SchemaEvolution",
+            "default": "add_columns"
+          },
+          "delete_handling": {
+            "$ref": "#/components/schemas/DeleteHandling",
+            "default": "soft"
+          },
+          "technical_columns": {
+            "type": "boolean",
+            "title": "Technical Columns",
+            "default": true
+          },
+          "column_mapping": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Column Mapping",
+            "description": "Origen → nombre en destino (null = excluir)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source",
+          "target_name"
+        ],
+        "title": "DdlPreviewRequest"
+      },
+      "DdlPreviewResponse": {
+        "properties": {
+          "statements": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Statements"
+          },
+          "columns": {
+            "items": {
+              "$ref": "#/components/schemas/DdlColumnResponse"
+            },
+            "type": "array",
+            "title": "Columns"
+          },
+          "keys": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Keys"
+          }
+        },
+        "type": "object",
+        "required": [
+          "statements",
+          "columns",
+          "keys"
+        ],
+        "title": "DdlPreviewResponse"
+      },
+      "DeleteHandling": {
+        "type": "string",
+        "enum": [
+          "soft",
+          "hard",
+          "ignore"
+        ],
+        "title": "DeleteHandling"
+      },
       "DependentResponse": {
         "properties": {
           "kind": {
@@ -3962,6 +4916,642 @@
           "active"
         ],
         "title": "DependentResponse"
+      },
+      "DestinationCreateRequest": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "maxLength": 30,
+            "minLength": 1,
+            "title": "Code",
+            "examples": [
+              "SNOW_FIN_PRD"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "type": {
+            "$ref": "#/components/schemas/DestinationType"
+          },
+          "environment": {
+            "$ref": "#/components/schemas/DestinationEnvironment"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Tags"
+          },
+          "config": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Config"
+          },
+          "secret": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Secret",
+            "description": "Credenciales del destino (solo escritura; nunca se devuelven).",
+            "writeOnly": true
+          },
+          "run_test": {
+            "type": "boolean",
+            "title": "Run Test",
+            "description": "Probar el destino al guardar",
+            "default": true
+          },
+          "activate": {
+            "type": "boolean",
+            "title": "Activate",
+            "description": "Activar si la prueba es correcta",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "name",
+          "type",
+          "environment",
+          "config"
+        ],
+        "title": "DestinationCreateRequest"
+      },
+      "DestinationDetail": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "type": {
+            "$ref": "#/components/schemas/DestinationType"
+          },
+          "environment": {
+            "$ref": "#/components/schemas/DestinationEnvironment"
+          },
+          "status": {
+            "$ref": "#/components/schemas/DestinationStatus"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags"
+          },
+          "target": {
+            "type": "string",
+            "title": "Target",
+            "description": "Resumen legible del destino (cuenta/base o carpeta)"
+          },
+          "credential_info": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Credential Info"
+          },
+          "last_test_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Test At"
+          },
+          "last_test_ok": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Test Ok"
+          },
+          "test_outdated": {
+            "type": "boolean",
+            "title": "Test Outdated"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "config": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Config"
+          },
+          "status_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status Reason"
+          },
+          "last_test_result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CheckReportResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "dependents": {
+            "items": {
+              "$ref": "#/components/schemas/DependentResponse"
+            },
+            "type": "array",
+            "title": "Dependents"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          },
+          "updated_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated By"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "name",
+          "description",
+          "type",
+          "environment",
+          "status",
+          "tags",
+          "target",
+          "credential_info",
+          "last_test_at",
+          "last_test_ok",
+          "test_outdated",
+          "updated_at",
+          "version",
+          "config",
+          "status_reason",
+          "last_test_result",
+          "created_at",
+          "created_by",
+          "updated_by"
+        ],
+        "title": "DestinationDetail"
+      },
+      "DestinationEnvironment": {
+        "type": "string",
+        "enum": [
+          "DEV",
+          "QAS",
+          "PRD"
+        ],
+        "title": "DestinationEnvironment"
+      },
+      "DestinationStatus": {
+        "type": "string",
+        "enum": [
+          "draft",
+          "active",
+          "inactive"
+        ],
+        "title": "DestinationStatus",
+        "description": "Igual que los sistemas SAP: activar exige una prueba correcta y vigente."
+      },
+      "DestinationSummary": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "type": {
+            "$ref": "#/components/schemas/DestinationType"
+          },
+          "environment": {
+            "$ref": "#/components/schemas/DestinationEnvironment"
+          },
+          "status": {
+            "$ref": "#/components/schemas/DestinationStatus"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags"
+          },
+          "target": {
+            "type": "string",
+            "title": "Target",
+            "description": "Resumen legible del destino (cuenta/base o carpeta)"
+          },
+          "credential_info": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Credential Info"
+          },
+          "last_test_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Test At"
+          },
+          "last_test_ok": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Test Ok"
+          },
+          "test_outdated": {
+            "type": "boolean",
+            "title": "Test Outdated"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "name",
+          "description",
+          "type",
+          "environment",
+          "status",
+          "tags",
+          "target",
+          "credential_info",
+          "last_test_at",
+          "last_test_ok",
+          "test_outdated",
+          "updated_at",
+          "version"
+        ],
+        "title": "DestinationSummary"
+      },
+      "DestinationTestRequest": {
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/DestinationType"
+          },
+          "code": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 30
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code"
+          },
+          "config": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Config"
+          },
+          "secret": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Secret",
+            "description": "Credenciales del destino (solo escritura; nunca se devuelven).",
+            "writeOnly": true
+          },
+          "reuse_credentials_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reuse Credentials From",
+            "description": "Usar las credenciales guardadas de este destino (edición)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "config"
+        ],
+        "title": "DestinationTestRequest",
+        "description": "Prueba del asistente sin guardar."
+      },
+      "DestinationType": {
+        "type": "string",
+        "enum": [
+          "csv",
+          "snowflake"
+        ],
+        "title": "DestinationType"
+      },
+      "DestinationTypeResponse": {
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/DestinationType"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "requires_secret": {
+            "type": "boolean",
+            "title": "Requires Secret"
+          },
+          "supported_modes": {
+            "items": {
+              "$ref": "#/components/schemas/LoadMode"
+            },
+            "type": "array",
+            "title": "Supported Modes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "label",
+          "requires_secret",
+          "supported_modes"
+        ],
+        "title": "DestinationTypeResponse"
+      },
+      "DestinationTypeSchemaResponse": {
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/DestinationType"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "requires_secret": {
+            "type": "boolean",
+            "title": "Requires Secret"
+          },
+          "supported_modes": {
+            "items": {
+              "$ref": "#/components/schemas/LoadMode"
+            },
+            "type": "array",
+            "title": "Supported Modes"
+          },
+          "config_schema": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Config Schema",
+            "description": "JSON Schema de la configuración"
+          },
+          "secret_schema": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Secret Schema",
+            "description": "JSON Schema de las credenciales (si el tipo las usa)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "label",
+          "requires_secret",
+          "supported_modes",
+          "config_schema"
+        ],
+        "title": "DestinationTypeSchemaResponse"
+      },
+      "DestinationUpdateRequest": {
+        "properties": {
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version",
+            "description": "Versión leída (bloqueo optimista)"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "environment": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DestinationEnvironment"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "tags": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array",
+                "maxItems": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tags"
+          },
+          "config": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Config"
+          }
+        },
+        "type": "object",
+        "title": "DestinationUpdateRequest"
+      },
+      "DestinationWithTestResponse": {
+        "properties": {
+          "destination": {
+            "$ref": "#/components/schemas/DestinationDetail"
+          },
+          "test": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CheckReportResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "destination"
+        ],
+        "title": "DestinationWithTestResponse"
       },
       "EntitySetResponse": {
         "properties": {
@@ -4134,6 +5724,15 @@
           "checks"
         ],
         "title": "HealthReport"
+      },
+      "LoadMode": {
+        "type": "string",
+        "enum": [
+          "append",
+          "upsert",
+          "replace"
+        ],
+        "title": "LoadMode"
       },
       "LoginRequest": {
         "properties": {
@@ -4376,6 +5975,37 @@
           "page_size"
         ],
         "title": "Page[AuditEventResponse]"
+      },
+      "Page_DestinationSummary_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/DestinationSummary"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "page_size": {
+            "type": "integer",
+            "title": "Page Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "page_size"
+        ],
+        "title": "Page[DestinationSummary]"
       },
       "Page_SapSystemSummary_": {
         "properties": {
@@ -5783,6 +7413,42 @@
         ],
         "title": "SapSystemWithTestResponse"
       },
+      "SchemaEvolution": {
+        "type": "string",
+        "enum": [
+          "add_columns",
+          "ignore",
+          "fail"
+        ],
+        "title": "SchemaEvolution"
+      },
+      "SecretRotateRequest": {
+        "properties": {
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          },
+          "secret": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Secret",
+            "description": "Credenciales nuevas (solo escritura).",
+            "writeOnly": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "secret"
+        ],
+        "title": "SecretRotateRequest"
+      },
       "ServiceEntitySetsResponse": {
         "properties": {
           "service": {
@@ -5951,6 +7617,42 @@
         ],
         "title": "SessionStatusResponse",
         "description": "Paso en el que queda la sesión tras la operación."
+      },
+      "SourceRef": {
+        "properties": {
+          "sap_system_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Sap System Id"
+          },
+          "service": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Service",
+            "description": "Nombre técnico del servicio"
+          },
+          "version": {
+            "type": "integer",
+            "maximum": 999.0,
+            "minimum": 1.0,
+            "title": "Version",
+            "default": 1
+          },
+          "entity_set": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Entity Set"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sap_system_id",
+          "service",
+          "entity_set"
+        ],
+        "title": "SourceRef"
       },
       "StatusReasonRequest": {
         "properties": {

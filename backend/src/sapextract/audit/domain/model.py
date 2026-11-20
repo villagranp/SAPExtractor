@@ -67,6 +67,14 @@ ACTIONS: dict[str, Category] = {
     "sap_connection.credentials_rotated": Category.SECURITY,
     "sap_connection.activated": Category.CONFIG,
     "sap_connection.deactivated": Category.CONFIG,
+    # config: destinos (plan 07)
+    "destination.created": Category.CONFIG,
+    "destination.updated": Category.CONFIG,
+    "destination.deleted": Category.CONFIG,
+    "destination.tested": Category.CONFIG,
+    "destination.credentials_rotated": Category.SECURITY,
+    "destination.activated": Category.CONFIG,
+    "destination.deactivated": Category.CONFIG,
     # security
     "audit.exported": Category.SECURITY,
     "audit.verified": Category.SECURITY,

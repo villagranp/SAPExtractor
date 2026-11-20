@@ -106,6 +106,19 @@ class Settings(BaseSettings):
         ),
     )
 
+    # --- Destinos (plan 07)
+    dest_allowed_hosts: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Hosts de destino permitidos (Snowflake, SQL Server): sufijos DNS "
+            "(snowflakecomputing.com) o redes. Vacío = cualquiera; obligatorio en PRD"
+        ),
+    )
+    csv_roots: list[Path] = Field(
+        default_factory=list,
+        description="Carpetas raíz donde los destinos CSV pueden escribir; sin ellas no hay CSV",
+    )
+
     # --- Procesos de fondo
     scheduler_tick_seconds: float = 5.0
     worker_poll_seconds: float = 5.0
@@ -113,7 +126,7 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def _validate_network(self) -> Self:
-        for entry in self.sap_allowed_hosts:
+        for entry in [*self.sap_allowed_hosts, *self.dest_allowed_hosts]:
             parse_entry(entry)  # ValueError con la entrada concreta
         for proxy in self.trusted_proxies:
             if proxy.strip() == "*":
@@ -140,6 +153,9 @@ class Settings(BaseSettings):
         if self.environment is Environment.PRD and not self.sap_allowed_hosts:
             msg = 'SX_SAP_ALLOWED_HOSTS es obligatoria en PRD (p. ej. ["empresa.local"])'
             raise ValueError(msg)
+        if self.environment is Environment.PRD and not self.dest_allowed_hosts:
+            msg = 'SX_DEST_ALLOWED_HOSTS es obligatoria en PRD (p. ej. ["snowflakecomputing.com"])'
+            raise ValueError(msg)
         return self
 
     @property
@@ -162,6 +178,14 @@ class Settings(BaseSettings):
             allowed=tuple(self.sap_allowed_hosts),
             allow_loopback=self.is_local_dev,
             label="SX_SAP_ALLOWED_HOSTS",
+        )
+
+    @property
+    def dest_host_policy(self) -> HostPolicy:
+        return HostPolicy(
+            allowed=tuple(self.dest_allowed_hosts),
+            allow_loopback=self.is_local_dev,
+            label="SX_DEST_ALLOWED_HOSTS",
         )
 
     @property

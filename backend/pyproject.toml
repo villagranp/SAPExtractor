@@ -18,6 +18,8 @@ dependencies = [
     "argon2-cffi>=23.1",
     "segno>=1.6",
     "defusedxml>=0.7",
+    "pyarrow>=18",
+    "snowflake-connector-python>=3.12",
 ]
 
 [project.scripts]
@@ -33,6 +35,7 @@ dev = [
     "bandit>=1.8",
     "pip-audit>=2.7",
     "types-defusedxml>=0.7",
+    "pyarrow-stubs>=20.0.0.20260819",
 ]
 
 [build-system]
@@ -63,6 +66,8 @@ ignore = [
 "src/sapextract/migrations/**" = ["ERA001", "INP001", "S608"]  # SQL con la constante SCHEMA
 # Endpoints FastAPI: los parámetros son dependencias inyectadas, no argumentos posicionales reales.
 "src/sapextract/**/api/*.py" = ["PLR0917"]
+# SQL generado con identificadores validados y citados; los valores van siempre ligados.
+"src/sapextract/destinations/infrastructure/snowflake_sql.py" = ["S608"]
 
 # ---------------------------------------------------------------- mypy
 [tool.mypy]
@@ -87,6 +92,7 @@ filterwarnings = [
 ]
 markers = [
     "integration: requiere Docker (testcontainers)",
+    "snowflake: requiere una cuenta Snowflake de pruebas (SX_TEST_SNOWFLAKE_*)",
 ]
 
 [tool.coverage.run]

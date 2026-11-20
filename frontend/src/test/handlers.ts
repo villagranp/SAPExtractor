@@ -30,6 +30,9 @@ const ALL_PERMISSIONS = [
   'sap_connection:read',
   'sap_connection:manage',
   'sap_connection:test',
+  'destination:read',
+  'destination:manage',
+  'destination:test',
 ];
 
 export const adminRole: S['RoleRef'] = {
@@ -275,6 +278,148 @@ export const catalogPage: S['CatalogPageResponse'] = {
 };
 
 /** Handlers por defecto de MSW (API sana, admin con sesión). Cada prueba puede sobrescribirlos. */
+
+// ------------------------------------------------------------------ destinos (plan 07)
+export const csvConfigSchema = {
+  title: 'CSV',
+  type: 'object',
+  required: ['root'],
+  properties: {
+    root: { title: 'Carpeta raíz', type: 'string', enum: ['/data/csv'] },
+    path: { title: 'Subcarpeta', type: 'string', default: '', maxLength: 300 },
+    delimiter: { title: 'Separador', type: 'string', enum: [',', ';', '|', '\t'], default: ',' },
+    header: { title: 'Fila de encabezado', type: 'boolean', default: true },
+    compression: { title: 'Compresión', type: 'string', enum: ['none', 'gzip'], default: 'none' },
+    max_rows_per_file: {
+      title: 'Filas máximas por archivo',
+      type: 'integer',
+      default: 1000000,
+      minimum: 1000,
+      maximum: 20000000,
+    },
+  },
+};
+
+export const snowflakeConfigSchema = {
+  title: 'Snowflake',
+  type: 'object',
+  required: ['account', 'user', 'role', 'warehouse', 'database', 'schema_name'],
+  properties: {
+    account: { title: 'Cuenta', type: 'string' },
+    user: { title: 'Usuario de servicio', type: 'string' },
+    role: { title: 'Rol', type: 'string' },
+    warehouse: { title: 'Warehouse', type: 'string' },
+    database: { title: 'Base de datos', type: 'string' },
+    schema_name: { title: 'Esquema', type: 'string' },
+  },
+};
+
+export const snowflakeSecretSchema = {
+  title: 'Par de claves',
+  type: 'object',
+  required: ['private_key_pem'],
+  properties: {
+    private_key_pem: {
+      title: 'Clave privada (PEM)',
+      type: 'string',
+      format: 'password',
+      writeOnly: true,
+    },
+    private_key_passphrase: {
+      title: 'Contraseña de la clave',
+      anyOf: [{ type: 'string', format: 'password', writeOnly: true }, { type: 'null' }],
+      default: null,
+    },
+  },
+};
+
+export const destinationTypes: S['DestinationTypeResponse'][] = [
+  {
+    type: 'csv',
+    label: 'Archivos CSV',
+    requires_secret: false,
+    supported_modes: ['append', 'replace'],
+  },
+  {
+    type: 'snowflake',
+    label: 'Snowflake',
+    requires_secret: true,
+    supported_modes: ['append', 'replace', 'upsert'],
+  },
+];
+
+function okStep(name: string, message: string): S['CheckStepResponse'] {
+  return { name, status: 'ok', message, duration_ms: 20, error_code: null, details: {} };
+}
+
+export const destinationOkReport: S['CheckReportResponse'] = {
+  ok: true,
+  summary: 'Conexión correcta.',
+  error_code: null,
+  started_at: '2026-11-20T10:00:00Z',
+  finished_at: '2026-11-20T10:00:02Z',
+  steps: [
+    okStep('network', 'ab12345.snowflakecomputing.com:443 accesible.'),
+    okStep('authentication', 'Snowflake aceptó el par de claves.'),
+    okStep('context', 'Rol SX_ROLE, warehouse SX_WH, RAW.SAP.'),
+    okStep('privileges', 'Puede crear tablas y stages.'),
+  ],
+};
+
+export const csvOkReport: S['CheckReportResponse'] = {
+  ...destinationOkReport,
+  steps: [okStep('path', 'Carpeta lista.'), okStep('write', 'Escritura correcta.')],
+};
+
+export const snowflakeDestination: S['DestinationDetail'] = {
+  id: '00000000-0000-7000-8000-0000000000d1',
+  code: 'SNOW_FIN_QAS',
+  name: 'Snowflake finanzas',
+  description: null,
+  type: 'snowflake',
+  environment: 'QAS',
+  status: 'active',
+  tags: ['finanzas'],
+  target: 'ab12345.east-us-2.azure · RAW.SAP',
+  credential_info: { public_key_fingerprint: 'SHA256:abc123' },
+  last_test_at: '2026-11-20T10:00:02Z',
+  last_test_ok: true,
+  test_outdated: false,
+  updated_at: '2026-11-20T10:00:02Z',
+  version: 2,
+  config: {
+    account: 'ab12345.east-us-2.azure',
+    user: 'SX_LOADER',
+    role: 'SX_ROLE',
+    warehouse: 'SX_WH',
+    database: 'RAW',
+    schema_name: 'SAP',
+    login_timeout_seconds: 30,
+  },
+  status_reason: null,
+  last_test_result: destinationOkReport,
+  dependents: [],
+  created_at: '2026-11-20T09:00:00Z',
+  created_by: 'admin',
+  updated_by: 'admin',
+};
+
+export const csvDestination: S['DestinationDetail'] = {
+  ...snowflakeDestination,
+  id: '00000000-0000-7000-8000-0000000000d2',
+  code: 'CSV_INTERCAMBIO',
+  name: 'Carpeta de intercambio',
+  type: 'csv',
+  environment: 'DEV',
+  status: 'draft',
+  target: '/data/csv/fi',
+  credential_info: {},
+  last_test_at: null,
+  last_test_ok: null,
+  last_test_result: null,
+  config: { root: '/data/csv', path: 'fi', delimiter: ';', header: true, compression: 'none' },
+};
+
 export const handlers = [
   http.get('*/api/v1/system/info', () => HttpResponse.json(systemInfo)),
   http.get('*/api/v1/health/ready', () => HttpResponse.json(healthyReport)),
@@ -296,6 +441,26 @@ export const handlers = [
   ),
   http.get('*/api/v1/sap-systems/:id', () => HttpResponse.json(sapSystem)),
   http.get('*/api/v1/sap-systems/:id/services', () => HttpResponse.json(catalogPage)),
+  http.get('*/api/v1/destination-types', () => HttpResponse.json(destinationTypes)),
+  http.get('*/api/v1/destination-types/:type/schema', ({ params }) => {
+    const info = destinationTypes.find((t) => t.type === params.type);
+    return HttpResponse.json({
+      ...info,
+      config_schema: params.type === 'csv' ? csvConfigSchema : snowflakeConfigSchema,
+      secret_schema: params.type === 'csv' ? null : snowflakeSecretSchema,
+    });
+  }),
+  http.get('*/api/v1/destinations', () =>
+    HttpResponse.json({
+      items: [snowflakeDestination, csvDestination],
+      total: 2,
+      page: 1,
+      page_size: 25,
+    }),
+  ),
+  http.get('*/api/v1/destinations/:id', ({ params }) =>
+    HttpResponse.json(params.id === csvDestination.id ? csvDestination : snowflakeDestination),
+  ),
 ];
 
 export function problem(status: number, code: string, detail: string) {

@@ -23,5 +23,7 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.test.{ts,tsx}'],
     css: false,
+    // Los asistentes simulan decenas de pulsaciones: con la suite en paralelo superan los 5 s.
+    testTimeout: 20_000,
   },
 });

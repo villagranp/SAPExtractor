@@ -2,6 +2,9 @@ import type { ReactNode } from 'react';
 import { createBrowserRouter, type RouteObject } from 'react-router';
 import { ApiTokensPage } from '@/features/api-tokens/pages/ApiTokensPage';
 import { AuditPage } from '@/features/audit/pages/AuditPage';
+import { DestinationDetailPage } from '@/features/destinations/pages/DestinationDetailPage';
+import { DestinationsPage } from '@/features/destinations/pages/DestinationsPage';
+import { DestinationWizardPage } from '@/features/destinations/pages/DestinationWizardPage';
 import { LoginPage } from '@/features/auth/pages/LoginPage';
 import { ProfilePage } from '@/features/auth/pages/ProfilePage';
 import { RoleEditorPage } from '@/features/roles/pages/RoleEditorPage';
@@ -51,6 +54,10 @@ export const routes: RouteObject[] = [
       guarded('sap-systems/new', 'sap_connection:manage', <SapSystemWizardPage />),
       guarded('sap-systems/:systemId', 'sap_connection:read', <SapSystemDetailPage />),
       guarded('sap-systems/:systemId/edit', 'sap_connection:manage', <SapSystemWizardPage />),
+      guarded('destinations', 'destination:read', <DestinationsPage />),
+      guarded('destinations/new', 'destination:manage', <DestinationWizardPage />),
+      guarded('destinations/:destinationId', 'destination:read', <DestinationDetailPage />),
+      guarded('destinations/:destinationId/edit', 'destination:manage', <DestinationWizardPage />),
       guarded('admin/users', 'user:read', <UsersPage />),
       guarded('admin/users/:userId', 'user:read', <UserDetailPage />),
       guarded('admin/roles', 'role:read', <RolesPage />),

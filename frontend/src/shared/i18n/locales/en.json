@@ -23,7 +23,8 @@
     "no": "No",
     "previous": "Previous",
     "next": "Next",
-    "pageSummary": "{from}–{to} of {total}"
+    "pageSummary": "{from}–{to} of {total}",
+    "choose": "Choose…"
   },
   "nav": {
     "menu": "Main menu",
@@ -110,5 +111,223 @@
     "title": "Page not found",
     "body": "The address does not exist or was moved.",
     "back": "Back to home"
+  },
+  "destinations": {
+    "title": "Destinations",
+    "description": "Where extracted data is loaded: Snowflake or CSV files. Each destination is tested before it is activated.",
+    "new": "New destination",
+    "newOfType": "New {{type}} destination",
+    "searchPlaceholder": "Code, name or description",
+    "empty": "No destination matches the filters.",
+    "emptyFirstTitle": "No destinations yet",
+    "emptyFirst": "Register a Snowflake destination or a CSV folder to create pipelines.",
+    "types": {
+      "snowflake": {
+        "label": "Snowflake",
+        "description": "Loads into Snowflake tables with key-pair auth: Parquet to a temporary stage, COPY and MERGE in one transaction."
+      },
+      "csv": {
+        "label": "CSV files",
+        "description": "CSV files (optionally gzip) in an allowed server folder, published atomically with a manifest and _SUCCESS."
+      }
+    },
+    "loadModes": {
+      "append": "Append",
+      "upsert": "Upsert (MERGE)",
+      "replace": "Replace"
+    },
+    "statuses": {
+      "active": "Active",
+      "draft": "Draft",
+      "inactive": "Inactive"
+    },
+    "environments": {
+      "DEV": "Development (DEV)",
+      "QAS": "Quality (QAS)",
+      "PRD": "Production (PRD)"
+    },
+    "test": {
+      "never": "Not tested",
+      "outdated": "Outdated",
+      "ok": "Passed",
+      "failed": "Failed"
+    },
+    "fields": {
+      "destination": "Destination",
+      "type": "Type",
+      "environment": "Environment",
+      "target": "Location",
+      "status": "Status",
+      "lastTest": "Last test",
+      "loadModes": "Load modes",
+      "loadMode": "Load mode",
+      "code": "Code",
+      "name": "Name",
+      "tags": "Tags",
+      "description": "Description",
+      "credentials": "Credentials"
+    },
+    "hints": {
+      "code": "Unique identifier: letters, digits and underscore (3 to 30). Cannot be changed.",
+      "tags": "Comma separated, e.g. finance, daily"
+    },
+    "validation": {
+      "required": "Required field.",
+      "code": "Use 3 to 30 letters, digits or underscore, starting with a letter.",
+      "invalid": "Check this field: it is required or out of range."
+    },
+    "form": {
+      "optional": "(optional)",
+      "pemHint": "Paste the PKCS#8 private key in PEM format. It is stored encrypted and never shown again.",
+      "enumLabels": {
+        "tab": "Tab",
+        "lf": "LF (Linux)",
+        "crlf": "CRLF (Windows)",
+        "none": "No compression"
+      }
+    },
+    "config": {
+      "root": "Root folder",
+      "path": "Subfolder",
+      "delimiter": "Delimiter",
+      "encoding": "Encoding",
+      "header": "Header row",
+      "line_terminator": "Line ending",
+      "compression": "Compression",
+      "max_rows_per_file": "Max rows per file",
+      "account": "Account",
+      "user": "Service user",
+      "role": "Role",
+      "warehouse": "Warehouse",
+      "database": "Database",
+      "schema_name": "Schema",
+      "login_timeout_seconds": "Connection timeout (s)"
+    },
+    "report": {
+      "title": "Test result",
+      "ok": "Destination reachable",
+      "failed": "The test failed",
+      "testedAt": "Tested on {{date}}",
+      "outdated": "Configuration or credentials changed after this test: run it again before activating.",
+      "steps": {
+        "path": "Target folder",
+        "write": "Write access and free space",
+        "network": "Network and DNS",
+        "authentication": "Authentication (key pair)",
+        "context": "Role, warehouse, database and schema",
+        "privileges": "Load privileges"
+      },
+      "statuses": {
+        "ok": "OK",
+        "warning": "Warning",
+        "failed": "Error",
+        "skipped": "Skipped"
+      }
+    },
+    "wizard": {
+      "titleNew": "New destination",
+      "titleEdit": "Edit {{code}}",
+      "description": "Configure the destination, test it and save it. Only active destinations receive loads.",
+      "progress": "Wizard steps",
+      "steps": {
+        "type": "Type",
+        "general": "General",
+        "config": "Configuration",
+        "credentials": "Credentials",
+        "test": "Test",
+        "summary": "Summary"
+      },
+      "typeHelp": "Choose the destination type. The next form depends on it.",
+      "noCsvRoots": "The server has no CSV root folders (SX_CSV_ROOTS). Ask the administrator to configure at least one.",
+      "keyPairTitle": "Key-pair authentication",
+      "keyPairHelp": "Generate an RSA key pair, register the public key on the Snowflake service user (ALTER USER … SET RSA_PUBLIC_KEY) and paste the private key here.",
+      "testHelp": {
+        "snowflake": "Checks network, authentication, context (role, warehouse, database and schema) and privileges to create tables and stages.",
+        "csv": "Checks that the folder is inside an allowed root, is writable and has free space."
+      },
+      "testReusesCredentials": "The test uses the stored credentials. To change them use “Rotate keys” on the detail page.",
+      "testButton": "Test destination",
+      "testing": "Testing…",
+      "credentialsElsewhere": "Credentials are changed from the detail page with “Rotate keys”.",
+      "activate": "Activate on save",
+      "activateHelp": "The test passed: the destination will be available to pipelines.",
+      "activateBlocked": "It can only be activated after a successful test.",
+      "fixFields": "Check the highlighted fields.",
+      "back": "Back",
+      "next": "Next",
+      "save": "Save",
+      "saving": "Saving…"
+    },
+    "rotate": {
+      "title": "Rotate keys of {{code}}",
+      "help": "Register the new public key in Snowflake first (two can be active: RSA_PUBLIC_KEY_2). Saving tests the destination with the new key.",
+      "submit": "Save and test",
+      "working": "Saving…"
+    },
+    "ddl": {
+      "title": "DDL preview",
+      "help": "Choose an entity set from an SAP system to see the table or files that would be created in this destination. Nothing is executed.",
+      "system": "SAP system",
+      "service": "Service",
+      "entitySet": "Entity set",
+      "targetName": "Target name",
+      "targetHint": "Table or folder: letters, digits and underscore.",
+      "targetInvalid": "Use letters, digits and underscore, starting with a letter or underscore.",
+      "technicalColumns": "Technical columns",
+      "technicalHelp": "_SX_BATCH_ID, _SX_RUN_ID, _SX_EXTRACTED_AT, _SX_CHANGE_MODE, _SX_RECORD_SEQ and _SX_DELETED.",
+      "generate": "Generate preview",
+      "statements": "Statements",
+      "columns": "Columns",
+      "source": "Source",
+      "key": "key",
+      "target": "Target",
+      "excluded": "Excluded",
+      "edmType": "OData type",
+      "arrowType": "Intermediate type"
+    },
+    "detail": {
+      "back": "Back to destinations",
+      "tabsLabel": "Destination sections",
+      "tabs": {
+        "general": "General",
+        "ddl": "DDL preview",
+        "pipelines": "Pipelines",
+        "activity": "Activity"
+      },
+      "configTitle": "Configuration",
+      "lastTestTitle": "Last test",
+      "noTest": "This destination has not been tested yet.",
+      "keyPair": "Key pair",
+      "updated": "Last change",
+      "actions": {
+        "test": "Test now",
+        "edit": "Edit",
+        "rotate": "Rotate keys",
+        "activate": "Activate",
+        "deactivate": "Deactivate",
+        "delete": "Delete"
+      },
+      "activateBlocked": "Needs a current successful test.",
+      "draftBanner": "Draft: test the destination and activate it to use it in pipelines.",
+      "inactiveBanner": "Inactive destination: it receives no loads.",
+      "pipelinesTitle": "Pipelines using this destination",
+      "pipelinesSoon": "Pipelines arrive in iteration 6; the ones loading into this destination will be listed here."
+    },
+    "confirm": {
+      "activate": {
+        "title": "Activate {{code}}?",
+        "message": "The destination will be available to pipelines."
+      },
+      "deactivate": {
+        "title": "Deactivate {{code}}?",
+        "message": "Pipelines using it cannot load until it is reactivated."
+      },
+      "delete": {
+        "title": "Delete {{code}}?",
+        "message": "The destination is retired and its credentials destroyed. Data already loaded is not touched."
+      },
+      "reason": "Reason",
+      "typeCode": "Type {{code}} to confirm"
+    }
   }
 }

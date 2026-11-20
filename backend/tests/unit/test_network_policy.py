@@ -175,6 +175,9 @@ def test_settings_validate_network_options() -> None:
     }
     with pytest.raises(ValidationError, match="SX_SAP_ALLOWED_HOSTS"):
         Settings(**production)
+    with pytest.raises(ValidationError, match="SX_DEST_ALLOWED_HOSTS"):
+        Settings(**production, sap_allowed_hosts=["empresa.local"])
+    production["dest_allowed_hosts"] = ["snowflakecomputing.com"]
     with pytest.raises(ValidationError, match="SX_TRUSTED_PROXIES"):
         Settings(**production, sap_allowed_hosts=["empresa.local"], trusted_proxies=["*"])
     prd = Settings(**production, sap_allowed_hosts=["empresa.local"])

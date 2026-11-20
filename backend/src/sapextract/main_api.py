@@ -20,6 +20,8 @@ from sapextract.core.events import EventBus
 from sapextract.core.logging import configure_logging
 from sapextract.core.middleware import RequestContextMiddleware
 from sapextract.core.ratelimit import SlidingWindowLimiter
+from sapextract.destinations.api import routes as destination_routes
+from sapextract.destinations.application.toolkit import DestinationsToolkit
 from sapextract.identity.api import admin_routes, auth_routes
 from sapextract.identity.application.toolkit import IdentityToolkit
 from sapextract.sap_connections.api import routes as sap_routes
@@ -37,6 +39,7 @@ def build_api_router() -> APIRouter:
     api.include_router(admin_routes.router)
     api.include_router(audit_routes.router)
     api.include_router(sap_routes.router)
+    api.include_router(destination_routes.router)
     return api
 
 
@@ -66,6 +69,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.events = EventBus()
     app.state.identity = IdentityToolkit.build(settings)
     app.state.sap = SapToolkit.build(settings, audit=app.state.identity.audit)
+    app.state.destinations = DestinationsToolkit.build(settings, audit=app.state.identity.audit)
     app.state.auth_limiter = SlidingWindowLimiter(settings.auth_rate_limit_per_minute)
 
     register_exception_handlers(app)
