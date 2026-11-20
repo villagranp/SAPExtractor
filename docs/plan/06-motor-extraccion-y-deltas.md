@@ -2,7 +2,7 @@
 
 **Iteración:** 5 · **Depende de:** 01 (spike), 04, 05, 07 · **Bloquea a:** 08, 09
 
-> Actualizado el 19.11.2026 con los cambios C-02 a C-06, C-08 a C-10, C-12 y C-13 del [plan 13](13-revision-y-plan-de-cambios.md). Lo marcado con H*n* depende del spike (ADR 0002).
+> Actualizado el 19.11.2026 con los cambios C-02 a C-06, C-08 a C-10, C-12 y C-13 del [plan 13](13-revision-y-plan-de-cambios.md), y el 20.11.2026 con el diseño del estado de delta (§3.6). Lo marcado con H*n* depende del spike (ADR 0002).
 
 ## Objetivo
 
@@ -134,6 +134,110 @@ La suscripción se crea en la init y la plataforma es responsable de cerrarla: a
 - Si el spike confirma `TerminateDeltasFor<EntitySet>` (H12), la plataforma lo llama. Si esa función cierra todas las suscripciones del entity set, solo se llama cuando no queda otro pipeline delta sobre el mismo origen.
 - Si no existe o no se puede usar, queda una tarea manual guiada (ODQMON) con `sap_close_pending = true`, que se da por cerrada cuando `SubscribedTo<EntitySet>` responde que ya no existe o el usuario lo confirma.
 
+### 3.6 Diseño del estado de delta (C-02)
+
+> Borrador del 20.11.2026. Pasa al ADR 0006 cuando el spike cierre H6, H10, H11, H12 y H18; la tabla final de esta sección dice qué cambia según cada resultado.
+
+**Tablas** (esquema `sx`).
+
+```
+delta_state                     -- una fila por pipeline DELTA o WATERMARK
+  pipeline_id        uuid PK, FK pipeline
+  status             text NOT NULL   -- NOT_INITIALIZED | INITIALIZING | INITIALIZED | BROKEN
+  generation         int  NOT NULL DEFAULT 0
+  current_token      text NULL
+  pending_token      text NULL
+  pending_run_id     uuid NULL, FK run
+  lease_epoch        bigint NOT NULL DEFAULT 0
+  init_filters_hash  text NULL
+  sap_close_pending  bool NOT NULL DEFAULT false
+  watermark_value    jsonb NULL
+  initialized_at, last_delta_at, updated_at  timestamptz
+  CHECK (status <> 'INITIALIZED' OR current_token IS NOT NULL)
+  CHECK (pending_token IS NULL OR pending_run_id IS NOT NULL)
+
+delta_state_history             -- solo cambios de status, generación o cierre en SAP
+  id bigserial, pipeline_id, at, event, from_status, to_status, generation,
+  run_id NULL, actor_id NULL, reason NULL, token_before NULL, token_after NULL
+```
+
+El run guarda, en su primer intento, `delta_generation` y `start_token` (el `current_token` de ese momento). Los intentos siguientes los reutilizan, así el `batch_id` no cambia entre intentos. Los tokens no son secretos (sin credenciales no sirven), pero no se registran en los logs de aplicación: solo en el estado, el historial y el detalle del run.
+
+**Transiciones.**
+
+| Evento | Desde | Hacia | Cambios | Registro |
+|---|---|---|---|---|
+| Un worker toma un run `DELTA_INIT` | `NOT_INITIALIZED` | `INITIALIZING` | `generation + 1`, `pending_run_id = run`, `lease_epoch + 1`, `init_filters_hash`, tokens a `NULL` | Historial |
+| Un worker toma un run `DELTA` | `INITIALIZED` | `INITIALIZED` | `pending_run_id = run`, `lease_epoch + 1` | — |
+| `extract` termina, o `prepare` encuentra el lote ya aplicado en el destino | `INITIALIZING`, `INITIALIZED` | igual | `pending_token = T` (con *fencing*) | — |
+| `commit_delta` de una init | `INITIALIZING` | `INITIALIZED` | `current_token = pending_token`, `initialized_at`, `pending_*` a `NULL` | Historial |
+| `commit_delta` de un delta | `INITIALIZED` | `INITIALIZED` | `current_token = pending_token`, `last_delta_at`, `pending_*` a `NULL` | Detalle del run |
+| Intento fallido con reintento pendiente | — | igual | Nada: el run sigue siendo el dueño (`pending_run_id`) | — |
+| Run `failed` o `cancelled` en una init | `INITIALIZING` | `NOT_INITIALIZED` | `pending_*` a `NULL`; `sap_close_pending = true` (la init cortada puede quedar abierta, H10) | Historial |
+| Run `failed` o `cancelled` en un delta | `INITIALIZED` | `INITIALIZED` | `pending_*` a `NULL` | — |
+| SAP rechaza el token (`SX-SAP-DELTA-INVALID`, código real en H7) | `INITIALIZED` | `BROKEN` | `pending_*` a `NULL` | Historial, alerta y auditoría `pipeline.delta_broken` |
+| El usuario reinicializa | `INITIALIZED`, `BROKEN` | `NOT_INITIALIZED` | `current_token = NULL`, `sap_close_pending = true`; después, intento de cierre | Historial y auditoría `pipeline.delta_reset` (motivo obligatorio) |
+| Cierre confirmado en SAP | — | igual | `sap_close_pending = false` | Historial y auditoría `pipeline.sap_subscription_closed` |
+| El usuario deja abierta la suscripción anterior | — | igual | `sap_close_pending = false` | Historial y auditoría `pipeline.sap_subscription_left_open` (motivo) |
+
+Con los filtros cambiados (`init_filters_hash` distinto del actual), la validación bloquea los runs `DELTA` hasta reinicializar. Ese estado se calcula, no se guarda.
+
+**Toma del run y *fencing*.** En la misma transacción que el *claim* (plan 08 §3):
+
+```sql
+UPDATE sx.delta_state
+   SET pending_run_id = :run, lease_epoch = lease_epoch + 1, updated_at = now()
+ WHERE pipeline_id = :pipeline
+   AND (pending_run_id IS NULL OR pending_run_id = :run)
+RETURNING lease_epoch, generation, current_token;
+-- 0 filas: otro run es dueño del estado → no se toma
+```
+
+Cuando el scheduler da por caído un intento, el run vuelve a `queued` sin soltar `pending_run_id`: el siguiente worker lo toma con `lease_epoch + 1` y el anterior queda fuera. El latido y cada escritura del worker sobre el estado llevan `AND lease_epoch = :epoch`.
+
+**`commit_delta`**, una transacción:
+
+```sql
+UPDATE sx.delta_state
+   SET current_token = pending_token, pending_token = NULL, pending_run_id = NULL,
+       status = 'INITIALIZED', last_delta_at = now(),
+       initialized_at = COALESCE(initialized_at, now()), updated_at = now()
+ WHERE pipeline_id = :pipeline AND pending_run_id = :run
+   AND lease_epoch = :epoch AND generation = :generation
+   AND pending_token IS NOT NULL;
+-- 0 filas: intento sin derecho a confirmar → ROLLBACK, el intento acaba como `fenced`
+UPDATE sx.run SET status = 'succeeded', finished_at = now() WHERE id = :run AND status = 'running';
+INSERT INTO sx.delta_state_history (...)   -- solo si cambió status
+COMMIT;
+```
+
+La condición sobre `generation` impide que un run de antes de una reinicialización confirme su token en la generación nueva.
+
+**Reinicialización y cierre en SAP.** El orden importa si `TerminateDeltasFor…` cierra todas las suscripciones del entity set para el usuario técnico (alcance de H12): llamado después de la init nueva, la cerraría también.
+
+1. Rechazar si hay un run del pipeline en curso (409), o cancelarlo primero si el usuario lo pide.
+2. Transacción: `NOT_INITIALIZED`, `current_token = NULL`, `sap_close_pending = true`, historial y auditoría.
+3. Si se puede cerrar desde la plataforma (H12 confirmado y ningún otro pipeline delta lee el mismo entity set con el mismo usuario técnico), llamar a `TerminateDeltasFor…` y comprobar con `SubscribedTo…`. Si responde que ya no existe: `sap_close_pending = false`.
+4. Si no, tarea manual guiada en ODQMON.
+5. La init nueva no se encola mientras `sap_close_pending = true`, salvo que el usuario declare que deja abierta la anterior (motivo, auditado). Así la plataforma nunca cierra a ciegas una suscripción que acaba de abrir.
+
+Borrar un pipeline delta lo marca como borrado (`deleted_at`) y conserva su `delta_state` mientras `sap_close_pending = true`; la regla "Suscripción sin cerrar" (plan 09) lo avisa hasta que se cierre.
+
+**Qué cambia según el spike.**
+
+| Resultado | Consecuencia en este diseño |
+|---|---|
+| H6 o H18 no se cumplen (no conviven dos cadenas sobre el mismo entity set y usuario) | Un segundo pipeline `DELTA` sobre el mismo origen queda bloqueado por validación; alternativas de 3.3 |
+| H18: las dos inits devuelven el mismo token o comparten cola | Igual que la fila anterior: es una sola suscripción |
+| H11: tras una repetición solo vale el token de la primera lectura | `pending_token` no se sobrescribe en un reintento sin spool si SAP devuelve un token distinto; se conserva el primero recibido para ese `start_token` |
+| H11: vale el token de la repetición (lo esperado) | Sin cambios: `pending_token` es el último token recibido |
+| H12 no existe | Paso 3 de la reinicialización desaparece; el cierre siempre es manual |
+| H12 cierra solo la suscripción del usuario y filtro concretos | Se puede cerrar aunque haya otro pipeline sobre el mismo origen |
+| H10: una init cortada no deja nada abierto en SAP | El fallo de una init no marca `sap_close_pending` |
+| H10: relanzar la init crea otra suscripción | El reintento automático de un run `DELTA_INIT` se desactiva; reintentar exige cerrar antes |
+| H13: periodo de recuperación de *N* horas | Umbral de la alerta de suscripción estancada (plan 09) por debajo de *N* |
+| H7: código y mensaje reales | Regla de clasificación de `SX-SAP-DELTA-INVALID` en el conector |
+
 ## 4. Idempotencia en destino
 
 - Columnas técnicas añadidas a cada fila: `_sx_batch_id`, `_sx_run_id` (informativo), `_sx_extracted_at`, `_sx_change_mode`, `_sx_record_seq`, `_sx_deleted`.
@@ -223,6 +327,7 @@ Registro de plugins por tipo (`ODP_EXTRACTOR`, `CDS_ODP`, `CDS_ODATA` / `csv`, `
 
 ## Tareas
 
+- [x] Diseño del estado de delta: transiciones, *fencing*, `commit_delta` y cierre en SAP (§3.6, borrador del 20.11.2026; se cierra con el spike).
 - [ ] ADR 0006 con los contratos (`SourceConnector`, `DestinationWriter`, spool, run, estado de delta), en la Fase 0.
 - [ ] Modelo `run`, `run_attempt`, `run_step`, `delta_state`, `delta_state_history`.
 - [ ] Conectores `ODP_EXTRACTOR` / `CDS_ODP` (comparten implementación ODP) y `CDS_ODATA` (paginación por clave).
