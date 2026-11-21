@@ -35,6 +35,34 @@ La identidad visual de toda la UI usa la paleta de **Mega Lucario** (Pokémon). 
 - Todo color vive como token en `frontend/src/shared/theme/tokens.css` (OKLCH, `light-dark()`); nada de hex sueltos en `features/` ni `app/`. Neutros con leve tinte azul o de pelaje, nunca gris puro. Éxito: verde azulado afinado a la paleta.
 - Al tocar un color, recalcular contrastes: texto ≥ 4,5:1, foco y acento ≥ 3:1, en claro y grafito. Detalle en ADR 0007.
 
+## Trabajo en la interfaz
+
+Estilo «táctil» (ADR 0007): relieve, teclas que se hunden y pozos. Antes de tocar UI, lee ADR 0007 y el plan 10.
+
+**Componentes y estilos**
+- Todo pasa por `shared/ui` (componentes, iconos Tabler reexportados) y tokens `var(--sx-*)`: espaciado, radios, sombras, tipografía y movimiento, no solo color. Ajustes de una pantalla van en su CSS (`features/<módulo>/…css`) con clases `sx-<pantalla>__…`, nunca redefiniendo `shared/ui` para un caso.
+- Radios anidados concéntricos: radio exterior = radio interior + margen (`calc()` con tokens).
+- Responsive: columnas de grid con `minmax(0, 1fr)` (con `1fr` un hijo ancho desborda la página). La página nunca hace scroll horizontal.
+
+**Texto**
+- Todo texto visible en `shared/i18n/locales/es.json` (y `en.json`), en español, sentence case. Nada de mayúsculas forzadas por CSS, `·` como separador de listas (usar `Intl.ListFormat`) ni flechas decorativas en botones.
+- Botones con el verbo de lo que pasa; errores que dicen qué ocurrió y cómo seguir; estados vacíos con una sola acción, sin repetir botones que ya están en pantalla.
+- Datos de prueba solo en las pruebas: la UI no muestra cifras ni ejemplos inventados.
+
+**Imágenes**
+- Autoalojadas (la CSP solo permite `img-src 'self' data:`): WebP en `features/<módulo>/assets/` con `srcSet` (640 px y ancho original), `alt=""` si son decorativas. Nunca PNG pesados ni URLs externas.
+
+**Movimiento** (`shared/theme/motion.css`, tokens de duración y curvas en `tokens.css`)
+- Un solo momento orquestado: la entrada del login a la app (`enterApp`, view transition). El resto, solo respuesta a una acción (pulsar, sacudida `useShake` en credenciales erróneas). Sin fundidos al hacer scroll ni hover que eleve tarjetas.
+- Siempre con `prefers-reduced-motion`. Quien edite el login conserva el `<Navigate>` de sesión activa, el contenedor de `useShake` y el `error` del campo de contraseña.
+
+**Verificación antes de entregar**
+- `pnpm format && pnpm lint && pnpm typecheck && pnpm test && pnpm build`.
+- Capturas reales con Playwright a 375, 768, 1024 y 1440 px, en claro y grafito, comprobando que no hay desborde horizontal (`scrollWidth = clientWidth`). El carril lateral debe caber sin scroll desde 1366 × 830.
+- Contraste medido (no estimado) de cada texto nuevo contra su fondo real, incluido texto sobre imágenes.
+- Sin sesión en el navegador de pruebas: simular la API con `page.route` usando los datos de `src/test/handlers.ts`. No probar contraseñas contra la API de desarrollo: 5 fallos bloquean la cuenta y afectan a todas las sesiones.
+- Capturas fuera del repo (`.playwright-mcp/` está ignorada). Al terminar, anotar lo construido en el plan 10 y, si cambia una regla visual, en ADR 0007.
+
 ## Comandos
 
 - Todo el entorno: `docker compose up --build` (API :8000, web :5173, mock SAP :8081, PostgreSQL :5432).
