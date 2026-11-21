@@ -26,6 +26,7 @@ from sapextract.sap_connections.domain.catalog import (
 )
 from sapextract.sap_connections.domain.metadata import EdmEntityType, EdmProperty, OdpRole
 from sapextract.sap_connections.domain.model import (
+    DEFAULT_RUNS,
     AuthType,
     BasicCredentials,
     Credentials,
@@ -105,6 +106,12 @@ class ConnectionFields(BaseModel):
     proxy_url: str | None = Field(None, max_length=500)
     timeout_seconds: int = Field(60, ge=5, le=600)
     max_concurrent_requests: int = Field(4, ge=1, le=32)
+    max_concurrent_runs: int | None = Field(
+        None,
+        ge=1,
+        le=16,
+        description="Extracciones simultáneas contra este sistema (por defecto 2)",
+    )
 
     def connection(self) -> ConnectionData:
         return ConnectionData(
@@ -116,6 +123,7 @@ class ConnectionFields(BaseModel):
             proxy_url=self.proxy_url,
             timeout_seconds=self.timeout_seconds,
             max_concurrent_requests=self.max_concurrent_requests,
+            max_concurrent_runs=self.max_concurrent_runs or DEFAULT_RUNS,
         )
 
 
@@ -158,6 +166,7 @@ class SapSystemUpdateRequest(BaseModel):
     proxy_url: str | None = Field(None, max_length=500, description="'' elimina el proxy")
     timeout_seconds: int | None = Field(None, ge=5, le=600)
     max_concurrent_requests: int | None = Field(None, ge=1, le=32)
+    max_concurrent_runs: int | None = Field(None, ge=1, le=16)
 
 
 class CredentialRotateRequest(BaseModel):
@@ -284,6 +293,7 @@ class SapSystemDetail(SapSystemSummary):
     proxy_url: str | None
     timeout_seconds: int
     max_concurrent_requests: int
+    max_concurrent_runs: int
     status_reason: str | None
     last_test_result: TestReportResponse | None
     created_at: datetime
@@ -304,6 +314,7 @@ class SapSystemDetail(SapSystemSummary):
             proxy_url=s.proxy_url,
             timeout_seconds=s.timeout_seconds,
             max_concurrent_requests=s.max_concurrent_requests,
+            max_concurrent_runs=s.max_concurrent_runs,
             status_reason=s.status_reason,
             last_test_result=TestReportResponse.from_stored(s.last_test_result),
             created_at=s.created_at,

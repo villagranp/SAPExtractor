@@ -229,6 +229,7 @@ export const sapSystem: S['SapSystemDetail'] = {
   proxy_url: null,
   timeout_seconds: 60,
   max_concurrent_requests: 4,
+  max_concurrent_runs: 2,
   status: 'active',
   status_reason: null,
   tags: ['fi'],

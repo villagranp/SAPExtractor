@@ -410,7 +410,11 @@ class SourceService:
         self, source_id: uuid.UUID, reason: str | None, actor: Principal, request: RequestInfo
     ) -> None:
         source = self.get(source_id)
-        # Los pipelines (It6) bloquearán aquí la baja de un origen en uso.
+        blocking = [d for p in self.tk.source_dependents for d in p(self.session, source.id)]
+        if blocking:
+            names = ", ".join(f"{d.kind} «{d.name}»" for d in blocking[:5])
+            msg = f"No se puede eliminar: lo usan otros objetos ({names})."
+            raise ConflictError(msg, code="SX-SRC-IN-USE")
         self._audit(
             "source.deleted", source, actor, request, diff(_snapshot(source), None), reason=reason
         )

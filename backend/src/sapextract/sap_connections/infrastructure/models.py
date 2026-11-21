@@ -39,6 +39,8 @@ class SapSystem(IdMixin, TimestampMixin, AuthorMixin, Base):
     proxy_url: Mapped[str | None] = mapped_column(String(500))
     timeout_seconds: Mapped[int] = mapped_column(Integer, nullable=False)
     max_concurrent_requests: Mapped[int] = mapped_column(Integer, nullable=False)
+    # Runs de extracción simultáneos contra este sistema (límite de la cola, plan 08 §3).
+    max_concurrent_runs: Mapped[int] = mapped_column(Integer, nullable=False, default=2)
     tags: Mapped[list[str]] = mapped_column(JSONB, nullable=False, default=list)
     status: Mapped[str] = mapped_column(String(20), nullable=False)
     status_reason: Mapped[str | None] = mapped_column(Text)

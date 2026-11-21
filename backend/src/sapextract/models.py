@@ -20,6 +20,14 @@ from sapextract.identity.infrastructure.models import (
     UserRole,
     UserSession,
 )
+from sapextract.orchestration.infrastructure.models import (
+    ConcurrencyGroup,
+    Pipeline,
+    Run,
+    RunAttempt,
+    Schedule,
+    Worker,
+)
 from sapextract.sap_connections.infrastructure.models import SapCatalogCache, SapSystem
 from sapextract.sources.infrastructure.models import Source, SourceSchemaVersion
 
@@ -27,15 +35,20 @@ __all__ = [
     "ApiToken",
     "AuditEventRow",
     "Base",
+    "ConcurrencyGroup",
     "Destination",
     "IdentityProvider",
     "IdpGroupMapping",
     "LocalCredential",
     "Permission",
+    "Pipeline",
     "Role",
     "RolePermission",
+    "Run",
+    "RunAttempt",
     "SapCatalogCache",
     "SapSystem",
+    "Schedule",
     "Secret",
     "Source",
     "SourceSchemaVersion",
@@ -43,4 +56,5 @@ __all__ = [
     "UserAccount",
     "UserRole",
     "UserSession",
+    "Worker",
 ]

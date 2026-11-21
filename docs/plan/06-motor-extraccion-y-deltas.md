@@ -330,13 +330,13 @@ Registro de plugins por tipo (`ODP_EXTRACTOR`, `CDS_ODP`, `CDS_ODATA` / `csv`, `
 - [x] Diseño del estado de delta: transiciones, *fencing*, `commit_delta` y cierre en SAP (§3.6, borrador del 20.11.2026; se cierra con el spike).
 - [x] ADR 0006 con los contratos (`SourceConnector`, `DestinationWriter`, spool, run e intentos, `batch_id`, tabla de control), propuesto el 20.11.2026 y pendiente de revisión conjunta. El estado de delta queda fuera hasta el spike (§3.6).
 - [ ] Paquete `dataflow/` con esos tipos, batería de conformidad y dobles de prueba (inicio de la Fase 1).
-- [ ] Modelo `run`, `run_attempt`, `run_step`, `delta_state`, `delta_state_history`.
+- [ ] Modelo `run_step`, `delta_state`, `delta_state_history`. `run` y `run_attempt` ya existen: los creó la It6, adelantada (migración `0008_orchestration`, plan 08).
 - [ ] Conectores `ODP_EXTRACTOR` / `CDS_ODP` (comparten implementación ODP) y `CDS_ODATA` (paginación por clave).
 - [ ] Iterador de páginas del motor, conversión de tipos EDM → Arrow, spool Parquet con manifiesto.
 - [ ] Máquina de estados de delta con commit en dos fases, `batch_id` y *fencing*.
 - [ ] Salto de `load` cuando la tabla de control del destino ya tiene el lote.
 - [ ] Pseudo-delta por marca de agua con `watermark_kind`.
-- [ ] `ExtractionEngine` con pasos, cancelación, heartbeat y métricas.
+- [ ] `ExtractionEngine` con pasos, cancelación y métricas, como implementación de `RunExecutor` (plan 08, «Frontera con el motor»). El latido, la toma y el cierre de cada intento ya los hace el worker de la It6.
 - [ ] Reinicialización de delta y cierre de la suscripción en SAP (API + auditoría).
 - [ ] Pruebas con `sap-mock`: init, delta, repetición, token inválido, caída en cada paso (inyección de fallos), worker zombi, reintento en otro worker.
 - [ ] Prueba de volumen (≥ 10 M filas sintéticas) con memoria acotada.

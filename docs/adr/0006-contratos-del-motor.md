@@ -266,6 +266,17 @@ Lo construido en la It4a sigue este ADR con estas diferencias, que la revisión 
 - **`_sx_deleted` en CSV.** Se escribe como columna del archivo (`true`/`false`) igual que en Snowflake.
 - **Dobles de prueba.** `tests/support/dataflow.py` (`GL_SCHEMA`, `make_spool`, `InMemoryWriter`) y la batería `tests/contract/destination_contract.py`, que pasan memoria, CSV y CSV gzip; Snowflake la pasa con la cuenta de pruebas.
 
+## Notas de implementación (It6, 21.11.2026)
+
+La orquestación se construyó antes que el motor (plan 13 §5.4). Diferencias con el §5 que la revisión conjunta debe confirmar:
+
+- **`run` y `run_attempt` los crea la It6**, no la It5 (migración `0008_orchestration`). `run_step` sigue siendo de la It5.
+- **`run_attempt.error_message`** y, en `run`, `attempts_budget`, `cancel_requested_at/by`, `schedule_id`, `reason`, `triggered_by`, `claimed_at`, `started_at` y el último error. No cambian los campos que fijó este ADR.
+- **`lease_epoch` sube también cuando el scheduler recupera un intento sin latido**, no solo al tomar el run. El worker anterior queda fuera desde ese momento, sin esperar a que otro tome el run.
+- **Un solo run vivo por pipeline** (en cola o en curso), por índice único parcial.
+- **El motor se conecta por `RunExecutor`** (`orchestration/domain/ports.py`), que recibe el `lease_epoch` del intento en `RunContext`. Es una interfaz nueva entre los dos desarrolladores: cambiarla pide la misma revisión conjunta que `dataflow/`.
+- `worker_id` y `spool_worker_id` son UUID. El identificador del worker cambia en cada arranque, así que un spool no se reconoce tras reiniciar el proceso aunque siga en el mismo disco: si la It5 quiere reutilizarlo, tendrá que identificar el disco y no el proceso.
+
 ## Fuera de este ADR (pendiente del spike)
 
 | Tema | Dónde | Depende de |

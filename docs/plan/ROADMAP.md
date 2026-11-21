@@ -35,7 +35,7 @@ v2   Streaming (plan 12)
 | **3** ✅ | Orígenes SAP (falta revisar la guía con el equipo SAP y cambiar el mock por respuestas reales del spike) | [05](05-origenes-sap.md) | Asistente de origen (extractor estándar, Z y CDS), esquema versionado, vista previa sin suscripción; guía SAP validada | 2 |
 | **4a** | Destinos: CSV y Snowflake | [07](07-destinos.md) | CSV y Snowflake con prueba de conexión, DDL previsualizado y tabla de control | 1 + cuenta de pruebas de Snowflake |
 | **5** | Motor y deltas | [06](06-motor-extraccion-y-deltas.md), [03](03-auditoria-y-logs.md) (logs de ejecución) | Ejecución manual: init + delta + repetición desde SAP a CSV y Snowflake; logs en vivo; pruebas de caída en cada paso | 3, 4a, spike |
-| **6** | Orquestación | [08](08-orquestacion-y-programacion.md) | Asistente de pipelines, programación cron/simple, cola, workers, reintentos, pausa, clonado entre entornos | 5 |
+| **6** | Orquestación (backend ✅ adelantado el 21.11.2026; faltan las pantallas y el motor de la It5 para ejecutar runs) | [08](08-orquestacion-y-programacion.md) | Asistente de pipelines, programación cron/simple, cola, workers, reintentos, pausa, clonado entre entornos | 5 |
 | **4b** | Destino: SQL Server | [07](07-destinos.md) | SQL Server con las mismas garantías que Snowflake | 5 |
 | **7** | Entra ID (7a configuración ✅ adelantada el 20.11.2026; falta 7b, inicio de sesión) | [02](02-usuarios-autenticacion-roles.md) (Entra) | SSO configurable desde la UI, JIT, grupos → roles; admin local sigue funcionando | 1 + *App registration* de IT |
 | **8** | Monitoreo y alertas | [09](09-monitoreo-y-alertas.md) | Dashboard en vivo, frescura, alertas por correo/Teams, `/metrics` | 6 |
@@ -59,7 +59,7 @@ Dev A lleva el flujo SAP y Dev B los destinos y la plataforma. Los dos construye
 | **0 · Preparación** | 1 semana | Spike ampliado con el equipo SAP; respuestas reales al mock; diseño del estado de delta | ✅ Seguridad de conectores (hosts permitidos, proxies de confianza); ✅ E2E y cobertura en CI; ✅ stack del frontend; pedir cuenta de Snowflake y *App registration* (borradores en [`docs/solicitudes/fase-0.md`](../solicitudes/fase-0.md)) | Juntos: ADR 0006 con los contratos del motor |
 | **1 · Origen y destino** | 2–3 semanas | **It3** Orígenes | ✅ **It4a** CSV y Snowflake (falta validar Snowflake con la cuenta de pruebas y su job de CI) | Origen y destino creados desde la UI |
 | **2 · Motor** | 3 semanas | **It5**, extracción: conectores, paginación, spool, máquina de delta | **It5**, carga: `load`, `commit_delta`, idempotencia, inyección de fallos, pantalla mínima de run | **H2 · Primer dato** |
-| **3 · Orquestación** | 3 semanas | **It6** backend | **It6** pantallas; después **It4b** SQL Server | **H3 · Autónoma** |
+| **3 · Orquestación** | 3 semanas | ✅ **It6** backend (adelantada; se conecta al motor al cerrar la It5) | **It6** pantallas; después **It4b** SQL Server | **H3 · Autónoma** |
 | **4 · Operación** | 2–3 semanas | **It8** backend; prueba de volumen de 10 M de filas | **It7** Entra ID; dashboard y pantallas de alertas | SSO, alertas y dashboard |
 | **5 · Endurecimiento** | 2 semanas | **It9**, entre los dos | | **H4 · v1.0** |
 | Flotante | — | — | ✅ **It1b** hecha (estilo propio, paleta Mega Lucario); queda el logo definitivo | Layout definitivo y `/ui-kit` |

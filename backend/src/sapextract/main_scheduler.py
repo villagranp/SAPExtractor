@@ -2,7 +2,8 @@
 
 Solo un scheduler es líder a la vez (``pg_try_advisory_lock`` sobre una conexión dedicada);
 las demás réplicas esperan y toman el relevo si el líder cae (la BD libera el bloqueo al
-cerrarse su conexión). La lógica de programación se añade en la iteración 6.
+cerrarse su conexión). En cada ciclo el líder encola las programaciones vencidas, recupera
+los runs sin latido y marca los workers caídos (plan 08 §2).
 """
 
 from __future__ import annotations
@@ -17,6 +18,8 @@ from sapextract.core.config import Settings, get_settings
 from sapextract.core.db import Database
 from sapextract.core.logging import configure_logging
 from sapextract.core.runtime import GracefulShutdown
+from sapextract.orchestration.application.scheduler import SchedulerService, TickResult
+from sapextract.orchestration.application.toolkit import OrchestrationToolkit
 
 log = structlog.get_logger(__name__)
 
@@ -37,9 +40,18 @@ def run_maintenance(conn: Connection) -> None:
     log.info("maintenance_done", audit_partitions_created=created)
 
 
-def tick() -> None:
-    """Un ciclo del scheduler. Iteración 6: encolar ejecuciones vencidas."""
-    log.debug("scheduler_tick")
+def tick(service: SchedulerService) -> TickResult:
+    """Un ciclo del scheduler: programación, runs huérfanos y workers caídos."""
+    result = service.tick()
+    if result.fired or result.skipped or result.reaped or result.workers_offline:
+        log.info(
+            "scheduler_tick",
+            fired=result.fired,
+            skipped=result.skipped,
+            reaped=result.reaped,
+            workers_offline=result.workers_offline,
+        )
+    return result
 
 
 def run(settings: Settings | None = None) -> None:
@@ -48,6 +60,7 @@ def run(settings: Settings | None = None) -> None:
     shutdown = GracefulShutdown()
     shutdown.install()
     db = Database(settings)
+    service = SchedulerService(db, OrchestrationToolkit.build(settings))
     log.info("scheduler_started")
 
     try:
@@ -72,7 +85,11 @@ def run(settings: Settings | None = None) -> None:
                             except Exception:
                                 log.exception("maintenance_failed")
                             last_maintenance = time.monotonic()
-                        tick()
+                        try:
+                            tick(service)
+                        except Exception:
+                            # Un ciclo fallido no suelta el liderazgo: se reintenta en el siguiente.
+                            log.exception("scheduler_tick_failed")
                         shutdown.wait(settings.scheduler_tick_seconds)
             except Exception:
                 log.exception("scheduler_loop_error")

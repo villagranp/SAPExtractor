@@ -24,6 +24,9 @@ from sapextract.destinations.api import routes as destination_routes
 from sapextract.destinations.application.toolkit import DestinationsToolkit
 from sapextract.identity.api import admin_routes, auth_routes, idp_routes
 from sapextract.identity.application.toolkit import IdentityToolkit
+from sapextract.orchestration.api import routes as orchestration_routes
+from sapextract.orchestration.application import pipeline_service as pipelines
+from sapextract.orchestration.application.toolkit import OrchestrationToolkit
 from sapextract.sap_connections.api import routes as sap_routes
 from sapextract.sap_connections.application.toolkit import SapToolkit
 from sapextract.sources.api import routes as source_routes
@@ -44,6 +47,8 @@ def build_api_router() -> APIRouter:
     api.include_router(sap_routes.router)
     api.include_router(source_routes.router)
     api.include_router(destination_routes.router)
+    for router in orchestration_routes.routers:
+        api.include_router(router)
     return api
 
 
@@ -76,6 +81,16 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     # Un sistema SAP con orígenes vivos no se puede dar de baja (plan 04).
     app.state.sap.dependents.append(sap_system_dependents)
     app.state.destinations = DestinationsToolkit.build(settings, audit=app.state.identity.audit)
+    app.state.orchestration = OrchestrationToolkit.build(
+        settings,
+        audit=app.state.identity.audit,
+        sap=app.state.sap,
+        destinations=app.state.destinations,
+    )
+    # Un pipeline impide dar de baja su sistema SAP, su origen y su destino (plan 08).
+    app.state.sap.dependents.append(pipelines.sap_system_dependents)
+    app.state.sap.source_dependents.append(pipelines.source_dependents)
+    app.state.destinations.dependents.append(pipelines.destination_dependents)
     app.state.auth_limiter = SlidingWindowLimiter(settings.auth_rate_limit_per_minute)
 
     register_exception_handlers(app)

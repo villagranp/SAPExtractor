@@ -4627,10 +4627,1416 @@
         "x-sx-audit": [],
         "x-sx-audit-exempt": "Solo lectura: calcula sentencias sin ejecutarlas"
       }
+    },
+    "/api/v1/pipelines": {
+      "get": {
+        "tags": [
+          "Pipelines"
+        ],
+        "summary": "Pipelines",
+        "operationId": "list_pipelines_api_v1_pipelines_get",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/PipelineStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "source",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Origen",
+              "title": "Source"
+            },
+            "description": "Origen"
+          },
+          {
+            "name": "destination",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Destino",
+              "title": "Destination"
+            },
+            "description": "Destino"
+          },
+          {
+            "name": "system",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Sistema SAP",
+              "title": "System"
+            },
+            "description": "Sistema SAP"
+          },
+          {
+            "name": "environment",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/SapEnvironment"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Entorno del sistema SAP",
+              "title": "Environment"
+            },
+            "description": "Entorno del sistema SAP"
+          },
+          {
+            "name": "tag",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 40
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tag"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Page Size"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^-?[a-z_][a-z0-9_]*$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Sort"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_PipelineSummary_"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Pipelines"
+        ],
+        "summary": "Alta de pipeline (queda en borrador)",
+        "operationId": "create_pipeline_api_v1_pipelines_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PipelineCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PipelineDetail"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "pipeline.created"
+        ]
+      }
+    },
+    "/api/v1/pipelines/review": {
+      "post": {
+        "tags": [
+          "Pipelines"
+        ],
+        "summary": "Avisos de una combinación origen, destino y carga, sin guardar (asistente)",
+        "operationId": "review_pipeline_api_v1_pipelines_review_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PipelineReviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/FindingResponse"
+                  },
+                  "type": "array",
+                  "title": "Response Review Pipeline Api V1 Pipelines Review Post"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [],
+        "x-sx-audit-exempt": "Solo compara configuración ya guardada; no guarda ni llama a SAP"
+      }
+    },
+    "/api/v1/pipelines/{pipeline_id}": {
+      "get": {
+        "tags": [
+          "Pipelines"
+        ],
+        "summary": "Detalle de pipeline",
+        "operationId": "get_pipeline_api_v1_pipelines__pipeline_id__get",
+        "parameters": [
+          {
+            "name": "pipeline_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Pipeline Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PipelineDetail"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Pipelines"
+        ],
+        "summary": "Edición de pipeline",
+        "operationId": "update_pipeline_api_v1_pipelines__pipeline_id__patch",
+        "parameters": [
+          {
+            "name": "pipeline_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Pipeline Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PipelineUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PipelineDetail"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "pipeline.updated"
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Pipelines"
+        ],
+        "summary": "Baja lógica de pipeline; no se permite con una ejecución en cola o en curso",
+        "operationId": "delete_pipeline_api_v1_pipelines__pipeline_id__delete",
+        "parameters": [
+          {
+            "name": "pipeline_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Pipeline Id"
+            }
+          },
+          {
+            "name": "reason",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 500
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Reason"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "pipeline.deleted"
+        ]
+      }
+    },
+    "/api/v1/pipelines/{pipeline_id}/validate": {
+      "post": {
+        "tags": [
+          "Pipelines"
+        ],
+        "summary": "Comprobación previa a activar, sin cambiar nada (lee el $metadata en SAP)",
+        "operationId": "validate_pipeline_api_v1_pipelines__pipeline_id__validate_post",
+        "parameters": [
+          {
+            "name": "pipeline_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Pipeline Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PipelineActivateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActivationReportResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [],
+        "x-sx-audit-exempt": "Solo lee el $metadata de SAP y el estado guardado"
+      }
+    },
+    "/api/v1/pipelines/{pipeline_id}/activate": {
+      "post": {
+        "tags": [
+          "Pipelines"
+        ],
+        "summary": "Activar pipeline (exige pasar la comprobación previa)",
+        "operationId": "activate_pipeline_api_v1_pipelines__pipeline_id__activate_post",
+        "parameters": [
+          {
+            "name": "pipeline_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Pipeline Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PipelineActivateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PipelineDetail"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "pipeline.activated"
+        ]
+      }
+    },
+    "/api/v1/pipelines/{pipeline_id}/pause": {
+      "post": {
+        "tags": [
+          "Pipelines"
+        ],
+        "summary": "Pausar: suspende la programación; la ejecución en curso termina",
+        "operationId": "pause_pipeline_api_v1_pipelines__pipeline_id__pause_post",
+        "parameters": [
+          {
+            "name": "pipeline_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Pipeline Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PipelineReasonRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PauseResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "pipeline.paused"
+        ]
+      }
+    },
+    "/api/v1/pipelines/{pipeline_id}/resume": {
+      "post": {
+        "tags": [
+          "Pipelines"
+        ],
+        "summary": "Reanudar un pipeline en pausa",
+        "operationId": "resume_pipeline_api_v1_pipelines__pipeline_id__resume_post",
+        "parameters": [
+          {
+            "name": "pipeline_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Pipeline Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PipelineDetail"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "pipeline.resumed"
+        ]
+      }
+    },
+    "/api/v1/pipelines/{pipeline_id}/clone": {
+      "post": {
+        "tags": [
+          "Pipelines"
+        ],
+        "summary": "Clonar sin estado de delta; admite otro sistema SAP y otro destino",
+        "operationId": "clone_pipeline_api_v1_pipelines__pipeline_id__clone_post",
+        "parameters": [
+          {
+            "name": "pipeline_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Pipeline Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PipelineCloneRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CloneResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "pipeline.cloned",
+          "source.created"
+        ]
+      }
+    },
+    "/api/v1/pipelines/{pipeline_id}/run": {
+      "post": {
+        "tags": [
+          "Pipelines"
+        ],
+        "summary": "Ejecutar ahora (prioridad alta)",
+        "operationId": "run_pipeline_api_v1_pipelines__pipeline_id__run_post",
+        "parameters": [
+          {
+            "name": "pipeline_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Pipeline Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunTriggerRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunDetail"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "run.triggered_manual"
+        ]
+      }
+    },
+    "/api/v1/pipelines/{pipeline_id}/schedules": {
+      "get": {
+        "tags": [
+          "Pipelines"
+        ],
+        "summary": "Programación del pipeline",
+        "operationId": "get_schedules_api_v1_pipelines__pipeline_id__schedules_get",
+        "parameters": [
+          {
+            "name": "pipeline_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Pipeline Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ScheduleResponse"
+                  },
+                  "title": "Response Get Schedules Api V1 Pipelines  Pipeline Id  Schedules Get"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Pipelines"
+        ],
+        "summary": "Sustituir la programación del pipeline",
+        "operationId": "put_schedules_api_v1_pipelines__pipeline_id__schedules_put",
+        "parameters": [
+          {
+            "name": "pipeline_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Pipeline Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SchedulesPutRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ScheduleResponse"
+                  },
+                  "title": "Response Put Schedules Api V1 Pipelines  Pipeline Id  Schedules Put"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "schedule.updated"
+        ]
+      }
+    },
+    "/api/v1/schedules/preview": {
+      "post": {
+        "tags": [
+          "Pipelines"
+        ],
+        "summary": "Próximas ejecuciones de una programación, sin guardarla",
+        "operationId": "preview_schedule_api_v1_schedules_preview_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SchedulePreviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SchedulePreviewResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [],
+        "x-sx-audit-exempt": "Cálculo sin efectos: no guarda nada"
+      }
+    },
+    "/api/v1/runs": {
+      "get": {
+        "tags": [
+          "Ejecuciones"
+        ],
+        "summary": "Ejecuciones",
+        "operationId": "list_runs_api_v1_runs_get",
+        "parameters": [
+          {
+            "name": "pipeline",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Pipeline",
+              "title": "Pipeline"
+            },
+            "description": "Pipeline"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/RunStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "trigger",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/RunTrigger"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Trigger"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "From"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "To"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Page Size"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^-?[a-z_][a-z0-9_]*$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Sort"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_RunSummary_"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/runs/{run_id}": {
+      "get": {
+        "tags": [
+          "Ejecuciones"
+        ],
+        "summary": "Detalle de ejecución con sus intentos",
+        "operationId": "get_run_api_v1_runs__run_id__get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunDetail"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/runs/{run_id}/cancel": {
+      "post": {
+        "tags": [
+          "Ejecuciones"
+        ],
+        "summary": "Cancelar: una ejecución en curso para entre páginas",
+        "operationId": "cancel_run_api_v1_runs__run_id__cancel_post",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PipelineReasonRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunDetail"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "run.cancelled"
+        ]
+      }
+    },
+    "/api/v1/runs/{run_id}/retry": {
+      "post": {
+        "tags": [
+          "Ejecuciones"
+        ],
+        "summary": "Reintentar una ejecución fallida (añade un intento al mismo run)",
+        "operationId": "retry_run_api_v1_runs__run_id__retry_post",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunDetail"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "run.retried"
+        ]
+      }
+    },
+    "/api/v1/workers": {
+      "get": {
+        "tags": [
+          "Ejecuciones"
+        ],
+        "summary": "Workers registrados",
+        "operationId": "list_workers_api_v1_workers_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/WorkerResponse"
+                  },
+                  "type": "array",
+                  "title": "Response List Workers Api V1 Workers Get"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/concurrency-groups": {
+      "get": {
+        "tags": [
+          "Ejecuciones"
+        ],
+        "summary": "Grupos de concurrencia",
+        "operationId": "list_groups_api_v1_concurrency_groups_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ConcurrencyGroupResponse"
+                  },
+                  "type": "array",
+                  "title": "Response List Groups Api V1 Concurrency Groups Get"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/concurrency-groups/{code}": {
+      "put": {
+        "tags": [
+          "Ejecuciones"
+        ],
+        "summary": "Crear o cambiar un grupo de concurrencia",
+        "operationId": "put_group_api_v1_concurrency_groups__code__put",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Code"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConcurrencyGroupPutRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConcurrencyGroupResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "concurrency_group.updated"
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Ejecuciones"
+        ],
+        "summary": "Eliminar un grupo de concurrencia sin pipelines",
+        "operationId": "delete_group_api_v1_concurrency_groups__code__delete",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Code"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "concurrency_group.deleted"
+        ]
+      }
     }
   },
   "components": {
     "schemas": {
+      "ActivationReportResponse": {
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "title": "Ok",
+            "description": "El pipeline puede activarse"
+          },
+          "checks": {
+            "items": {
+              "$ref": "#/components/schemas/CheckResponse"
+            },
+            "type": "array",
+            "title": "Checks"
+          },
+          "findings": {
+            "items": {
+              "$ref": "#/components/schemas/FindingResponse"
+            },
+            "type": "array",
+            "title": "Findings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ok",
+          "checks",
+          "findings"
+        ],
+        "title": "ActivationReportResponse"
+      },
       "AnonymizeRequest": {
         "properties": {
           "reason": {
@@ -4813,6 +6219,105 @@
           "revoked_at"
         ],
         "title": "ApiTokenResponse"
+      },
+      "AttemptOutcome": {
+        "type": "string",
+        "enum": [
+          "succeeded",
+          "failed_transient",
+          "failed",
+          "stale",
+          "fenced",
+          "interrupted",
+          "cancelled"
+        ],
+        "title": "AttemptOutcome",
+        "description": "Cómo terminó un intento (ADR 0006 §5)."
+      },
+      "AttemptResponse": {
+        "properties": {
+          "number": {
+            "type": "integer",
+            "title": "Number"
+          },
+          "worker_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Worker Id"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "outcome": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AttemptOutcome"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "null: intento en curso"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "error_kind": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorKind"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "number",
+          "worker_id",
+          "started_at",
+          "finished_at",
+          "outcome",
+          "error_code",
+          "error_kind",
+          "error_message"
+        ],
+        "title": "AttemptResponse"
       },
       "AuditActionInfo": {
         "properties": {
@@ -5222,6 +6727,99 @@
         ],
         "title": "BasicCredentialsIn"
       },
+      "BlackoutKind": {
+        "type": "string",
+        "enum": [
+          "weekly",
+          "range"
+        ],
+        "title": "BlackoutKind"
+      },
+      "BlackoutWindowBody": {
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/BlackoutKind"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "days": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "maxItems": 7,
+            "title": "Days",
+            "description": "Semanal: 0 = lunes … 6 = domingo"
+          },
+          "start": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start",
+            "description": "Semanal: hora local de inicio (HH:MM)"
+          },
+          "end": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End",
+            "description": "Semanal: hora local de fin; puede ser del día siguiente"
+          },
+          "start_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start At",
+            "description": "Por fechas: inicio"
+          },
+          "end_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End At",
+            "description": "Por fechas: fin"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind"
+        ],
+        "title": "BlackoutWindowBody"
+      },
       "CatalogPageResponse": {
         "properties": {
           "items": {
@@ -5478,6 +7076,29 @@
         ],
         "title": "CheckReportResponse"
       },
+      "CheckResponse": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "ok": {
+            "type": "boolean",
+            "title": "Ok"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "ok",
+          "message"
+        ],
+        "title": "CheckResponse"
+      },
       "CheckResult": {
         "properties": {
           "status": {
@@ -5561,6 +7182,74 @@
         ],
         "title": "ClassificationSource"
       },
+      "CloneResponse": {
+        "properties": {
+          "pipeline": {
+            "$ref": "#/components/schemas/PipelineDetail"
+          },
+          "source_created": {
+            "type": "boolean",
+            "title": "Source Created",
+            "description": "Se creó un origen nuevo en el sistema elegido"
+          },
+          "schema_diff": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CloneSchemaDiff"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Diferencias de esquema contra el origen de partida (otro sistema SAP)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pipeline",
+          "source_created",
+          "schema_diff"
+        ],
+        "title": "CloneResponse"
+      },
+      "CloneSchemaDiff": {
+        "properties": {
+          "breaking": {
+            "type": "boolean",
+            "title": "Breaking",
+            "description": "Columna eliminada o cambio incompatible"
+          },
+          "added": {
+            "items": {
+              "$ref": "#/components/schemas/DiffColumnResponse"
+            },
+            "type": "array",
+            "title": "Added"
+          },
+          "removed": {
+            "items": {
+              "$ref": "#/components/schemas/DiffColumnResponse"
+            },
+            "type": "array",
+            "title": "Removed"
+          },
+          "changed": {
+            "items": {
+              "$ref": "#/components/schemas/ColumnChangeResponse"
+            },
+            "type": "array",
+            "title": "Changed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "breaking",
+          "added",
+          "removed",
+          "changed"
+        ],
+        "title": "CloneSchemaDiff"
+      },
       "ColumnChangeResponse": {
         "properties": {
           "name": {
@@ -5590,6 +7279,93 @@
           "breaking"
         ],
         "title": "ColumnChangeResponse"
+      },
+      "ConcurrencyGroupPutRequest": {
+        "properties": {
+          "max_parallel": {
+            "type": "integer",
+            "maximum": 64.0,
+            "minimum": 1.0,
+            "title": "Max Parallel"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          }
+        },
+        "type": "object",
+        "required": [
+          "max_parallel"
+        ],
+        "title": "ConcurrencyGroupPutRequest"
+      },
+      "ConcurrencyGroupResponse": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "max_parallel": {
+            "type": "integer",
+            "title": "Max Parallel"
+          },
+          "pipelines": {
+            "type": "integer",
+            "title": "Pipelines",
+            "description": "Pipelines que pertenecen al grupo"
+          },
+          "running": {
+            "type": "integer",
+            "title": "Running",
+            "description": "Ejecuciones del grupo en curso"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "updated_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated By"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "description",
+          "max_parallel",
+          "pipelines",
+          "running",
+          "updated_at",
+          "updated_by"
+        ],
+        "title": "ConcurrencyGroupResponse"
       },
       "CredentialInfo": {
         "properties": {
@@ -7308,6 +9084,25 @@
         ],
         "title": "EntraTestStepResponse"
       },
+      "ErrorKind": {
+        "type": "string",
+        "enum": [
+          "transient",
+          "configuration",
+          "data",
+          "delta"
+        ],
+        "title": "ErrorKind"
+      },
+      "ExtractionMode": {
+        "type": "string",
+        "enum": [
+          "FULL",
+          "DELTA",
+          "WATERMARK"
+        ],
+        "title": "ExtractionMode"
+      },
       "FieldError": {
         "properties": {
           "field": {
@@ -7421,6 +9216,34 @@
           "le"
         ],
         "title": "FilterOperator"
+      },
+      "FindingResponse": {
+        "properties": {
+          "severity": {
+            "$ref": "#/components/schemas/Severity",
+            "description": "«error» impide activar"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "field": {
+            "type": "string",
+            "title": "Field"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "severity",
+          "code",
+          "field",
+          "message"
+        ],
+        "title": "FindingResponse"
       },
       "GroupMappingIn": {
         "properties": {
@@ -7665,6 +9488,71 @@
         ],
         "title": "InspectionResponse"
       },
+      "LoadBody": {
+        "properties": {
+          "load_mode": {
+            "$ref": "#/components/schemas/LoadMode"
+          },
+          "target_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 128
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Name",
+            "description": "Tabla o prefijo de archivo; por defecto sistema_origen"
+          },
+          "create_if_missing": {
+            "type": "boolean",
+            "title": "Create If Missing",
+            "default": true
+          },
+          "schema_evolution": {
+            "$ref": "#/components/schemas/SchemaEvolution",
+            "default": "add_columns"
+          },
+          "delete_handling": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DeleteHandling"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Por defecto «soft» con upsert e «ignore» en el resto"
+          },
+          "technical_columns": {
+            "type": "boolean",
+            "title": "Technical Columns",
+            "default": true
+          },
+          "column_mapping": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Column Mapping",
+            "description": "Columna SAP → nombre en destino; null la excluye"
+          }
+        },
+        "type": "object",
+        "required": [
+          "load_mode"
+        ],
+        "title": "LoadBody"
+      },
       "LoadMode": {
         "type": "string",
         "enum": [
@@ -7673,6 +9561,66 @@
           "replace"
         ],
         "title": "LoadMode"
+      },
+      "LoadResponse": {
+        "properties": {
+          "load_mode": {
+            "$ref": "#/components/schemas/LoadMode"
+          },
+          "target_name": {
+            "type": "string",
+            "title": "Target Name"
+          },
+          "create_if_missing": {
+            "type": "boolean",
+            "title": "Create If Missing"
+          },
+          "schema_evolution": {
+            "$ref": "#/components/schemas/SchemaEvolution"
+          },
+          "delete_handling": {
+            "$ref": "#/components/schemas/DeleteHandling"
+          },
+          "technical_columns": {
+            "type": "boolean",
+            "title": "Technical Columns"
+          },
+          "column_mapping": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Column Mapping"
+          }
+        },
+        "type": "object",
+        "required": [
+          "load_mode",
+          "target_name",
+          "create_if_missing",
+          "schema_evolution",
+          "delete_handling",
+          "technical_columns",
+          "column_mapping"
+        ],
+        "title": "LoadResponse"
+      },
+      "LogLevel": {
+        "type": "string",
+        "enum": [
+          "DEBUG",
+          "INFO",
+          "WARNING",
+          "ERROR"
+        ],
+        "title": "LogLevel"
       },
       "LoginRequest": {
         "properties": {
@@ -7813,6 +9761,15 @@
           "qr_svg_data_uri"
         ],
         "title": "MfaEnrollmentResponse"
+      },
+      "MisfirePolicy": {
+        "type": "string",
+        "enum": [
+          "skip",
+          "run_once"
+        ],
+        "title": "MisfirePolicy",
+        "description": "Qué hacer con un disparo que llega tarde (scheduler caído o pipeline sin hueco)."
       },
       "OAuth2CredentialsIn": {
         "properties": {
@@ -7955,6 +9912,68 @@
         ],
         "title": "Page[DestinationSummary]"
       },
+      "Page_PipelineSummary_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PipelineSummary"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "page_size": {
+            "type": "integer",
+            "title": "Page Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "page_size"
+        ],
+        "title": "Page[PipelineSummary]"
+      },
+      "Page_RunSummary_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/RunSummary"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "page_size": {
+            "type": "integer",
+            "title": "Page Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "page_size"
+        ],
+        "title": "Page[RunSummary]"
+      },
       "Page_SapSystemSummary_": {
         "properties": {
           "items": {
@@ -8076,6 +10095,26 @@
         ],
         "title": "PasswordChangeRequest"
       },
+      "PauseResponse": {
+        "properties": {
+          "pipeline": {
+            "$ref": "#/components/schemas/PipelineDetail"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pipeline",
+          "warnings"
+        ],
+        "title": "PauseResponse"
+      },
       "PermissionResponse": {
         "properties": {
           "code": {
@@ -8103,6 +10142,943 @@
           "description"
         ],
         "title": "PermissionResponse"
+      },
+      "PipelineActivateRequest": {
+        "properties": {
+          "cross_environment_reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cross Environment Reason",
+            "description": "Obligatorio si el entorno del sistema SAP y el del destino no coinciden"
+          }
+        },
+        "type": "object",
+        "title": "PipelineActivateRequest"
+      },
+      "PipelineCloneRequest": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 3,
+            "title": "Code"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "sap_system_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sap System Id",
+            "description": "Otro sistema SAP (DEV → QAS → PRD)"
+          },
+          "destination_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Destination Id"
+          },
+          "source_code": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Code",
+            "description": "Código del origen si hay que crearlo en ese sistema"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code"
+        ],
+        "title": "PipelineCloneRequest"
+      },
+      "PipelineCreateRequest": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 3,
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "source_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Source Id"
+          },
+          "destination_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Destination Id"
+          },
+          "extraction_mode": {
+            "$ref": "#/components/schemas/ExtractionMode"
+          },
+          "load": {
+            "$ref": "#/components/schemas/LoadBody"
+          },
+          "filters": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/FilterConditionBody"
+                },
+                "type": "array",
+                "maxItems": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filters",
+            "description": "Si se omiten, los filtros por defecto del origen"
+          },
+          "priority": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Priority",
+            "description": "1 es la más urgente",
+            "default": 3
+          },
+          "timeout_minutes": {
+            "type": "integer",
+            "maximum": 2880.0,
+            "minimum": 1.0,
+            "title": "Timeout Minutes",
+            "default": 120
+          },
+          "retry_policy": {
+            "$ref": "#/components/schemas/RetryPolicyBody"
+          },
+          "concurrency_group": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 30
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Concurrency Group"
+          },
+          "worker_pool": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 30
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Worker Pool"
+          },
+          "log_level": {
+            "$ref": "#/components/schemas/LogLevel",
+            "default": "INFO"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Tags"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "name",
+          "source_id",
+          "destination_id",
+          "extraction_mode",
+          "load"
+        ],
+        "title": "PipelineCreateRequest"
+      },
+      "PipelineDestinationRef": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "type": {
+            "$ref": "#/components/schemas/DestinationType"
+          },
+          "environment": {
+            "$ref": "#/components/schemas/DestinationEnvironment"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "name",
+          "type",
+          "environment"
+        ],
+        "title": "PipelineDestinationRef"
+      },
+      "PipelineDetail": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PipelineStatus"
+          },
+          "extraction_mode": {
+            "$ref": "#/components/schemas/ExtractionMode"
+          },
+          "load_mode": {
+            "$ref": "#/components/schemas/LoadMode"
+          },
+          "source": {
+            "$ref": "#/components/schemas/PipelineSourceRef"
+          },
+          "sap_system": {
+            "$ref": "#/components/schemas/SourceSystemRef"
+          },
+          "destination": {
+            "$ref": "#/components/schemas/PipelineDestinationRef"
+          },
+          "cross_environment": {
+            "type": "boolean",
+            "title": "Cross Environment",
+            "description": "El entorno del sistema SAP y el del destino no coinciden"
+          },
+          "priority": {
+            "type": "integer",
+            "title": "Priority"
+          },
+          "worker_pool": {
+            "type": "string",
+            "title": "Worker Pool"
+          },
+          "concurrency_group": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Concurrency Group"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags"
+          },
+          "next_fire_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Fire At"
+          },
+          "live_run": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RunBrief"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Ejecución en cola o en curso"
+          },
+          "last_run": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RunBrief"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Última ejecución terminada"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "load": {
+            "$ref": "#/components/schemas/LoadResponse"
+          },
+          "filters": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/FilterConditionResponse"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filters",
+            "description": "null: se usan los filtros por defecto del origen"
+          },
+          "timeout_minutes": {
+            "type": "integer",
+            "title": "Timeout Minutes"
+          },
+          "retry_policy": {
+            "$ref": "#/components/schemas/RetryPolicyResponse"
+          },
+          "log_level": {
+            "$ref": "#/components/schemas/LogLevel"
+          },
+          "status_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status Reason"
+          },
+          "cross_environment_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cross Environment Reason"
+          },
+          "cloned_from_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cloned From Id"
+          },
+          "owner_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner Id"
+          },
+          "activated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Activated At"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          },
+          "updated_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated By"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "findings": {
+            "items": {
+              "$ref": "#/components/schemas/FindingResponse"
+            },
+            "type": "array",
+            "title": "Findings",
+            "description": "Avisos y bloqueos de la configuración"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "name",
+          "status",
+          "extraction_mode",
+          "load_mode",
+          "source",
+          "sap_system",
+          "destination",
+          "cross_environment",
+          "priority",
+          "worker_pool",
+          "concurrency_group",
+          "tags",
+          "next_fire_at",
+          "live_run",
+          "last_run",
+          "updated_at",
+          "description",
+          "load",
+          "filters",
+          "timeout_minutes",
+          "retry_policy",
+          "log_level",
+          "status_reason",
+          "cross_environment_reason",
+          "cloned_from_id",
+          "owner_id",
+          "activated_at",
+          "created_at",
+          "created_by",
+          "updated_by",
+          "version",
+          "findings"
+        ],
+        "title": "PipelineDetail"
+      },
+      "PipelineReasonRequest": {
+        "properties": {
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "title": "PipelineReasonRequest"
+      },
+      "PipelineReviewRequest": {
+        "properties": {
+          "source_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Source Id"
+          },
+          "destination_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Destination Id"
+          },
+          "extraction_mode": {
+            "$ref": "#/components/schemas/ExtractionMode"
+          },
+          "load_mode": {
+            "$ref": "#/components/schemas/LoadMode"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source_id",
+          "destination_id",
+          "extraction_mode",
+          "load_mode"
+        ],
+        "title": "PipelineReviewRequest"
+      },
+      "PipelineSourceRef": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "delta_method": {
+            "$ref": "#/components/schemas/DeltaMethod"
+          },
+          "delta_semantics": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DeltaSemantics"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "name",
+          "delta_method",
+          "delta_semantics"
+        ],
+        "title": "PipelineSourceRef"
+      },
+      "PipelineStatus": {
+        "type": "string",
+        "enum": [
+          "draft",
+          "active",
+          "paused"
+        ],
+        "title": "PipelineStatus"
+      },
+      "PipelineSummary": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PipelineStatus"
+          },
+          "extraction_mode": {
+            "$ref": "#/components/schemas/ExtractionMode"
+          },
+          "load_mode": {
+            "$ref": "#/components/schemas/LoadMode"
+          },
+          "source": {
+            "$ref": "#/components/schemas/PipelineSourceRef"
+          },
+          "sap_system": {
+            "$ref": "#/components/schemas/SourceSystemRef"
+          },
+          "destination": {
+            "$ref": "#/components/schemas/PipelineDestinationRef"
+          },
+          "cross_environment": {
+            "type": "boolean",
+            "title": "Cross Environment",
+            "description": "El entorno del sistema SAP y el del destino no coinciden"
+          },
+          "priority": {
+            "type": "integer",
+            "title": "Priority"
+          },
+          "worker_pool": {
+            "type": "string",
+            "title": "Worker Pool"
+          },
+          "concurrency_group": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Concurrency Group"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags"
+          },
+          "next_fire_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Fire At"
+          },
+          "live_run": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RunBrief"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Ejecución en cola o en curso"
+          },
+          "last_run": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RunBrief"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Última ejecución terminada"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "name",
+          "status",
+          "extraction_mode",
+          "load_mode",
+          "source",
+          "sap_system",
+          "destination",
+          "cross_environment",
+          "priority",
+          "worker_pool",
+          "concurrency_group",
+          "tags",
+          "next_fire_at",
+          "live_run",
+          "last_run",
+          "updated_at"
+        ],
+        "title": "PipelineSummary"
+      },
+      "PipelineUpdateRequest": {
+        "properties": {
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version",
+            "description": "Versión leída (control de concurrencia)"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "source_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Id",
+            "description": "Solo en borrador"
+          },
+          "destination_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Destination Id",
+            "description": "Solo en borrador"
+          },
+          "extraction_mode": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ExtractionMode"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Solo en borrador"
+          },
+          "load": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LoadBody"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "filters": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/FilterConditionBody"
+                },
+                "type": "array",
+                "maxItems": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filters"
+          },
+          "use_source_filters": {
+            "type": "boolean",
+            "title": "Use Source Filters",
+            "description": "Vuelve a los filtros por defecto del origen",
+            "default": false
+          },
+          "priority": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 5.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Priority"
+          },
+          "timeout_minutes": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 2880.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timeout Minutes"
+          },
+          "retry_policy": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RetryPolicyBody"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "concurrency_group": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 30
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Concurrency Group",
+            "description": "'' quita el grupo"
+          },
+          "worker_pool": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 30
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Worker Pool"
+          },
+          "log_level": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LogLevel"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "tags": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array",
+                "maxItems": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tags"
+          }
+        },
+        "type": "object",
+        "title": "PipelineUpdateRequest"
       },
       "PreviewResponse": {
         "properties": {
@@ -8342,6 +11318,59 @@
         "type": "object",
         "title": "ReasonRequest"
       },
+      "RetryPolicyBody": {
+        "properties": {
+          "max_attempts": {
+            "type": "integer",
+            "maximum": 10.0,
+            "minimum": 1.0,
+            "title": "Max Attempts",
+            "default": 3
+          },
+          "backoff_minutes": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "minItems": 1,
+            "title": "Backoff Minutes"
+          },
+          "jitter": {
+            "type": "boolean",
+            "title": "Jitter",
+            "default": true
+          }
+        },
+        "type": "object",
+        "title": "RetryPolicyBody"
+      },
+      "RetryPolicyResponse": {
+        "properties": {
+          "max_attempts": {
+            "type": "integer",
+            "title": "Max Attempts"
+          },
+          "backoff_minutes": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Backoff Minutes"
+          },
+          "jitter": {
+            "type": "boolean",
+            "title": "Jitter"
+          }
+        },
+        "type": "object",
+        "required": [
+          "max_attempts",
+          "backoff_minutes",
+          "jitter"
+        ],
+        "title": "RetryPolicyResponse"
+      },
       "RevokedResponse": {
         "properties": {
           "revoked": {
@@ -8547,6 +11576,564 @@
         "type": "object",
         "title": "RoleUpdateRequest"
       },
+      "RunBrief": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/RunMode"
+          },
+          "status": {
+            "$ref": "#/components/schemas/RunStatus"
+          },
+          "trigger": {
+            "$ref": "#/components/schemas/RunTrigger"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "mode",
+          "status",
+          "trigger",
+          "created_at",
+          "started_at",
+          "finished_at",
+          "error_code"
+        ],
+        "title": "RunBrief"
+      },
+      "RunDetail": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "pipeline": {
+            "$ref": "#/components/schemas/RunPipelineRef"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/RunMode"
+          },
+          "status": {
+            "$ref": "#/components/schemas/RunStatus"
+          },
+          "trigger": {
+            "$ref": "#/components/schemas/RunTrigger"
+          },
+          "triggered_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Triggered By"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "priority": {
+            "type": "integer",
+            "title": "Priority"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "available_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Available At"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "cancel_requested_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancel Requested At"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "error_kind": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorKind"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Message"
+          },
+          "attempts": {
+            "items": {
+              "$ref": "#/components/schemas/AttemptResponse"
+            },
+            "type": "array",
+            "title": "Attempts"
+          },
+          "attempts_budget": {
+            "type": "integer",
+            "title": "Attempts Budget",
+            "description": "Intentos fallidos que el run puede gastar"
+          },
+          "claimed_by": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Claimed By"
+          },
+          "heartbeat_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Heartbeat At"
+          },
+          "cancel_requested_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancel Requested By"
+          },
+          "batch_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Batch Id"
+          },
+          "delta_generation": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delta Generation"
+          },
+          "start_token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Token"
+          },
+          "window_start": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Window Start"
+          },
+          "window_end": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Window End"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "pipeline",
+          "mode",
+          "status",
+          "trigger",
+          "triggered_by",
+          "reason",
+          "priority",
+          "created_at",
+          "available_at",
+          "started_at",
+          "finished_at",
+          "cancel_requested_at",
+          "error_code",
+          "error_kind",
+          "error_message",
+          "attempts",
+          "attempts_budget",
+          "claimed_by",
+          "heartbeat_at",
+          "cancel_requested_by",
+          "batch_id",
+          "delta_generation",
+          "start_token",
+          "window_start",
+          "window_end"
+        ],
+        "title": "RunDetail"
+      },
+      "RunMode": {
+        "type": "string",
+        "enum": [
+          "FULL",
+          "DELTA_INIT",
+          "DELTA",
+          "WATERMARK"
+        ],
+        "title": "RunMode"
+      },
+      "RunPipelineRef": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "name"
+        ],
+        "title": "RunPipelineRef"
+      },
+      "RunStatus": {
+        "type": "string",
+        "enum": [
+          "queued",
+          "running",
+          "succeeded",
+          "failed",
+          "cancelled"
+        ],
+        "title": "RunStatus"
+      },
+      "RunSummary": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "pipeline": {
+            "$ref": "#/components/schemas/RunPipelineRef"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/RunMode"
+          },
+          "status": {
+            "$ref": "#/components/schemas/RunStatus"
+          },
+          "trigger": {
+            "$ref": "#/components/schemas/RunTrigger"
+          },
+          "triggered_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Triggered By"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "priority": {
+            "type": "integer",
+            "title": "Priority"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "available_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Available At"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "cancel_requested_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancel Requested At"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "error_kind": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorKind"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "pipeline",
+          "mode",
+          "status",
+          "trigger",
+          "triggered_by",
+          "reason",
+          "priority",
+          "created_at",
+          "available_at",
+          "started_at",
+          "finished_at",
+          "cancel_requested_at",
+          "error_code",
+          "error_kind",
+          "error_message"
+        ],
+        "title": "RunSummary"
+      },
+      "RunTrigger": {
+        "type": "string",
+        "enum": [
+          "schedule",
+          "manual",
+          "api",
+          "dependency"
+        ],
+        "title": "RunTrigger"
+      },
+      "RunTriggerRequest": {
+        "properties": {
+          "mode": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RunMode"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "FULL sobre un pipeline incremental lanza una recarga completa"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "title": "RunTriggerRequest"
+      },
       "SapEnvironment": {
         "type": "string",
         "enum": [
@@ -8626,6 +12213,20 @@
             "minimum": 1.0,
             "title": "Max Concurrent Requests",
             "default": 4
+          },
+          "max_concurrent_runs": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 16.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Concurrent Runs",
+            "description": "Extracciones simultáneas contra este sistema (por defecto 2)"
           },
           "code": {
             "type": "string",
@@ -8837,6 +12438,10 @@
             "type": "integer",
             "title": "Max Concurrent Requests"
           },
+          "max_concurrent_runs": {
+            "type": "integer",
+            "title": "Max Concurrent Runs"
+          },
           "status_reason": {
             "anyOf": [
               {
@@ -8921,6 +12526,7 @@
           "proxy_url",
           "timeout_seconds",
           "max_concurrent_requests",
+          "max_concurrent_runs",
           "status_reason",
           "last_test_result",
           "created_at",
@@ -9176,6 +12782,20 @@
             "title": "Max Concurrent Requests",
             "default": 4
           },
+          "max_concurrent_runs": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 16.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Concurrent Runs",
+            "description": "Extracciones simultáneas contra este sistema (por defecto 2)"
+          },
           "code": {
             "anyOf": [
               {
@@ -9414,6 +13034,19 @@
               }
             ],
             "title": "Max Concurrent Requests"
+          },
+          "max_concurrent_runs": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 16.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Concurrent Runs"
           }
         },
         "type": "object",
@@ -9440,6 +13073,385 @@
           "system"
         ],
         "title": "SapSystemWithTestResponse"
+      },
+      "ScheduleBody": {
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/ScheduleType"
+          },
+          "cron_expression": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cron Expression"
+          },
+          "interval_minutes": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 44640.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interval Minutes"
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 60
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timezone",
+            "description": "Zona IANA; por defecto la de la plataforma"
+          },
+          "start_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start At"
+          },
+          "end_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End At"
+          },
+          "blackout_windows": {
+            "items": {
+              "$ref": "#/components/schemas/BlackoutWindowBody"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Blackout Windows"
+          },
+          "misfire_policy": {
+            "$ref": "#/components/schemas/MisfirePolicy",
+            "default": "skip"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "type"
+        ],
+        "title": "ScheduleBody"
+      },
+      "SchedulePreviewRequest": {
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/ScheduleType"
+          },
+          "cron_expression": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cron Expression"
+          },
+          "interval_minutes": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 44640.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interval Minutes"
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 60
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timezone",
+            "description": "Zona IANA; por defecto la de la plataforma"
+          },
+          "start_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start At"
+          },
+          "end_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End At"
+          },
+          "blackout_windows": {
+            "items": {
+              "$ref": "#/components/schemas/BlackoutWindowBody"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Blackout Windows"
+          },
+          "misfire_policy": {
+            "$ref": "#/components/schemas/MisfirePolicy",
+            "default": "skip"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": true
+          },
+          "count": {
+            "type": "integer",
+            "maximum": 50.0,
+            "minimum": 1.0,
+            "title": "Count",
+            "default": 10
+          }
+        },
+        "type": "object",
+        "required": [
+          "type"
+        ],
+        "title": "SchedulePreviewRequest"
+      },
+      "SchedulePreviewResponse": {
+        "properties": {
+          "timezone": {
+            "type": "string",
+            "title": "Timezone"
+          },
+          "fires": {
+            "items": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "type": "array",
+            "title": "Fires",
+            "description": "Próximas ejecuciones, sin las que caen en exclusión"
+          }
+        },
+        "type": "object",
+        "required": [
+          "timezone",
+          "fires"
+        ],
+        "title": "SchedulePreviewResponse"
+      },
+      "ScheduleResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ScheduleType"
+          },
+          "cron_expression": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cron Expression"
+          },
+          "interval_minutes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interval Minutes"
+          },
+          "timezone": {
+            "type": "string",
+            "title": "Timezone"
+          },
+          "start_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start At"
+          },
+          "end_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End At"
+          },
+          "blackout_windows": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Blackout Windows"
+          },
+          "misfire_policy": {
+            "$ref": "#/components/schemas/MisfirePolicy"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled"
+          },
+          "next_fire_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Fire At"
+          },
+          "last_fire_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Fire At"
+          },
+          "last_skip_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Skip At"
+          },
+          "last_skip_reason": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SkipReason"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "cron_expression",
+          "interval_minutes",
+          "timezone",
+          "start_at",
+          "end_at",
+          "blackout_windows",
+          "misfire_policy",
+          "enabled",
+          "next_fire_at",
+          "last_fire_at",
+          "last_skip_at",
+          "last_skip_reason"
+        ],
+        "title": "ScheduleResponse"
+      },
+      "ScheduleType": {
+        "type": "string",
+        "enum": [
+          "cron",
+          "interval",
+          "manual_only"
+        ],
+        "title": "ScheduleType"
+      },
+      "SchedulesPutRequest": {
+        "properties": {
+          "schedules": {
+            "items": {
+              "$ref": "#/components/schemas/ScheduleBody"
+            },
+            "type": "array",
+            "maxItems": 5,
+            "title": "Schedules"
+          }
+        },
+        "type": "object",
+        "required": [
+          "schedules"
+        ],
+        "title": "SchedulesPutRequest"
       },
       "SchemaColumnResponse": {
         "properties": {
@@ -9877,6 +13889,23 @@
         ],
         "title": "SessionStatusResponse",
         "description": "Paso en el que queda la sesión tras la operación."
+      },
+      "Severity": {
+        "type": "string",
+        "enum": [
+          "error",
+          "warning"
+        ],
+        "title": "Severity"
+      },
+      "SkipReason": {
+        "type": "string",
+        "enum": [
+          "blackout",
+          "misfire",
+          "already_live"
+        ],
+        "title": "SkipReason"
       },
       "SourceCreateRequest": {
         "properties": {
@@ -11255,6 +15284,82 @@
           "decimal_timestamp"
         ],
         "title": "WatermarkKind"
+      },
+      "WorkerResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "hostname": {
+            "type": "string",
+            "title": "Hostname"
+          },
+          "pid": {
+            "type": "integer",
+            "title": "Pid"
+          },
+          "pools": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Pools"
+          },
+          "status": {
+            "$ref": "#/components/schemas/WorkerStatus"
+          },
+          "has_executor": {
+            "type": "boolean",
+            "title": "Has Executor",
+            "description": "false: el worker está vivo pero no toma ejecuciones"
+          },
+          "current_run_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Run Id"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At"
+          },
+          "heartbeat_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Heartbeat At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "hostname",
+          "pid",
+          "pools",
+          "status",
+          "has_executor",
+          "current_run_id",
+          "started_at",
+          "heartbeat_at"
+        ],
+        "title": "WorkerResponse"
+      },
+      "WorkerStatus": {
+        "type": "string",
+        "enum": [
+          "online",
+          "stopping",
+          "offline"
+        ],
+        "title": "WorkerStatus"
       },
       "X509CredentialsIn": {
         "properties": {

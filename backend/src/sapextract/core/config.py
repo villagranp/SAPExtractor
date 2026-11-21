@@ -134,6 +134,17 @@ class Settings(BaseSettings):
     scheduler_tick_seconds: float = 5.0
     worker_poll_seconds: float = 5.0
     spool_dir: Path = Path("spool")
+    worker_pools: list[str] = Field(
+        default_factory=lambda: ["default"],
+        description="Pools de los que este worker toma runs (p. ej. uno reservado para PRD)",
+    )
+    worker_heartbeat_seconds: float = Field(15.0, gt=0)
+    run_stale_seconds: float = Field(
+        90.0, gt=0, description="Sin latido durante este tiempo, el intento se da por caído"
+    )
+    scheduler_misfire_grace_seconds: float = Field(
+        60.0, ge=0, description="Retraso a partir del cual un disparo cuenta como atrasado"
+    )
 
     @model_validator(mode="after")
     def _validate_network(self) -> Self:
@@ -147,6 +158,12 @@ class Settings(BaseSettings):
             except ValueError:
                 msg = f"SX_TRUSTED_PROXIES: «{proxy}» no es una IP ni una red CIDR"
                 raise ValueError(msg) from None
+        if self.run_stale_seconds < 2 * self.worker_heartbeat_seconds:
+            msg = "SX_RUN_STALE_SECONDS debe ser al menos el doble de SX_WORKER_HEARTBEAT_SECONDS"
+            raise ValueError(msg)
+        if not self.worker_pools:
+            msg = "SX_WORKER_POOLS no puede estar vacío"
+            raise ValueError(msg)
         return self
 
     @model_validator(mode="after")

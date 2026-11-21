@@ -50,6 +50,8 @@ class SapToolkit:
     explorer_retry: RetryPolicy = field(default_factory=lambda: RetryPolicy(max_attempts=2))
     # Los módulos de orígenes (It3) y pipelines (It6) registran aquí sus dependencias.
     dependents: list[DependentsProvider] = field(default_factory=list)
+    # Quién usa un origen (pipelines, It6): recibe el id del origen.
+    source_dependents: list[DependentsProvider] = field(default_factory=list)
 
     @classmethod
     def build(

@@ -1194,10 +1194,333 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/pipelines": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Pipelines */
+        get: operations["list_pipelines_api_v1_pipelines_get"];
+        put?: never;
+        /** Alta de pipeline (queda en borrador) */
+        post: operations["create_pipeline_api_v1_pipelines_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pipelines/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Avisos de una combinación origen, destino y carga, sin guardar (asistente) */
+        post: operations["review_pipeline_api_v1_pipelines_review_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pipelines/{pipeline_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Detalle de pipeline */
+        get: operations["get_pipeline_api_v1_pipelines__pipeline_id__get"];
+        put?: never;
+        post?: never;
+        /** Baja lógica de pipeline; no se permite con una ejecución en cola o en curso */
+        delete: operations["delete_pipeline_api_v1_pipelines__pipeline_id__delete"];
+        options?: never;
+        head?: never;
+        /** Edición de pipeline */
+        patch: operations["update_pipeline_api_v1_pipelines__pipeline_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/pipelines/{pipeline_id}/validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Comprobación previa a activar, sin cambiar nada (lee el $metadata en SAP) */
+        post: operations["validate_pipeline_api_v1_pipelines__pipeline_id__validate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pipelines/{pipeline_id}/activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Activar pipeline (exige pasar la comprobación previa) */
+        post: operations["activate_pipeline_api_v1_pipelines__pipeline_id__activate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pipelines/{pipeline_id}/pause": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Pausar: suspende la programación; la ejecución en curso termina */
+        post: operations["pause_pipeline_api_v1_pipelines__pipeline_id__pause_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pipelines/{pipeline_id}/resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reanudar un pipeline en pausa */
+        post: operations["resume_pipeline_api_v1_pipelines__pipeline_id__resume_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pipelines/{pipeline_id}/clone": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Clonar sin estado de delta; admite otro sistema SAP y otro destino */
+        post: operations["clone_pipeline_api_v1_pipelines__pipeline_id__clone_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pipelines/{pipeline_id}/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ejecutar ahora (prioridad alta) */
+        post: operations["run_pipeline_api_v1_pipelines__pipeline_id__run_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pipelines/{pipeline_id}/schedules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Programación del pipeline */
+        get: operations["get_schedules_api_v1_pipelines__pipeline_id__schedules_get"];
+        /** Sustituir la programación del pipeline */
+        put: operations["put_schedules_api_v1_pipelines__pipeline_id__schedules_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schedules/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Próximas ejecuciones de una programación, sin guardarla */
+        post: operations["preview_schedule_api_v1_schedules_preview_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ejecuciones */
+        get: operations["list_runs_api_v1_runs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/runs/{run_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Detalle de ejecución con sus intentos */
+        get: operations["get_run_api_v1_runs__run_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/runs/{run_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancelar: una ejecución en curso para entre páginas */
+        post: operations["cancel_run_api_v1_runs__run_id__cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/runs/{run_id}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reintentar una ejecución fallida (añade un intento al mismo run) */
+        post: operations["retry_run_api_v1_runs__run_id__retry_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Workers registrados */
+        get: operations["list_workers_api_v1_workers_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/concurrency-groups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Grupos de concurrencia */
+        get: operations["list_groups_api_v1_concurrency_groups_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/concurrency-groups/{code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Crear o cambiar un grupo de concurrencia */
+        put: operations["put_group_api_v1_concurrency_groups__code__put"];
+        post?: never;
+        /** Eliminar un grupo de concurrencia sin pipelines */
+        delete: operations["delete_group_api_v1_concurrency_groups__code__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** ActivationReportResponse */
+        ActivationReportResponse: {
+            /**
+             * Ok
+             * @description El pipeline puede activarse
+             */
+            ok: boolean;
+            /** Checks */
+            checks: components["schemas"]["CheckResponse"][];
+            /** Findings */
+            findings: components["schemas"]["FindingResponse"][];
+        };
         /** AnonymizeRequest */
         AnonymizeRequest: {
             /**
@@ -1276,6 +1599,36 @@ export interface components {
             last_used_at: string | null;
             /** Revoked At */
             revoked_at: string | null;
+        };
+        /**
+         * AttemptOutcome
+         * @description Cómo terminó un intento (ADR 0006 §5).
+         * @enum {string}
+         */
+        AttemptOutcome: "succeeded" | "failed_transient" | "failed" | "stale" | "fenced" | "interrupted" | "cancelled";
+        /** AttemptResponse */
+        AttemptResponse: {
+            /** Number */
+            number: number;
+            /**
+             * Worker Id
+             * Format: uuid
+             */
+            worker_id: string;
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /** Finished At */
+            finished_at: string | null;
+            /** @description null: intento en curso */
+            outcome: components["schemas"]["AttemptOutcome"] | null;
+            /** Error Code */
+            error_code: string | null;
+            error_kind: components["schemas"]["ErrorKind"] | null;
+            /** Error Message */
+            error_message: string | null;
         };
         /** AuditActionInfo */
         AuditActionInfo: {
@@ -1414,6 +1767,42 @@ export interface components {
              */
             password: string;
         };
+        /**
+         * BlackoutKind
+         * @enum {string}
+         */
+        BlackoutKind: "weekly" | "range";
+        /** BlackoutWindowBody */
+        BlackoutWindowBody: {
+            kind: components["schemas"]["BlackoutKind"];
+            /** Label */
+            label?: string | null;
+            /**
+             * Days
+             * @description Semanal: 0 = lunes … 6 = domingo
+             */
+            days?: number[];
+            /**
+             * Start
+             * @description Semanal: hora local de inicio (HH:MM)
+             */
+            start?: string | null;
+            /**
+             * End
+             * @description Semanal: hora local de fin; puede ser del día siguiente
+             */
+            end?: string | null;
+            /**
+             * Start At
+             * @description Por fechas: inicio
+             */
+            start_at?: string | null;
+            /**
+             * End At
+             * @description Por fechas: fin
+             */
+            end_at?: string | null;
+        };
         /** CatalogPageResponse */
         CatalogPageResponse: {
             /** Items */
@@ -1502,6 +1891,15 @@ export interface components {
             /** Steps */
             steps: components["schemas"]["CheckStepResponse"][];
         };
+        /** CheckResponse */
+        CheckResponse: {
+            /** Code */
+            code: string;
+            /** Ok */
+            ok: boolean;
+            /** Message */
+            message: string;
+        };
         /** CheckResult */
         CheckResult: {
             status: components["schemas"]["CheckStatus"];
@@ -1535,6 +1933,31 @@ export interface components {
          * @enum {string}
          */
         ClassificationSource: "entity_sets" | "name";
+        /** CloneResponse */
+        CloneResponse: {
+            pipeline: components["schemas"]["PipelineDetail"];
+            /**
+             * Source Created
+             * @description Se creó un origen nuevo en el sistema elegido
+             */
+            source_created: boolean;
+            /** @description Diferencias de esquema contra el origen de partida (otro sistema SAP) */
+            schema_diff: components["schemas"]["CloneSchemaDiff"] | null;
+        };
+        /** CloneSchemaDiff */
+        CloneSchemaDiff: {
+            /**
+             * Breaking
+             * @description Columna eliminada o cambio incompatible
+             */
+            breaking: boolean;
+            /** Added */
+            added: components["schemas"]["DiffColumnResponse"][];
+            /** Removed */
+            removed: components["schemas"]["DiffColumnResponse"][];
+            /** Changed */
+            changed: components["schemas"]["ColumnChangeResponse"][];
+        };
         /** ColumnChangeResponse */
         ColumnChangeResponse: {
             /** Name */
@@ -1549,6 +1972,39 @@ export interface components {
             };
             /** Breaking */
             breaking: boolean;
+        };
+        /** ConcurrencyGroupPutRequest */
+        ConcurrencyGroupPutRequest: {
+            /** Max Parallel */
+            max_parallel: number;
+            /** Description */
+            description?: string | null;
+        };
+        /** ConcurrencyGroupResponse */
+        ConcurrencyGroupResponse: {
+            /** Code */
+            code: string;
+            /** Description */
+            description: string | null;
+            /** Max Parallel */
+            max_parallel: number;
+            /**
+             * Pipelines
+             * @description Pipelines que pertenecen al grupo
+             */
+            pipelines: number;
+            /**
+             * Running
+             * @description Ejecuciones del grupo en curso
+             */
+            running: number;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Updated By */
+            updated_by: string | null;
         };
         /**
          * CredentialInfo
@@ -2125,6 +2581,16 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /**
+         * ErrorKind
+         * @enum {string}
+         */
+        ErrorKind: "transient" | "configuration" | "data" | "delta";
+        /**
+         * ExtractionMode
+         * @enum {string}
+         */
+        ExtractionMode: "FULL" | "DELTA" | "WATERMARK";
         /** FieldError */
         FieldError: {
             /** Field */
@@ -2158,6 +2624,17 @@ export interface components {
          * @enum {string}
          */
         FilterOperator: "eq" | "ne" | "gt" | "ge" | "lt" | "le";
+        /** FindingResponse */
+        FindingResponse: {
+            /** @description «error» impide activar */
+            severity: components["schemas"]["Severity"];
+            /** Code */
+            code: string;
+            /** Field */
+            field: string;
+            /** Message */
+            message: string;
+        };
         /** GroupMappingIn */
         GroupMappingIn: {
             /** Group Object Id */
@@ -2239,11 +2716,62 @@ export interface components {
                 [key: string]: components["schemas"]["DeltaSemantics"];
             };
         };
+        /** LoadBody */
+        LoadBody: {
+            load_mode: components["schemas"]["LoadMode"];
+            /**
+             * Target Name
+             * @description Tabla o prefijo de archivo; por defecto sistema_origen
+             */
+            target_name?: string | null;
+            /**
+             * Create If Missing
+             * @default true
+             */
+            create_if_missing: boolean;
+            /** @default add_columns */
+            schema_evolution: components["schemas"]["SchemaEvolution"];
+            /** @description Por defecto «soft» con upsert e «ignore» en el resto */
+            delete_handling?: components["schemas"]["DeleteHandling"] | null;
+            /**
+             * Technical Columns
+             * @default true
+             */
+            technical_columns: boolean;
+            /**
+             * Column Mapping
+             * @description Columna SAP → nombre en destino; null la excluye
+             */
+            column_mapping?: {
+                [key: string]: string | null;
+            };
+        };
         /**
          * LoadMode
          * @enum {string}
          */
         LoadMode: "append" | "upsert" | "replace";
+        /** LoadResponse */
+        LoadResponse: {
+            load_mode: components["schemas"]["LoadMode"];
+            /** Target Name */
+            target_name: string;
+            /** Create If Missing */
+            create_if_missing: boolean;
+            schema_evolution: components["schemas"]["SchemaEvolution"];
+            delete_handling: components["schemas"]["DeleteHandling"];
+            /** Technical Columns */
+            technical_columns: boolean;
+            /** Column Mapping */
+            column_mapping: {
+                [key: string]: string | null;
+            };
+        };
+        /**
+         * LogLevel
+         * @enum {string}
+         */
+        LogLevel: "DEBUG" | "INFO" | "WARNING" | "ERROR";
         /** LoginRequest */
         LoginRequest: {
             /** Username */
@@ -2302,6 +2830,12 @@ export interface components {
              */
             qr_svg_data_uri: string;
         };
+        /**
+         * MisfirePolicy
+         * @description Qué hacer con un disparo que llega tarde (scheduler caído o pipeline sin hueco).
+         * @enum {string}
+         */
+        MisfirePolicy: "skip" | "run_once";
         /** OAuth2CredentialsIn */
         OAuth2CredentialsIn: {
             /**
@@ -2359,6 +2893,28 @@ export interface components {
             /** Page Size */
             page_size: number;
         };
+        /** Page[PipelineSummary] */
+        Page_PipelineSummary_: {
+            /** Items */
+            items: components["schemas"]["PipelineSummary"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+        };
+        /** Page[RunSummary] */
+        Page_RunSummary_: {
+            /** Items */
+            items: components["schemas"]["RunSummary"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+        };
         /** Page[SapSystemSummary] */
         Page_SapSystemSummary_: {
             /** Items */
@@ -2402,6 +2958,12 @@ export interface components {
             /** New Password */
             new_password: string;
         };
+        /** PauseResponse */
+        PauseResponse: {
+            pipeline: components["schemas"]["PipelineDetail"];
+            /** Warnings */
+            warnings: string[];
+        };
         /** PermissionResponse */
         PermissionResponse: {
             /** Code */
@@ -2412,6 +2974,302 @@ export interface components {
             module_name: string;
             /** Description */
             description: string;
+        };
+        /** PipelineActivateRequest */
+        PipelineActivateRequest: {
+            /**
+             * Cross Environment Reason
+             * @description Obligatorio si el entorno del sistema SAP y el del destino no coinciden
+             */
+            cross_environment_reason?: string | null;
+        };
+        /** PipelineCloneRequest */
+        PipelineCloneRequest: {
+            /** Code */
+            code: string;
+            /** Name */
+            name?: string | null;
+            /**
+             * Sap System Id
+             * @description Otro sistema SAP (DEV → QAS → PRD)
+             */
+            sap_system_id?: string | null;
+            /** Destination Id */
+            destination_id?: string | null;
+            /**
+             * Source Code
+             * @description Código del origen si hay que crearlo en ese sistema
+             */
+            source_code?: string | null;
+        };
+        /** PipelineCreateRequest */
+        PipelineCreateRequest: {
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+            /** Description */
+            description?: string | null;
+            /**
+             * Source Id
+             * Format: uuid
+             */
+            source_id: string;
+            /**
+             * Destination Id
+             * Format: uuid
+             */
+            destination_id: string;
+            extraction_mode: components["schemas"]["ExtractionMode"];
+            load: components["schemas"]["LoadBody"];
+            /**
+             * Filters
+             * @description Si se omiten, los filtros por defecto del origen
+             */
+            filters?: components["schemas"]["FilterConditionBody"][] | null;
+            /**
+             * Priority
+             * @description 1 es la más urgente
+             * @default 3
+             */
+            priority: number;
+            /**
+             * Timeout Minutes
+             * @default 120
+             */
+            timeout_minutes: number;
+            retry_policy?: components["schemas"]["RetryPolicyBody"];
+            /** Concurrency Group */
+            concurrency_group?: string | null;
+            /** Worker Pool */
+            worker_pool?: string | null;
+            /** @default INFO */
+            log_level: components["schemas"]["LogLevel"];
+            /** Tags */
+            tags?: string[];
+        };
+        /** PipelineDestinationRef */
+        PipelineDestinationRef: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+            type: components["schemas"]["DestinationType"];
+            environment: components["schemas"]["DestinationEnvironment"];
+        };
+        /** PipelineDetail */
+        PipelineDetail: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+            status: components["schemas"]["PipelineStatus"];
+            extraction_mode: components["schemas"]["ExtractionMode"];
+            load_mode: components["schemas"]["LoadMode"];
+            source: components["schemas"]["PipelineSourceRef"];
+            sap_system: components["schemas"]["SourceSystemRef"];
+            destination: components["schemas"]["PipelineDestinationRef"];
+            /**
+             * Cross Environment
+             * @description El entorno del sistema SAP y el del destino no coinciden
+             */
+            cross_environment: boolean;
+            /** Priority */
+            priority: number;
+            /** Worker Pool */
+            worker_pool: string;
+            /** Concurrency Group */
+            concurrency_group: string | null;
+            /** Tags */
+            tags: string[];
+            /** Next Fire At */
+            next_fire_at: string | null;
+            /** @description Ejecución en cola o en curso */
+            live_run: components["schemas"]["RunBrief"] | null;
+            /** @description Última ejecución terminada */
+            last_run: components["schemas"]["RunBrief"] | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Description */
+            description: string | null;
+            load: components["schemas"]["LoadResponse"];
+            /**
+             * Filters
+             * @description null: se usan los filtros por defecto del origen
+             */
+            filters: components["schemas"]["FilterConditionResponse"][] | null;
+            /** Timeout Minutes */
+            timeout_minutes: number;
+            retry_policy: components["schemas"]["RetryPolicyResponse"];
+            log_level: components["schemas"]["LogLevel"];
+            /** Status Reason */
+            status_reason: string | null;
+            /** Cross Environment Reason */
+            cross_environment_reason: string | null;
+            /** Cloned From Id */
+            cloned_from_id: string | null;
+            /** Owner Id */
+            owner_id: string | null;
+            /** Activated At */
+            activated_at: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by: string | null;
+            /** Updated By */
+            updated_by: string | null;
+            /** Version */
+            version: number;
+            /**
+             * Findings
+             * @description Avisos y bloqueos de la configuración
+             */
+            findings: components["schemas"]["FindingResponse"][];
+        };
+        /** PipelineReasonRequest */
+        PipelineReasonRequest: {
+            /** Reason */
+            reason?: string | null;
+        };
+        /** PipelineReviewRequest */
+        PipelineReviewRequest: {
+            /**
+             * Source Id
+             * Format: uuid
+             */
+            source_id: string;
+            /**
+             * Destination Id
+             * Format: uuid
+             */
+            destination_id: string;
+            extraction_mode: components["schemas"]["ExtractionMode"];
+            load_mode: components["schemas"]["LoadMode"];
+        };
+        /** PipelineSourceRef */
+        PipelineSourceRef: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+            delta_method: components["schemas"]["DeltaMethod"];
+            delta_semantics: components["schemas"]["DeltaSemantics"] | null;
+        };
+        /**
+         * PipelineStatus
+         * @enum {string}
+         */
+        PipelineStatus: "draft" | "active" | "paused";
+        /** PipelineSummary */
+        PipelineSummary: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+            status: components["schemas"]["PipelineStatus"];
+            extraction_mode: components["schemas"]["ExtractionMode"];
+            load_mode: components["schemas"]["LoadMode"];
+            source: components["schemas"]["PipelineSourceRef"];
+            sap_system: components["schemas"]["SourceSystemRef"];
+            destination: components["schemas"]["PipelineDestinationRef"];
+            /**
+             * Cross Environment
+             * @description El entorno del sistema SAP y el del destino no coinciden
+             */
+            cross_environment: boolean;
+            /** Priority */
+            priority: number;
+            /** Worker Pool */
+            worker_pool: string;
+            /** Concurrency Group */
+            concurrency_group: string | null;
+            /** Tags */
+            tags: string[];
+            /** Next Fire At */
+            next_fire_at: string | null;
+            /** @description Ejecución en cola o en curso */
+            live_run: components["schemas"]["RunBrief"] | null;
+            /** @description Última ejecución terminada */
+            last_run: components["schemas"]["RunBrief"] | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** PipelineUpdateRequest */
+        PipelineUpdateRequest: {
+            /**
+             * Version
+             * @description Versión leída (control de concurrencia)
+             */
+            version?: number | null;
+            /** Name */
+            name?: string | null;
+            /** Description */
+            description?: string | null;
+            /**
+             * Source Id
+             * @description Solo en borrador
+             */
+            source_id?: string | null;
+            /**
+             * Destination Id
+             * @description Solo en borrador
+             */
+            destination_id?: string | null;
+            /** @description Solo en borrador */
+            extraction_mode?: components["schemas"]["ExtractionMode"] | null;
+            load?: components["schemas"]["LoadBody"] | null;
+            /** Filters */
+            filters?: components["schemas"]["FilterConditionBody"][] | null;
+            /**
+             * Use Source Filters
+             * @description Vuelve a los filtros por defecto del origen
+             * @default false
+             */
+            use_source_filters: boolean;
+            /** Priority */
+            priority?: number | null;
+            /** Timeout Minutes */
+            timeout_minutes?: number | null;
+            retry_policy?: components["schemas"]["RetryPolicyBody"] | null;
+            /**
+             * Concurrency Group
+             * @description '' quita el grupo
+             */
+            concurrency_group?: string | null;
+            /** Worker Pool */
+            worker_pool?: string | null;
+            log_level?: components["schemas"]["LogLevel"] | null;
+            /** Tags */
+            tags?: string[] | null;
         };
         /** PreviewResponse */
         PreviewResponse: {
@@ -2492,6 +3350,30 @@ export interface components {
             /** Reason */
             reason?: string | null;
         };
+        /** RetryPolicyBody */
+        RetryPolicyBody: {
+            /**
+             * Max Attempts
+             * @default 3
+             */
+            max_attempts: number;
+            /** Backoff Minutes */
+            backoff_minutes?: number[];
+            /**
+             * Jitter
+             * @default true
+             */
+            jitter: boolean;
+        };
+        /** RetryPolicyResponse */
+        RetryPolicyResponse: {
+            /** Max Attempts */
+            max_attempts: number;
+            /** Backoff Minutes */
+            backoff_minutes: number[];
+            /** Jitter */
+            jitter: boolean;
+        };
         /** RevokedResponse */
         RevokedResponse: {
             /** Revoked */
@@ -2564,6 +3446,163 @@ export interface components {
              */
             version?: number | null;
         };
+        /** RunBrief */
+        RunBrief: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            mode: components["schemas"]["RunMode"];
+            status: components["schemas"]["RunStatus"];
+            trigger: components["schemas"]["RunTrigger"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Started At */
+            started_at: string | null;
+            /** Finished At */
+            finished_at: string | null;
+            /** Error Code */
+            error_code: string | null;
+        };
+        /** RunDetail */
+        RunDetail: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            pipeline: components["schemas"]["RunPipelineRef"];
+            mode: components["schemas"]["RunMode"];
+            status: components["schemas"]["RunStatus"];
+            trigger: components["schemas"]["RunTrigger"];
+            /** Triggered By */
+            triggered_by: string | null;
+            /** Reason */
+            reason: string | null;
+            /** Priority */
+            priority: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Available At
+             * Format: date-time
+             */
+            available_at: string;
+            /** Started At */
+            started_at: string | null;
+            /** Finished At */
+            finished_at: string | null;
+            /** Cancel Requested At */
+            cancel_requested_at: string | null;
+            /** Error Code */
+            error_code: string | null;
+            error_kind: components["schemas"]["ErrorKind"] | null;
+            /** Error Message */
+            error_message: string | null;
+            /** Attempts */
+            attempts: components["schemas"]["AttemptResponse"][];
+            /**
+             * Attempts Budget
+             * @description Intentos fallidos que el run puede gastar
+             */
+            attempts_budget: number;
+            /** Claimed By */
+            claimed_by: string | null;
+            /** Heartbeat At */
+            heartbeat_at: string | null;
+            /** Cancel Requested By */
+            cancel_requested_by: string | null;
+            /** Batch Id */
+            batch_id: string | null;
+            /** Delta Generation */
+            delta_generation: number | null;
+            /** Start Token */
+            start_token: string | null;
+            /** Window Start */
+            window_start: string | null;
+            /** Window End */
+            window_end: string | null;
+        };
+        /**
+         * RunMode
+         * @enum {string}
+         */
+        RunMode: "FULL" | "DELTA_INIT" | "DELTA" | "WATERMARK";
+        /** RunPipelineRef */
+        RunPipelineRef: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+        };
+        /**
+         * RunStatus
+         * @enum {string}
+         */
+        RunStatus: "queued" | "running" | "succeeded" | "failed" | "cancelled";
+        /** RunSummary */
+        RunSummary: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            pipeline: components["schemas"]["RunPipelineRef"];
+            mode: components["schemas"]["RunMode"];
+            status: components["schemas"]["RunStatus"];
+            trigger: components["schemas"]["RunTrigger"];
+            /** Triggered By */
+            triggered_by: string | null;
+            /** Reason */
+            reason: string | null;
+            /** Priority */
+            priority: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Available At
+             * Format: date-time
+             */
+            available_at: string;
+            /** Started At */
+            started_at: string | null;
+            /** Finished At */
+            finished_at: string | null;
+            /** Cancel Requested At */
+            cancel_requested_at: string | null;
+            /** Error Code */
+            error_code: string | null;
+            error_kind: components["schemas"]["ErrorKind"] | null;
+            /** Error Message */
+            error_message: string | null;
+        };
+        /**
+         * RunTrigger
+         * @enum {string}
+         */
+        RunTrigger: "schedule" | "manual" | "api" | "dependency";
+        /** RunTriggerRequest */
+        RunTriggerRequest: {
+            /** @description FULL sobre un pipeline incremental lanza una recarga completa */
+            mode?: components["schemas"]["RunMode"] | null;
+            /** Reason */
+            reason?: string | null;
+        };
         /**
          * SapEnvironment
          * @enum {string}
@@ -2608,6 +3647,11 @@ export interface components {
              * @default 4
              */
             max_concurrent_requests: number;
+            /**
+             * Max Concurrent Runs
+             * @description Extracciones simultáneas contra este sistema (por defecto 2)
+             */
+            max_concurrent_runs?: number | null;
             /**
              * Code
              * @example S4P_300
@@ -2683,6 +3727,8 @@ export interface components {
             timeout_seconds: number;
             /** Max Concurrent Requests */
             max_concurrent_requests: number;
+            /** Max Concurrent Runs */
+            max_concurrent_runs: number;
             /** Status Reason */
             status_reason: string | null;
             last_test_result: components["schemas"]["TestReportResponse"] | null;
@@ -2792,6 +3838,11 @@ export interface components {
              * @default 4
              */
             max_concurrent_requests: number;
+            /**
+             * Max Concurrent Runs
+             * @description Extracciones simultáneas contra este sistema (por defecto 2)
+             */
+            max_concurrent_runs?: number | null;
             /** Code */
             code?: string | null;
             /** Credentials */
@@ -2839,11 +3890,123 @@ export interface components {
             timeout_seconds?: number | null;
             /** Max Concurrent Requests */
             max_concurrent_requests?: number | null;
+            /** Max Concurrent Runs */
+            max_concurrent_runs?: number | null;
         };
         /** SapSystemWithTestResponse */
         SapSystemWithTestResponse: {
             system: components["schemas"]["SapSystemDetail"];
             test?: components["schemas"]["TestReportResponse"] | null;
+        };
+        /** ScheduleBody */
+        ScheduleBody: {
+            type: components["schemas"]["ScheduleType"];
+            /** Cron Expression */
+            cron_expression?: string | null;
+            /** Interval Minutes */
+            interval_minutes?: number | null;
+            /**
+             * Timezone
+             * @description Zona IANA; por defecto la de la plataforma
+             */
+            timezone?: string | null;
+            /** Start At */
+            start_at?: string | null;
+            /** End At */
+            end_at?: string | null;
+            /** Blackout Windows */
+            blackout_windows?: components["schemas"]["BlackoutWindowBody"][];
+            /** @default skip */
+            misfire_policy: components["schemas"]["MisfirePolicy"];
+            /**
+             * Enabled
+             * @default true
+             */
+            enabled: boolean;
+        };
+        /** SchedulePreviewRequest */
+        SchedulePreviewRequest: {
+            type: components["schemas"]["ScheduleType"];
+            /** Cron Expression */
+            cron_expression?: string | null;
+            /** Interval Minutes */
+            interval_minutes?: number | null;
+            /**
+             * Timezone
+             * @description Zona IANA; por defecto la de la plataforma
+             */
+            timezone?: string | null;
+            /** Start At */
+            start_at?: string | null;
+            /** End At */
+            end_at?: string | null;
+            /** Blackout Windows */
+            blackout_windows?: components["schemas"]["BlackoutWindowBody"][];
+            /** @default skip */
+            misfire_policy: components["schemas"]["MisfirePolicy"];
+            /**
+             * Enabled
+             * @default true
+             */
+            enabled: boolean;
+            /**
+             * Count
+             * @default 10
+             */
+            count: number;
+        };
+        /** SchedulePreviewResponse */
+        SchedulePreviewResponse: {
+            /** Timezone */
+            timezone: string;
+            /**
+             * Fires
+             * @description Próximas ejecuciones, sin las que caen en exclusión
+             */
+            fires: string[];
+        };
+        /** ScheduleResponse */
+        ScheduleResponse: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            type: components["schemas"]["ScheduleType"];
+            /** Cron Expression */
+            cron_expression: string | null;
+            /** Interval Minutes */
+            interval_minutes: number | null;
+            /** Timezone */
+            timezone: string;
+            /** Start At */
+            start_at: string | null;
+            /** End At */
+            end_at: string | null;
+            /** Blackout Windows */
+            blackout_windows: {
+                [key: string]: unknown;
+            }[];
+            misfire_policy: components["schemas"]["MisfirePolicy"];
+            /** Enabled */
+            enabled: boolean;
+            /** Next Fire At */
+            next_fire_at: string | null;
+            /** Last Fire At */
+            last_fire_at: string | null;
+            /** Last Skip At */
+            last_skip_at: string | null;
+            last_skip_reason: components["schemas"]["SkipReason"] | null;
+        };
+        /**
+         * ScheduleType
+         * @enum {string}
+         */
+        ScheduleType: "cron" | "interval" | "manual_only";
+        /** SchedulesPutRequest */
+        SchedulesPutRequest: {
+            /** Schedules */
+            schedules: components["schemas"]["ScheduleBody"][];
         };
         /** SchemaColumnResponse */
         SchemaColumnResponse: {
@@ -3011,6 +4174,16 @@ export interface components {
         SessionStatusResponse: {
             stage: components["schemas"]["SessionStage"];
         };
+        /**
+         * Severity
+         * @enum {string}
+         */
+        Severity: "error" | "warning";
+        /**
+         * SkipReason
+         * @enum {string}
+         */
+        SkipReason: "blackout" | "misfire" | "already_live";
         /** SourceCreateRequest */
         SourceCreateRequest: {
             /**
@@ -3483,6 +4656,43 @@ export interface components {
          * @enum {string}
          */
         WatermarkKind: "datetime" | "date" | "decimal_timestamp";
+        /** WorkerResponse */
+        WorkerResponse: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Hostname */
+            hostname: string;
+            /** Pid */
+            pid: number;
+            /** Pools */
+            pools: string[];
+            status: components["schemas"]["WorkerStatus"];
+            /**
+             * Has Executor
+             * @description false: el worker está vivo pero no toma ejecuciones
+             */
+            has_executor: boolean;
+            /** Current Run Id */
+            current_run_id: string | null;
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /**
+             * Heartbeat At
+             * Format: date-time
+             */
+            heartbeat_at: string;
+        };
+        /**
+         * WorkerStatus
+         * @enum {string}
+         */
+        WorkerStatus: "online" | "stopping" | "offline";
         /** X509CredentialsIn */
         X509CredentialsIn: {
             /**
@@ -6312,6 +7522,776 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["DdlPreviewResponse"];
                 };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    list_pipelines_api_v1_pipelines_get: {
+        parameters: {
+            query?: {
+                q?: string | null;
+                status?: components["schemas"]["PipelineStatus"] | null;
+                /** @description Origen */
+                source?: string | null;
+                /** @description Destino */
+                destination?: string | null;
+                /** @description Sistema SAP */
+                system?: string | null;
+                /** @description Entorno del sistema SAP */
+                environment?: components["schemas"]["SapEnvironment"] | null;
+                tag?: string | null;
+                page?: number;
+                page_size?: number;
+                sort?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_PipelineSummary_"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    create_pipeline_api_v1_pipelines_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PipelineCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PipelineDetail"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    review_pipeline_api_v1_pipelines_review_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PipelineReviewRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FindingResponse"][];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    get_pipeline_api_v1_pipelines__pipeline_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pipeline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PipelineDetail"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    delete_pipeline_api_v1_pipelines__pipeline_id__delete: {
+        parameters: {
+            query?: {
+                reason?: string | null;
+            };
+            header?: never;
+            path: {
+                pipeline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    update_pipeline_api_v1_pipelines__pipeline_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pipeline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PipelineUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PipelineDetail"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    validate_pipeline_api_v1_pipelines__pipeline_id__validate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pipeline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PipelineActivateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActivationReportResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    activate_pipeline_api_v1_pipelines__pipeline_id__activate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pipeline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PipelineActivateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PipelineDetail"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    pause_pipeline_api_v1_pipelines__pipeline_id__pause_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pipeline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PipelineReasonRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PauseResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    resume_pipeline_api_v1_pipelines__pipeline_id__resume_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pipeline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PipelineDetail"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    clone_pipeline_api_v1_pipelines__pipeline_id__clone_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pipeline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PipelineCloneRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CloneResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    run_pipeline_api_v1_pipelines__pipeline_id__run_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pipeline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RunTriggerRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunDetail"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    get_schedules_api_v1_pipelines__pipeline_id__schedules_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pipeline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleResponse"][];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    put_schedules_api_v1_pipelines__pipeline_id__schedules_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pipeline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SchedulesPutRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleResponse"][];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    preview_schedule_api_v1_schedules_preview_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SchedulePreviewRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SchedulePreviewResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    list_runs_api_v1_runs_get: {
+        parameters: {
+            query?: {
+                /** @description Pipeline */
+                pipeline?: string | null;
+                status?: components["schemas"]["RunStatus"] | null;
+                trigger?: components["schemas"]["RunTrigger"] | null;
+                from?: string | null;
+                to?: string | null;
+                page?: number;
+                page_size?: number;
+                sort?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_RunSummary_"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    get_run_api_v1_runs__run_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunDetail"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    cancel_run_api_v1_runs__run_id__cancel_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PipelineReasonRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunDetail"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    retry_run_api_v1_runs__run_id__retry_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunDetail"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    list_workers_api_v1_workers_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkerResponse"][];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    list_groups_api_v1_concurrency_groups_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConcurrencyGroupResponse"][];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    put_group_api_v1_concurrency_groups__code__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConcurrencyGroupPutRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConcurrencyGroupResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    delete_group_api_v1_concurrency_groups__code__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Error */
             default: {

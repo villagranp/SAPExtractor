@@ -91,6 +91,21 @@ ACTIONS: dict[str, Category] = {
     "destination.credentials_rotated": Category.SECURITY,
     "destination.activated": Category.CONFIG,
     "destination.deactivated": Category.CONFIG,
+    # config: pipelines y programación (plan 08)
+    "pipeline.created": Category.CONFIG,
+    "pipeline.updated": Category.CONFIG,
+    "pipeline.deleted": Category.CONFIG,
+    "pipeline.cloned": Category.CONFIG,
+    "pipeline.activated": Category.CONFIG,
+    "schedule.updated": Category.CONFIG,
+    "concurrency_group.updated": Category.CONFIG,
+    "concurrency_group.deleted": Category.CONFIG,
+    # execution: lo que lanza, detiene o repite una extracción
+    "pipeline.paused": Category.EXECUTION,
+    "pipeline.resumed": Category.EXECUTION,
+    "run.triggered_manual": Category.EXECUTION,
+    "run.cancelled": Category.EXECUTION,
+    "run.retried": Category.EXECUTION,
     # security
     "audit.exported": Category.SECURITY,
     "audit.verified": Category.SECURITY,

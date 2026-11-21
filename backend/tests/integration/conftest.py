@@ -19,6 +19,9 @@ from sapextract.core.security.crypto import generate_master_key
 from sapextract.identity.application.bootstrap import create_local_admin, sync_catalog
 from sapextract.identity.application.toolkit import IdentityToolkit
 from sapextract.main_api import create_app
+from sapextract.orchestration.application.toolkit import OrchestrationToolkit
+from tests.support.orchestration import FakeClock, OrchEnv
+from tests.support.sap_gateway import start_gateway
 
 ADMIN_USERNAME = "root"
 ADMIN_PASSWORD = "Integracion.Admin-2026"
@@ -188,3 +191,39 @@ def audit_actions(admin: ApiClient, **params: Any) -> list[dict[str, Any]]:
     assert response.status_code == 200, response.text
     items: list[dict[str, Any]] = response.json()["items"]
     return items
+
+
+# Entorno de las pruebas de orquestación: pipelines, cola, scheduler y workers.
+@pytest.fixture(scope="session")
+def orch(
+    app_settings: Settings, platform_db: Database, tmp_path_factory: pytest.TempPathFactory
+) -> Iterator[OrchEnv]:
+    """API con reloj falso para la orquestación, Gateway simulado y una carpeta CSV real."""
+    csv_root = tmp_path_factory.mktemp("orch-csv")
+    settings = app_settings.model_copy(
+        update={"csv_roots": [csv_root], "worker_heartbeat_seconds": 0.05}
+    )
+    app = create_app(settings)
+    clock = FakeClock()
+    toolkit = OrchestrationToolkit.build(
+        settings,
+        audit=app.state.identity.audit,
+        sap=app.state.sap,
+        destinations=app.state.destinations,
+        clock=clock,
+        random_fn=lambda: 0.0,
+    )
+    app.state.orchestration = toolkit
+    gateway = start_gateway()
+    yield OrchEnv(
+        app=app, db=platform_db, toolkit=toolkit, clock=clock, gateway=gateway, csv_root=csv_root
+    )
+    gateway.stop()
+    app.state.db.dispose()
+
+
+@pytest.fixture
+def orch_admin(orch: OrchEnv, admin_password: str) -> ApiClient:
+    client = ApiClient(orch.app)
+    assert client.login(ADMIN_USERNAME, admin_password) == "active"
+    return client

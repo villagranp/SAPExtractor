@@ -26,6 +26,7 @@ from sapextract.identity.domain.model import Principal
 from sapextract.sap_connections.application.connection_tester import ConnectionTester
 from sapextract.sap_connections.application.toolkit import Dependent, SapToolkit
 from sapextract.sap_connections.domain.model import (
+    DEFAULT_RUNS,
     AuthType,
     BasicCredentials,
     ConnectionSpec,
@@ -38,6 +39,7 @@ from sapextract.sap_connections.domain.model import (
     auth_type_of,
     check_limits,
     check_production_security,
+    check_run_limit,
     credentials_from_payload,
     credentials_to_payload,
     normalize_base_url,
@@ -87,6 +89,7 @@ class ConnectionData:
     proxy_url: str | None = None
     timeout_seconds: int = 60
     max_concurrent_requests: int = 4
+    max_concurrent_runs: int = DEFAULT_RUNS
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -121,6 +124,7 @@ class SystemChanges:
     proxy_url: str | None = None
     timeout_seconds: int | None = None
     max_concurrent_requests: int | None = None
+    max_concurrent_runs: int | None = None
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -266,6 +270,7 @@ class SapSystemService:
             proxy_url=spec.proxy_url,
             timeout_seconds=spec.timeout_seconds,
             max_concurrent_requests=spec.max_concurrent_requests,
+            max_concurrent_runs=check_run_limit(data.connection.max_concurrent_runs),
             tags=normalize_tags(data.tags),
             status=SystemStatus.DRAFT.value,
             created_by=actor.username,
@@ -300,6 +305,7 @@ class SapSystemService:
             proxy_url=source.proxy_url,
             timeout_seconds=source.timeout_seconds,
             max_concurrent_requests=source.max_concurrent_requests,
+            max_concurrent_runs=source.max_concurrent_runs,
         )
         credentials = data.credentials or self.spec_for(source).credentials
         return self.create(
@@ -336,6 +342,8 @@ class SapSystemService:
         concurrency = changes.max_concurrent_requests or system.max_concurrent_requests
         check_limits(timeout, concurrency)
         system.timeout_seconds, system.max_concurrent_requests = timeout, concurrency
+        if changes.max_concurrent_runs is not None:
+            system.max_concurrent_runs = check_run_limit(changes.max_concurrent_runs)
         if changes.ca_bundle_pem is not None:
             self._set_ca_bundle(system, changes.ca_bundle_pem, actor)
         check_production_security(
@@ -684,6 +692,7 @@ def _snapshot(system: SapSystem) -> dict[str, Any]:
             "proxy_url": system.proxy_url,
             "timeout_seconds": system.timeout_seconds,
             "max_concurrent_requests": system.max_concurrent_requests,
+            "max_concurrent_runs": system.max_concurrent_runs,
             "tags": list(system.tags),
             "status": system.status,
         }

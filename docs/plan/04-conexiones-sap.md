@@ -10,7 +10,7 @@ Permitir que un Administrador de datos registre, de forma visual, **sistemas SAP
 
 | Tabla | Campos clave |
 |---|---|
-| `sap_system` | `id`, `code` (p. ej. `S4P_300`), `name`, `description`, `environment` (`DEV` \| `QAS` \| `PRD`), `system_type` (`ECC` \| `S4HANA_ONPREM` \| `S4HANA_CLOUD`), `base_url` (p. ej. `https://gateway.empresa.local:44300`), `sap_client` (mandante), `language`, `auth_type`, `credential_secret_id`, `tls_verify`, `ca_bundle_secret_id`, `proxy_url`, `timeout_seconds`, `max_concurrent_requests`, `tags`, `status`, `last_test_at`, `last_test_result` |
+| `sap_system` | `id`, `code` (p. ej. `S4P_300`), `name`, `description`, `environment` (`DEV` \| `QAS` \| `PRD`), `system_type` (`ECC` \| `S4HANA_ONPREM` \| `S4HANA_CLOUD`), `base_url` (p. ej. `https://gateway.empresa.local:44300`), `sap_client` (mandante), `language`, `auth_type`, `credential_secret_id`, `tls_verify`, `ca_bundle_secret_id`, `proxy_url`, `timeout_seconds`, `max_concurrent_requests`, `max_concurrent_runs` (It6: runs simultáneos, por defecto 2), `tags`, `status`, `last_test_at`, `last_test_result` |
 | `secret` | `id`, `kind`, `ciphertext`, `key_version`, `created_at`, `rotated_at` (genérico, compartido con destinos e IdP) |
 
 ### Tipos de autenticación

@@ -44,6 +44,7 @@ TAG_PATTERN = re.compile(r"^[\w\-.]{1,40}$")
 MAX_TAGS = 20
 MIN_TIMEOUT, MAX_TIMEOUT = 5, 600
 MIN_CONCURRENCY, MAX_CONCURRENCY = 1, 32
+MIN_RUNS, MAX_RUNS, DEFAULT_RUNS = 1, 16, 2
 
 
 def _issue(fieldname: str, message: str, code: str) -> BusinessRuleError:
@@ -127,6 +128,14 @@ def check_limits(timeout_seconds: int, max_concurrent_requests: int) -> None:
     if not MIN_CONCURRENCY <= max_concurrent_requests <= MAX_CONCURRENCY:
         msg = f"Las peticiones simultáneas deben estar entre {MIN_CONCURRENCY} y {MAX_CONCURRENCY}."
         raise _issue("max_concurrent_requests", msg, "SX-SAP-CONCURRENCY-INVALID")
+
+
+def check_run_limit(max_concurrent_runs: int) -> int:
+    """Runs simultáneos contra el sistema (plan 08 §3): cada run hace una petición a la vez."""
+    if not MIN_RUNS <= max_concurrent_runs <= MAX_RUNS:
+        msg = f"Las extracciones simultáneas deben estar entre {MIN_RUNS} y {MAX_RUNS}."
+        raise _issue("max_concurrent_runs", msg, "SX-SAP-RUN-LIMIT-INVALID")
+    return max_concurrent_runs
 
 
 def check_production_security(
