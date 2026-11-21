@@ -34,8 +34,12 @@ jobs:
         run: >-
           uv run coverage report --fail-under=80
           --include="src/sapextract/*/domain/*,src/sapextract/*/application/*"
+      # Se auditan las dependencias bloqueadas (con hashes), sin el propio paquete: instalado en
+      # modo editable, --strict lo cuenta como error aunque se pida saltarlo.
       - name: Auditoría de dependencias
-        run: uv run pip-audit --strict --skip-editable
+        run: |
+          uv export --frozen --no-emit-project -q -o "$RUNNER_TEMP/requirements.txt"
+          uv run pip-audit --strict --disable-pip -r "$RUNNER_TEMP/requirements.txt"
       - name: Análisis estático de seguridad
         run: uv run bandit -q -r src -x src/sapextract/migrations
 
