@@ -7,6 +7,7 @@ worker lleva su ``lease_epoch``: si no afecta a ninguna fila, el intento acaba c
 from __future__ import annotations
 
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from enum import StrEnum
@@ -233,7 +234,14 @@ def _settle_run(
     return outcome if _rowcount(session.execute(statement)) else AttemptOutcome.FENCED
 
 
-def reap_stale(session: Session, *, now: datetime, cutoff: datetime, random: float) -> int:
+def reap_stale(
+    session: Session,
+    *,
+    now: datetime,
+    cutoff: datetime,
+    random: float,
+    on_final: Callable[[Session, Run], None] | None = None,
+) -> int:
     """Cierra como ``stale`` los intentos sin latido y devuelve sus runs a la cola.
 
     Sube ``lease_epoch`` al recuperarlos: el worker anterior, si sigue vivo, queda fuera
@@ -272,6 +280,8 @@ def reap_stale(session: Session, *, now: datetime, cutoff: datetime, random: flo
             run.error_code = ERROR_STALE
             run.error_kind = ErrorKind.TRANSIENT.value
             run.error_message = "El worker dejó de dar latido y no quedan intentos."
+        if on_final is not None and run.status != RunStatus.QUEUED.value:
+            on_final(session, run)
         reaped += 1
     if reaped:
         session.flush()

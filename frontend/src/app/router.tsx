@@ -6,6 +6,11 @@ import { DestinationDetailPage } from '@/features/destinations/pages/Destination
 import { DestinationsPage } from '@/features/destinations/pages/DestinationsPage';
 import { DestinationWizardPage } from '@/features/destinations/pages/DestinationWizardPage';
 import { LoginPage } from '@/features/auth/pages/LoginPage';
+import { PipelineDetailPage } from '@/features/pipelines/pages/PipelineDetailPage';
+import { PipelineNewPage } from '@/features/pipelines/pages/PipelineNewPage';
+import { PipelinesPage } from '@/features/pipelines/pages/PipelinesPage';
+import { RunDetailPage } from '@/features/runs/pages/RunDetailPage';
+import { RunsPage } from '@/features/runs/pages/RunsPage';
 import { ProfilePage } from '@/features/auth/pages/ProfilePage';
 import { IdentityProviderGuidePage } from '@/features/identity-provider/pages/IdentityProviderGuidePage';
 import { IdentityProviderPage } from '@/features/identity-provider/pages/IdentityProviderPage';
@@ -69,6 +74,11 @@ export const routes: RouteObject[] = [
       guarded('destinations/new', 'destination:manage', <DestinationWizardPage />),
       guarded('destinations/:destinationId', 'destination:read', <DestinationDetailPage />),
       guarded('destinations/:destinationId/edit', 'destination:manage', <DestinationWizardPage />),
+      guarded('pipelines', 'pipeline:read', <PipelinesPage />),
+      guarded('pipelines/new', 'pipeline:manage', <PipelineNewPage />),
+      guarded('pipelines/:pipelineId', 'pipeline:read', <PipelineDetailPage />),
+      guarded('runs', 'pipeline:read', <RunsPage />),
+      guarded('runs/:runId', 'pipeline:read', <RunDetailPage />),
       guarded('admin/users', 'user:read', <UsersPage />),
       guarded('admin/users/:userId', 'user:read', <UserDetailPage />),
       guarded('admin/roles', 'role:read', <RolesPage />),

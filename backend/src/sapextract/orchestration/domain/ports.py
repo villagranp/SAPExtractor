@@ -10,9 +10,15 @@ import uuid
 from collections.abc import Callable
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
 
 from sapextract.dataflow.domain.batch import RunMode
+
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
+
+    from sapextract.identity.domain.model import Principal
+    from sapextract.orchestration.infrastructure.models import Pipeline, Run
 
 
 class StopReason(StrEnum):
@@ -60,4 +66,24 @@ class RunExecutor(Protocol):
         Lanza ``DataflowError`` (su ``ErrorKind`` decide si se reintenta) o ``RunStoppedError``.
         Toda escritura sobre el run o el estado de delta lleva ``AND lease_epoch = :epoch``.
         """
+        ...
+
+
+class EngineHooks(Protocol):
+    """Lo que el motor necesita saber de la cola (estado de delta, plan 06 §3.6).
+
+    La orquestación lo llama dentro de la transacción del cambio; ``None`` en el toolkit
+    significa que no hay motor registrado.
+    """
+
+    def check_run(self, session: Session, pipeline: Pipeline, mode: RunMode) -> None:
+        """Antes de encolar a mano: lanza ``ConflictError`` si el delta no permite ejecutar."""
+        ...
+
+    def run_finished(self, session: Session, run: Run) -> None:
+        """Un run terminó sin éxito (``failed`` o ``cancelled``): suelta el estado de delta."""
+        ...
+
+    def pipeline_deleted(self, session: Session, pipeline: Pipeline, actor: Principal) -> None:
+        """Baja de un pipeline: su suscripción de delta queda pendiente de cerrar en SAP."""
         ...

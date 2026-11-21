@@ -120,7 +120,11 @@ class SchedulerService:
         now = self.tk.clock()
         with self.db.session() as session:
             reaped = reap_stale(
-                session, now=now, cutoff=now - self.tk.stale_after, random=self.tk.random()
+                session,
+                now=now,
+                cutoff=now - self.tk.stale_after,
+                random=self.tk.random(),
+                on_final=self.tk.hooks.run_finished if self.tk.hooks else None,
             )
             session.commit()
         if reaped:

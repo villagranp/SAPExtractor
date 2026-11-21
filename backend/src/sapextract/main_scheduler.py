@@ -14,12 +14,17 @@ import structlog
 from sqlalchemy import Connection, text
 
 from sapextract.audit.application.maintenance import ensure_partitions
+from sapextract.audit.application.service import AuditService
 from sapextract.core.config import Settings, get_settings
 from sapextract.core.db import Database
 from sapextract.core.logging import configure_logging
 from sapextract.core.runtime import GracefulShutdown
+from sapextract.destinations.application.toolkit import DestinationsToolkit
+from sapextract.extraction.application.delta_service import DeltaHooks
+from sapextract.extraction.application.resolve import ExtractionToolkit
 from sapextract.orchestration.application.scheduler import SchedulerService, TickResult
 from sapextract.orchestration.application.toolkit import OrchestrationToolkit
+from sapextract.sap_connections.application.toolkit import SapToolkit
 
 log = structlog.get_logger(__name__)
 
@@ -35,9 +40,21 @@ def try_acquire_leadership(conn: Connection) -> bool:
 
 
 def run_maintenance(conn: Connection) -> None:
-    """Tareas diarias de sistema (particiones de auditoría; retención en iteraciones futuras)."""
+    """Tareas diarias de sistema (particiones de auditoría y del log de ejecución)."""
     created = ensure_partitions(conn)
-    log.info("maintenance_done", audit_partitions_created=created)
+    run_log = conn.execute(text("SELECT sx.run_log_ensure_partitions(3)")).scalar()
+    log.info("maintenance_done", audit_partitions_created=created, run_log_partitions=run_log)
+
+
+def build_toolkit(settings: Settings) -> OrchestrationToolkit:
+    """Toolkit con el motor enganchado: al recuperar runs caídos suelta su estado de delta."""
+    audit = AuditService()
+    sap = SapToolkit.build(settings, audit=audit)
+    destinations = DestinationsToolkit.build(settings, audit=audit)
+    extraction = ExtractionToolkit.build(settings, sap=sap, destinations=destinations, audit=audit)
+    return OrchestrationToolkit.build(
+        settings, audit=audit, sap=sap, destinations=destinations, hooks=DeltaHooks(extraction)
+    )
 
 
 def tick(service: SchedulerService) -> TickResult:
@@ -60,7 +77,7 @@ def run(settings: Settings | None = None) -> None:
     shutdown = GracefulShutdown()
     shutdown.install()
     db = Database(settings)
-    service = SchedulerService(db, OrchestrationToolkit.build(settings))
+    service = SchedulerService(db, build_toolkit(settings))
     log.info("scheduler_started")
 
     try:

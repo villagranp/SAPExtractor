@@ -37,6 +37,11 @@ const ALL_PERMISSIONS = [
   'destination:read',
   'destination:manage',
   'destination:test',
+  'pipeline:read',
+  'pipeline:manage',
+  'pipeline:run',
+  'pipeline:pause',
+  'pipeline:reset_delta',
 ];
 
 export const adminRole: S['RoleRef'] = {
@@ -425,6 +430,264 @@ export const csvDestination: S['DestinationDetail'] = {
   config: { root: '/data/csv', path: 'fi', delimiter: ';', header: true, compression: 'none' },
 };
 
+// ---------------------------------------------------------------- motor y orquestación
+export const glSource: S['SourceSummary'] = {
+  id: '01930000-0000-7000-8000-0000000000a1',
+  code: 'FI_GL_ITEMS',
+  name: 'Partidas de mayor',
+  source_type: 'ODP_EXTRACTOR',
+  status: 'active',
+  sap_system: {
+    id: sapSystem.id,
+    code: sapSystem.code,
+    name: sapSystem.name,
+    environment: 'QAS',
+    status: 'active',
+  },
+  odp_name: '0FI_GL_14',
+  service_name: 'ZFI_WS_GL_ITEMS_SRV',
+  entity_set: 'EntityOf0FI_GL_14',
+  delta_method: 'ODQ',
+  delta_semantics: 'additive',
+  schema_version: 1,
+  tags: [],
+  updated_at: '2026-11-20T09:00:00Z',
+};
+
+export const materialSource: S['SourceSummary'] = {
+  ...glSource,
+  id: '01930000-0000-7000-8000-0000000000a2',
+  code: 'MM_MATERIAL',
+  name: 'Materiales',
+  source_type: 'CDS_ODATA',
+  odp_name: null,
+  service_name: 'ZMM_CV_MATERIAL_CDS',
+  entity_set: 'ZMM_CV_MATERIAL',
+  delta_method: 'WATERMARK',
+  delta_semantics: null,
+};
+
+export const glPipeline: S['PipelineDetail'] = {
+  id: '01930000-0000-7000-8000-0000000000b1',
+  code: 'FI_GL_CSV',
+  name: 'Mayor hacia CSV',
+  status: 'active',
+  extraction_mode: 'DELTA',
+  load_mode: 'append',
+  source: {
+    id: glSource.id,
+    code: glSource.code,
+    name: glSource.name,
+    delta_method: 'ODQ',
+    delta_semantics: 'additive',
+  },
+  sap_system: glSource.sap_system,
+  destination: {
+    id: csvDestination.id,
+    code: csvDestination.code,
+    name: csvDestination.name,
+    type: 'csv',
+    environment: 'QAS',
+  },
+  cross_environment: false,
+  priority: 3,
+  worker_pool: 'default',
+  concurrency_group: null,
+  tags: [],
+  next_fire_at: null,
+  live_run: null,
+  last_run: null,
+  updated_at: '2026-11-20T09:30:00Z',
+  description: null,
+  load: {
+    load_mode: 'append',
+    target_name: 'GL_ITEMS',
+    create_if_missing: true,
+    schema_evolution: 'add_columns',
+    delete_handling: 'ignore',
+    technical_columns: true,
+    column_mapping: {},
+  },
+  filters: null,
+  timeout_minutes: 120,
+  retry_policy: { max_attempts: 3, backoff_minutes: [1, 5, 15], jitter: true },
+  log_level: 'INFO',
+  status_reason: null,
+  cross_environment_reason: null,
+  cloned_from_id: null,
+  owner_id: null,
+  activated_at: '2026-11-20T09:31:00Z',
+  created_at: '2026-11-20T09:30:00Z',
+  created_by: 'root',
+  updated_by: 'root',
+  version: 2,
+  findings: [],
+};
+
+const PIPELINE_SUMMARY_KEYS = [
+  'id',
+  'code',
+  'name',
+  'status',
+  'extraction_mode',
+  'load_mode',
+  'source',
+  'sap_system',
+  'destination',
+  'cross_environment',
+  'priority',
+  'worker_pool',
+  'concurrency_group',
+  'tags',
+  'next_fire_at',
+  'live_run',
+  'last_run',
+  'updated_at',
+] as const satisfies readonly (keyof S['PipelineSummary'])[];
+
+export const glPipelineSummary = Object.fromEntries(
+  PIPELINE_SUMMARY_KEYS.map((k) => [k, glPipeline[k]]),
+) as S['PipelineSummary'];
+
+export const deltaRun: S['RunDetail'] = {
+  id: '01930000-0000-7000-8000-0000000000c1',
+  pipeline: { id: glPipeline.id, code: glPipeline.code, name: glPipeline.name },
+  mode: 'DELTA',
+  status: 'succeeded',
+  trigger: 'manual',
+  triggered_by: 'root',
+  reason: null,
+  priority: 1,
+  created_at: '2026-11-20T10:00:00Z',
+  available_at: '2026-11-20T10:00:00Z',
+  started_at: '2026-11-20T10:00:01Z',
+  finished_at: '2026-11-20T10:00:09Z',
+  cancel_requested_at: null,
+  error_code: null,
+  error_kind: null,
+  error_message: null,
+  rows_extracted: 10,
+  attempts: [
+    {
+      number: 1,
+      worker_id: '01930000-0000-7000-8000-0000000000d1',
+      started_at: '2026-11-20T10:00:01Z',
+      finished_at: '2026-11-20T10:00:09Z',
+      outcome: 'succeeded',
+      error_code: null,
+      error_kind: null,
+      error_message: null,
+      has_spool: true,
+    },
+  ],
+  attempts_budget: 3,
+  claimed_by: null,
+  heartbeat_at: null,
+  cancel_requested_by: null,
+  batch_id: 'd-0123456789abcdef01234567',
+  delta_generation: 1,
+  start_token: 'D000000000250',
+  window_start: null,
+  window_end: null,
+  next_token: 'D000000000260',
+  rows_inserted: 10,
+  rows_updated: 0,
+  rows_deleted: 0,
+};
+
+const RUN_SUMMARY_KEYS = [
+  'id',
+  'pipeline',
+  'mode',
+  'status',
+  'trigger',
+  'triggered_by',
+  'reason',
+  'priority',
+  'created_at',
+  'available_at',
+  'started_at',
+  'finished_at',
+  'cancel_requested_at',
+  'error_code',
+  'error_kind',
+  'error_message',
+  'rows_extracted',
+] as const satisfies readonly (keyof S['RunSummary'])[];
+
+export const deltaRunSummary = Object.fromEntries(
+  RUN_SUMMARY_KEYS.map((k) => [k, deltaRun[k]]),
+) as S['RunSummary'];
+
+export const runSteps: S['StepResponse'][] = (
+  ['prepare', 'extract', 'load', 'commit_delta', 'cleanup'] as const
+).map((step) => ({
+  attempt: 1,
+  step,
+  status: 'succeeded' as const,
+  started_at: '2026-11-20T10:00:02Z',
+  finished_at: '2026-11-20T10:00:03Z',
+  metrics: { duration_ms: 1200 },
+}));
+
+export const runLog: S['RunLogPage'] = {
+  items: [
+    {
+      id: 1,
+      ts: '2026-11-20T10:00:01Z',
+      attempt: 1,
+      step: null,
+      level: 'INFO',
+      message: 'Intento 1 en el worker 01930000.',
+      data: {},
+    },
+    {
+      id: 2,
+      ts: '2026-11-20T10:00:05Z',
+      attempt: 1,
+      step: 'extract',
+      level: 'INFO',
+      message: 'Extracción terminada: 10 filas en 1 páginas.',
+      data: {},
+    },
+    {
+      id: 3,
+      ts: '2026-11-20T10:00:09Z',
+      attempt: 1,
+      step: 'commit_delta',
+      level: 'INFO',
+      message: 'Token de delta confirmado.',
+      data: {},
+    },
+  ],
+  next_after: 3,
+  finished: true,
+};
+
+export const initializedDelta: S['DeltaStateResponse'] = {
+  status: 'INITIALIZED',
+  generation: 1,
+  current_token: 'D000000000260',
+  pending_run_id: null,
+  sap_close_pending: false,
+  requires_reinit: false,
+  watermark_value: null,
+  initialized_at: '2026-11-20T09:45:00Z',
+  last_delta_at: '2026-11-20T10:00:09Z',
+  history: [
+    {
+      at: '2026-11-20T09:45:00Z',
+      event: 'initialized',
+      from_status: 'INITIALIZING',
+      to_status: 'INITIALIZED',
+      generation: 1,
+      run_id: null,
+      actor: 'worker',
+      reason: null,
+    },
+  ],
+};
+
 export const handlers = [
   http.get('*/api/v1/system/info', () => HttpResponse.json(systemInfo)),
   http.get('*/api/v1/health/ready', () => HttpResponse.json(healthyReport)),
@@ -466,6 +729,20 @@ export const handlers = [
   http.get('*/api/v1/destinations/:id', ({ params }) =>
     HttpResponse.json(params.id === csvDestination.id ? csvDestination : snowflakeDestination),
   ),
+  http.get('*/api/v1/sources', () =>
+    HttpResponse.json({ items: [glSource, materialSource], total: 2, page: 1, page_size: 200 }),
+  ),
+  http.get('*/api/v1/pipelines', () =>
+    HttpResponse.json({ items: [glPipelineSummary], total: 1, page: 1, page_size: 25 }),
+  ),
+  http.get('*/api/v1/pipelines/:id', () => HttpResponse.json(glPipeline)),
+  http.get('*/api/v1/pipelines/:id/delta', () => HttpResponse.json(initializedDelta)),
+  http.get('*/api/v1/runs', () =>
+    HttpResponse.json({ items: [deltaRunSummary], total: 1, page: 1, page_size: 25 }),
+  ),
+  http.get('*/api/v1/runs/:id', () => HttpResponse.json(deltaRun)),
+  http.get('*/api/v1/runs/:id/steps', () => HttpResponse.json(runSteps)),
+  http.get('*/api/v1/runs/:id/logs', () => HttpResponse.json(runLog)),
 ];
 
 export function problem(status: number, code: string, detail: string) {

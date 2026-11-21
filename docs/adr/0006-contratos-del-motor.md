@@ -277,6 +277,16 @@ La orquestación se construyó antes que el motor (plan 13 §5.4). Diferencias c
 - **El motor se conecta por `RunExecutor`** (`orchestration/domain/ports.py`), que recibe el `lease_epoch` del intento en `RunContext`. Es una interfaz nueva entre los dos desarrolladores: cambiarla pide la misma revisión conjunta que `dataflow/`.
 - `worker_id` y `spool_worker_id` son UUID. El identificador del worker cambia en cada arranque, así que un spool no se reconoce tras reiniciar el proceso aunque siga en el mismo disco: si la It5 quiere reutilizarlo, tendrá que identificar el disco y no el proceso.
 
+## Notas de implementación (It5, 21.11.2026)
+
+El motor se construyó contra el mock y sobre la orquestación de la It6 (detalle en el plan 06, «Lo construido en la iteración 5»). Diferencias que la revisión conjunta debe confirmar:
+
+- **`run`** añade `next_token` y `rows_extracted/inserted/updated/deleted`; **`run_attempt`** añade `sap_requested` (el intento llegó a pedir datos a SAP). Migración `0009_engine`, que crea además `run_step`, `run_log`, `delta_state` y `delta_state_history`.
+- **`run_step`** usa `skipped` para `extract` y `load` cuando la tabla de control del destino ya tiene el lote.
+- **Estado de delta**: se implementa el borrador del plan 06 §3.6 con opciones conservadoras; el ADR posterior al spike lo fijará. `delta_state.lease_epoch` copia el del run al empezar el intento.
+- **Puerto nuevo `EngineHooks`** entre orquestación y motor (`orchestration/domain/ports.py`), junto a `RunExecutor`: misma regla de revisión conjunta.
+- **`SourceConnector`**: implementado por `ODataSourceConnector`, que además expone `server_now()` (hora de SAP para la ventana de marca de agua). Los filtros llegan como `{"$filter": …}`.
+
 ## Fuera de este ADR (pendiente del spike)
 
 | Tema | Dónde | Depende de |

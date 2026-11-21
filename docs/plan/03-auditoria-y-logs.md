@@ -131,8 +131,9 @@ GET  /api/v1/settings/retention    PUT /api/v1/settings/retention
 - Corregido en It1b: el total de la búsqueda siempre valía 1 (el `count(*)` perdía la tabla del `FROM`), así que la paginación no avanzaba. Prueba de integración añadida.
 
 **Iteración 5**
-- [ ] `run_step`, `run_log` (particionada por fecha) y `run_metric`.
-- [ ] SSE de logs en vivo por sondeo con cursor.
+- [x] `run_step` y `run_log` (particionada por mes con `sx.run_log_ensure_partitions`, que el scheduler invoca a diario). Las métricas van en `run_step.metrics`; `run_metric` agregada queda para la It8.
+- [x] Logs en vivo por sondeo con cursor: `GET /runs/{id}/logs?after=` y la pantalla consulta cada segundo hasta que el run termina (sin SSE por ahora). Los tokens de delta no se escriben en el log.
+- [x] Acciones del estado de delta en el catálogo: `pipeline.delta_reset`, `pipeline.delta_broken`, `pipeline.sap_subscription_closed`, `pipeline.sap_subscription_left_open` (las de run y pipeline son de la It6).
 - [ ] Catálogo de códigos de error.
 - [ ] Retención (borrado de particiones) y archivado.
 

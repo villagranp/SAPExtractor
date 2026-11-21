@@ -179,6 +179,97 @@ test.describe('con administrador', () => {
     ).toBeVisible();
   });
 
+  test('pipeline delta → ejecutar ahora → worker → inicialización confirmada', async ({ page }) => {
+    test.setTimeout(120_000);
+    await login(page, ADMIN_USER ?? '', ADMIN_PASSWORD ?? '');
+    await expect(page.getByRole('heading', { name: 'Estado de la plataforma' })).toBeVisible();
+    // Origen y destino por la API (sus pantallas ya tienen su propio flujo arriba). Las llamadas
+    // salen del propio navegador para usar su cookie de sesión y la cabecera CSRF del SPA.
+    const cookies = await page.context().cookies();
+    const csrf = decodeURIComponent(cookies.find((c) => c.name === 'sx_csrf')?.value ?? '');
+    const post = async (path: string, data: unknown) => {
+      const result = await page.evaluate(
+        async ({ url, body, token }) => {
+          const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': token },
+            body: JSON.stringify(body),
+          });
+          return { ok: response.ok, text: await response.text() };
+        },
+        { url: `/api/v1${path}`, body: data, token: csrf },
+      );
+      expect(result.ok, `${path}: ${result.text}`).toBeTruthy();
+      return JSON.parse(result.text) as Record<string, unknown>;
+    };
+    const suffix = Date.now().toString(36).toUpperCase();
+    const system = (await post('/sap-systems', {
+      code: `E2E_ENG_${suffix}`,
+      name: 'Gateway del motor',
+      environment: 'DEV',
+      system_type: 'S4HANA_ONPREM',
+      base_url: SAP_URL,
+      sap_client: '100',
+      language: 'ES',
+      credentials: { auth_type: 'basic', username: SAP_USER, password: SAP_PASSWORD },
+      activate: true,
+    })) as { system: { id: string } };
+    const source = (await post('/sources', {
+      sap_system_id: system.system.id,
+      code: `SRC_ENG_${suffix}`,
+      name: 'Mayor E2E',
+      service_name: 'ZFI_WS_GL_ITEMS_SRV',
+      entity_set: 'EntityOf0FI_GL_14',
+      delta: { method: 'ODQ', semantics: 'additive' },
+    })) as { id: string; code: string };
+    await post(`/sources/${source.id}/activate`, {});
+    const types = await page.evaluate(async () =>
+      (await fetch('/api/v1/destination-types/csv/schema')).json(),
+    );
+    const root = (types as { config_schema: { properties: { root: { enum: string[] } } } })
+      .config_schema.properties.root.enum[0];
+    const destination = (await post('/destinations', {
+      code: `CSV_ENG_${suffix}`,
+      name: 'Carpeta del motor E2E',
+      type: 'csv',
+      environment: 'DEV',
+      config: { root, path: `e2e/engine-${suffix.toLowerCase()}` },
+      run_test: true,
+      activate: true,
+    })) as { destination: { code: string } };
+
+    await menuLink(page, 'Pipelines').click();
+    await page.getByRole('button', { name: 'Nuevo pipeline' }).click();
+    const code = `PPL_${suffix}`;
+    await page.getByLabel(/^Código/).fill(code);
+    await page.getByLabel('Nombre').fill('Mayor hacia CSV');
+    await page
+      .getByLabel('Origen', { exact: true })
+      .selectOption({ label: `${source.code} (Mayor E2E)` });
+    await page
+      .getByLabel('Destino', { exact: true })
+      .selectOption({ label: `${destination.destination.code} (Carpeta del motor E2E)` });
+    await expect(page.getByLabel(/^Modo de extracción/)).toHaveValue('DELTA');
+    await expect(page.getByLabel(/^Modo de carga/)).toHaveValue('append');
+    await page.getByLabel(/^Tabla o carpeta/).fill('GL_ITEMS');
+    await page.getByRole('button', { name: 'Crear pipeline' }).click();
+
+    await expect(page.getByRole('heading', { name: new RegExp(code) })).toBeVisible();
+    await expect(page.getByText(/^Borrador: actívelo/)).toBeVisible();
+    await page.getByRole('button', { name: 'Activar' }).click();
+    await page.getByRole('button', { name: 'Ejecutar ahora' }).click();
+    await expect(page.getByRole('heading', { name: /Inicialización del delta/ })).toBeVisible();
+    // El worker del compose toma el run: el log llega en vivo hasta la confirmación.
+    await expect(page.getByText('Delta inicializado: el token queda confirmado.')).toBeVisible({
+      timeout: 60_000,
+    });
+    await expect(page.getByText('Correcta', { exact: true }).first()).toBeVisible();
+
+    await page.getByRole('link', { name: 'Ir al pipeline' }).click();
+    await page.getByRole('tab', { name: 'Delta' }).click();
+    await expect(page.getByText('Inicializado', { exact: true }).first()).toBeVisible();
+  });
+
   test('alta de destino CSV → prueba → activación → auditoría', async ({ page }) => {
     await login(page, ADMIN_USER ?? '', ADMIN_PASSWORD ?? '');
     await menuLink(page, 'Destinos').click();

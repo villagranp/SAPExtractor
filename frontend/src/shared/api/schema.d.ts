@@ -1505,6 +1505,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/runs/{run_id}/steps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Pasos del run por intento (prepare, extract, load, commit_delta, cleanup) */
+        get: operations["run_steps_api_v1_runs__run_id__steps_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/runs/{run_id}/logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Log del run desde un cursor (la pantalla lo consulta cada segundo) */
+        get: operations["run_logs_api_v1_runs__run_id__logs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pipelines/{pipeline_id}/delta": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Estado de delta o marca de agua del pipeline, con su historial */
+        get: operations["delta_state_api_v1_pipelines__pipeline_id__delta_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pipelines/{pipeline_id}/delta/reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reinicializa el delta: el próximo run será una inicialización nueva */
+        post: operations["reset_delta_api_v1_pipelines__pipeline_id__delta_reset_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pipelines/{pipeline_id}/delta/sap-subscription": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirma que la suscripción anterior se cerró en ODQMON o que se deja abierta */
+        post: operations["resolve_subscription_api_v1_pipelines__pipeline_id__delta_sap_subscription_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1629,6 +1714,12 @@ export interface components {
             error_kind: components["schemas"]["ErrorKind"] | null;
             /** Error Message */
             error_message: string | null;
+            /**
+             * Has Spool
+             * @description El worker de este intento tiene un spool válido del lote (un reintento allí no vuelve a llamar a SAP)
+             * @default false
+             */
+            has_spool: boolean;
         };
         /** AuditActionInfo */
         AuditActionInfo: {
@@ -2109,6 +2200,26 @@ export interface components {
             /** Watermark Overlap Seconds */
             watermark_overlap_seconds?: number | null;
         };
+        /** DeltaHistoryEntry */
+        DeltaHistoryEntry: {
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /** Event */
+            event: string;
+            from_status: components["schemas"]["DeltaStatus"] | null;
+            to_status: components["schemas"]["DeltaStatus"] | null;
+            /** Generation */
+            generation: number;
+            /** Run Id */
+            run_id: string | null;
+            /** Actor */
+            actor: string | null;
+            /** Reason */
+            reason: string | null;
+        };
         /**
          * DeltaMethod
          * @enum {string}
@@ -2120,6 +2231,41 @@ export interface components {
          * @enum {string}
          */
         DeltaSemantics: "after_image" | "additive" | "before_after" | "unknown";
+        /** DeltaStateResponse */
+        DeltaStateResponse: {
+            status: components["schemas"]["DeltaStatus"];
+            /** Generation */
+            generation: number;
+            /** Current Token */
+            current_token: string | null;
+            /** Pending Run Id */
+            pending_run_id: string | null;
+            /**
+             * Sap Close Pending
+             * @description La suscripción anterior sigue abierta en SAP
+             */
+            sap_close_pending: boolean;
+            /**
+             * Requires Reinit
+             * @description Los filtros cambiaron desde la inicialización
+             */
+            requires_reinit: boolean;
+            /** Watermark Value */
+            watermark_value: {
+                [key: string]: unknown;
+            } | null;
+            /** Initialized At */
+            initialized_at: string | null;
+            /** Last Delta At */
+            last_delta_at: string | null;
+            /** History */
+            history: components["schemas"]["DeltaHistoryEntry"][];
+        };
+        /**
+         * DeltaStatus
+         * @enum {string}
+         */
+        DeltaStatus: "NOT_INITIALIZED" | "INITIALIZING" | "INITIALIZED" | "BROKEN";
         /** DependentResponse */
         DependentResponse: {
             /** Kind */
@@ -2569,7 +2715,7 @@ export interface components {
         /** EntraTestStepResponse */
         EntraTestStepResponse: {
             name: components["schemas"]["sapextract__identity__domain__entra__StepName"];
-            status: components["schemas"]["StepStatus"];
+            status: components["schemas"]["sapextract__identity__domain__entra__StepStatus"];
             /** Message */
             message: string;
             /** Duration Ms */
@@ -3345,11 +3491,6 @@ export interface components {
             /** Display Format */
             display_format: string | null;
         };
-        /** ReasonRequest */
-        ReasonRequest: {
-            /** Reason */
-            reason?: string | null;
-        };
         /** RetryPolicyBody */
         RetryPolicyBody: {
             /**
@@ -3506,6 +3647,11 @@ export interface components {
             error_kind: components["schemas"]["ErrorKind"] | null;
             /** Error Message */
             error_message: string | null;
+            /**
+             * Rows Extracted
+             * @description Filas leídas de SAP (motor)
+             */
+            rows_extracted?: number | null;
             /** Attempts */
             attempts: components["schemas"]["AttemptResponse"][];
             /**
@@ -3529,6 +3675,53 @@ export interface components {
             window_start: string | null;
             /** Window End */
             window_end: string | null;
+            /**
+             * Next Token
+             * @description Token confirmado por este run
+             */
+            next_token?: string | null;
+            /** Rows Inserted */
+            rows_inserted?: number | null;
+            /** Rows Updated */
+            rows_updated?: number | null;
+            /** Rows Deleted */
+            rows_deleted?: number | null;
+        };
+        /** RunLogLine */
+        RunLogLine: {
+            /** Id */
+            id: number;
+            /**
+             * Ts
+             * Format: date-time
+             */
+            ts: string;
+            /** Attempt */
+            attempt: number | null;
+            step: components["schemas"]["sapextract__extraction__domain__model__StepName"] | null;
+            /** Level */
+            level: string;
+            /** Message */
+            message: string;
+            /** Data */
+            data: {
+                [key: string]: unknown;
+            };
+        };
+        /** RunLogPage */
+        RunLogPage: {
+            /** Items */
+            items: components["schemas"]["RunLogLine"][];
+            /**
+             * Next After
+             * @description Cursor para la siguiente consulta (after)
+             */
+            next_after: number | null;
+            /**
+             * Finished
+             * @description El run terminó: no llegarán más líneas
+             */
+            finished: boolean;
         };
         /**
          * RunMode
@@ -3590,6 +3783,11 @@ export interface components {
             error_kind: components["schemas"]["ErrorKind"] | null;
             /** Error Message */
             error_message: string | null;
+            /**
+             * Rows Extracted
+             * @description Filas leídas de SAP (motor)
+             */
+            rows_extracted?: number | null;
         };
         /**
          * RunTrigger
@@ -4437,11 +4635,35 @@ export interface components {
             /** Reason */
             reason?: string | null;
         };
+        /** StepResponse */
+        StepResponse: {
+            /** Attempt */
+            attempt: number;
+            step: components["schemas"]["sapextract__extraction__domain__model__StepName"];
+            status: components["schemas"]["sapextract__extraction__domain__model__StepStatus"];
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /** Finished At */
+            finished_at: string | null;
+            /** Metrics */
+            metrics: {
+                [key: string]: unknown;
+            };
+        };
         /**
-         * StepStatus
+         * SubscriptionAction
          * @enum {string}
          */
-        StepStatus: "ok" | "warning" | "failed" | "skipped";
+        SubscriptionAction: "closed" | "left_open";
+        /** SubscriptionRequest */
+        SubscriptionRequest: {
+            action: components["schemas"]["SubscriptionAction"];
+            /** Reason */
+            reason?: string | null;
+        };
         /** SystemInfo */
         SystemInfo: {
             /** Name */
@@ -4496,7 +4718,7 @@ export interface components {
         /** TestStepResponse */
         TestStepResponse: {
             name: components["schemas"]["sapextract__sap_connections__domain__testing__StepName"];
-            status: components["schemas"]["StepStatus"];
+            status: components["schemas"]["sapextract__sap_connections__domain__testing__StepStatus"];
             /** Message */
             message: string;
             /** Duration Ms */
@@ -4710,16 +4932,46 @@ export interface components {
             /** Private Key Passphrase */
             private_key_passphrase?: string | null;
         };
+        /** ReasonRequest */
+        sapextract__extraction__api__schemas__ReasonRequest: {
+            /** Reason */
+            reason: string;
+        };
+        /**
+         * StepName
+         * @enum {string}
+         */
+        sapextract__extraction__domain__model__StepName: "prepare" | "extract" | "load" | "commit_delta" | "cleanup";
+        /**
+         * StepStatus
+         * @enum {string}
+         */
+        sapextract__extraction__domain__model__StepStatus: "running" | "succeeded" | "failed" | "skipped";
+        /** ReasonRequest */
+        sapextract__identity__api__schemas__ReasonRequest: {
+            /** Reason */
+            reason?: string | null;
+        };
         /**
          * StepName
          * @enum {string}
          */
         sapextract__identity__domain__entra__StepName: "discovery" | "keys" | "credential";
         /**
+         * StepStatus
+         * @enum {string}
+         */
+        sapextract__identity__domain__entra__StepStatus: "ok" | "warning" | "failed" | "skipped";
+        /**
          * StepName
          * @enum {string}
          */
         sapextract__sap_connections__domain__testing__StepName: "network" | "authentication" | "server_info" | "latency";
+        /**
+         * StepStatus
+         * @enum {string}
+         */
+        sapextract__sap_connections__domain__testing__StepStatus: "ok" | "warning" | "failed" | "skipped";
     };
     responses: never;
     parameters: never;
@@ -5285,7 +5537,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ReasonRequest"];
+                "application/json": components["schemas"]["sapextract__identity__api__schemas__ReasonRequest"];
             };
         };
         responses: {
@@ -5351,7 +5603,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ReasonRequest"];
+                "application/json": components["schemas"]["sapextract__identity__api__schemas__ReasonRequest"];
             };
         };
         responses: {
@@ -8292,6 +8544,172 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    run_steps_api_v1_runs__run_id__steps_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StepResponse"][];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    run_logs_api_v1_runs__run_id__logs_get: {
+        parameters: {
+            query?: {
+                after?: number | null;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunLogPage"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    delta_state_api_v1_pipelines__pipeline_id__delta_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pipeline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeltaStateResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    reset_delta_api_v1_pipelines__pipeline_id__delta_reset_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pipeline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["sapextract__extraction__api__schemas__ReasonRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeltaStateResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    resolve_subscription_api_v1_pipelines__pipeline_id__delta_sap_subscription_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pipeline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubscriptionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeltaStateResponse"];
+                };
             };
             /** @description Error */
             default: {

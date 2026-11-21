@@ -4,8 +4,8 @@ Toma runs de la cola de sus *pools* (``SX_WORKER_POOLS``), los entrega al ejecut
 el latido (plan 08 §3). Al recibir SIGTERM el run en curso se detiene entre páginas, su
 intento se cierra como interrumpido y el run vuelve a la cola.
 
-El ejecutor es el motor de extracción (It5). Hasta que exista, el worker se registra y da
-latido pero no toma runs: quedan en la cola.
+El ejecutor es el motor de extracción (It5, ``ExtractionEngine``); su enganche con la cola
+(``DeltaHooks``) suelta el estado de delta cuando un run termina sin éxito.
 """
 
 from __future__ import annotations
@@ -16,14 +16,20 @@ import time
 
 import structlog
 
+from sapextract.audit.application.service import AuditService
 from sapextract.core.config import Settings, get_settings
 from sapextract.core.db import Database
 from sapextract.core.logging import configure_logging
 from sapextract.core.runtime import GracefulShutdown
+from sapextract.destinations.application.toolkit import DestinationsToolkit
+from sapextract.extraction.application.delta_service import DeltaHooks
+from sapextract.extraction.application.engine import ExtractionEngine
+from sapextract.extraction.application.resolve import ExtractionToolkit
 from sapextract.orchestration.application.toolkit import OrchestrationToolkit
 from sapextract.orchestration.application.worker import WorkerRuntime
 from sapextract.orchestration.domain.ports import RunExecutor
 from sapextract.orchestration.infrastructure.queue import QueueListener
+from sapextract.sap_connections.application.toolkit import SapToolkit
 
 log = structlog.get_logger(__name__)
 
@@ -34,9 +40,20 @@ def worker_id() -> str:
     return f"{socket.gethostname()}:{os.getpid()}"
 
 
-def build_executor(_settings: Settings) -> RunExecutor | None:
-    """Ejecutor de runs de este proceso. El motor de extracción (It5) lo registra aquí."""
-    return None
+def build_toolkit(settings: Settings) -> tuple[OrchestrationToolkit, ExtractionToolkit]:
+    audit = AuditService()
+    sap = SapToolkit.build(settings, audit=audit)
+    destinations = DestinationsToolkit.build(settings, audit=audit)
+    extraction = ExtractionToolkit.build(settings, sap=sap, destinations=destinations, audit=audit)
+    orchestration = OrchestrationToolkit.build(
+        settings, audit=audit, sap=sap, destinations=destinations, hooks=DeltaHooks(extraction)
+    )
+    return orchestration, extraction
+
+
+def build_executor(db: Database, extraction: ExtractionToolkit) -> RunExecutor:
+    """Ejecutor de runs de este proceso: el motor de extracción (It5)."""
+    return ExtractionEngine(db, extraction)
 
 
 def idle(listener: QueueListener | None, shutdown: GracefulShutdown, seconds: float) -> None:
@@ -65,10 +82,11 @@ def run(settings: Settings | None = None, executor: RunExecutor | None = None) -
     shutdown = GracefulShutdown()
     shutdown.install()
     db = Database(settings)
+    orchestration, extraction = build_toolkit(settings)
     runtime = WorkerRuntime(
         db,
-        OrchestrationToolkit.build(settings),
-        executor=executor or build_executor(settings),
+        orchestration,
+        executor=executor or build_executor(db, extraction),
         shutdown=shutdown.event,
     )
     structlog.contextvars.bind_contextvars(worker_id=str(runtime.worker_id), host=worker_id())

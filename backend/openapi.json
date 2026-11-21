@@ -829,7 +829,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ReasonRequest"
+                "$ref": "#/components/schemas/sapextract__identity__api__schemas__ReasonRequest"
               }
             }
           }
@@ -931,7 +931,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ReasonRequest"
+                "$ref": "#/components/schemas/sapextract__identity__api__schemas__ReasonRequest"
               }
             }
           }
@@ -6003,6 +6003,281 @@
           "concurrency_group.deleted"
         ]
       }
+    },
+    "/api/v1/runs/{run_id}/steps": {
+      "get": {
+        "tags": [
+          "Ejecuciones"
+        ],
+        "summary": "Pasos del run por intento (prepare, extract, load, commit_delta, cleanup)",
+        "operationId": "run_steps_api_v1_runs__run_id__steps_get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StepResponse"
+                  },
+                  "title": "Response Run Steps Api V1 Runs  Run Id  Steps Get"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/runs/{run_id}/logs": {
+      "get": {
+        "tags": [
+          "Ejecuciones"
+        ],
+        "summary": "Log del run desde un cursor (la pantalla lo consulta cada segundo)",
+        "operationId": "run_logs_api_v1_runs__run_id__logs_get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "After"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "default": 200,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunLogPage"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pipelines/{pipeline_id}/delta": {
+      "get": {
+        "tags": [
+          "Ejecuciones"
+        ],
+        "summary": "Estado de delta o marca de agua del pipeline, con su historial",
+        "operationId": "delta_state_api_v1_pipelines__pipeline_id__delta_get",
+        "parameters": [
+          {
+            "name": "pipeline_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Pipeline Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeltaStateResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pipelines/{pipeline_id}/delta/reset": {
+      "post": {
+        "tags": [
+          "Ejecuciones"
+        ],
+        "summary": "Reinicializa el delta: el próximo run será una inicialización nueva",
+        "operationId": "reset_delta_api_v1_pipelines__pipeline_id__delta_reset_post",
+        "parameters": [
+          {
+            "name": "pipeline_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Pipeline Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/sapextract__extraction__api__schemas__ReasonRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeltaStateResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "pipeline.delta_reset"
+        ]
+      }
+    },
+    "/api/v1/pipelines/{pipeline_id}/delta/sap-subscription": {
+      "post": {
+        "tags": [
+          "Ejecuciones"
+        ],
+        "summary": "Confirma que la suscripción anterior se cerró en ODQMON o que se deja abierta",
+        "operationId": "resolve_subscription_api_v1_pipelines__pipeline_id__delta_sap_subscription_post",
+        "parameters": [
+          {
+            "name": "pipeline_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Pipeline Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscriptionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeltaStateResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "pipeline.sap_subscription_closed",
+          "pipeline.sap_subscription_left_open"
+        ]
+      }
     }
   },
   "components": {
@@ -6304,6 +6579,12 @@
               }
             ],
             "title": "Error Message"
+          },
+          "has_spool": {
+            "type": "boolean",
+            "title": "Has Spool",
+            "description": "El worker de este intento tiene un spool válido del lote (un reintento allí no vuelve a llamar a SAP)",
+            "default": false
           }
         },
         "type": "object",
@@ -7719,6 +8000,89 @@
         ],
         "title": "DeltaConfigBody"
       },
+      "DeltaHistoryEntry": {
+        "properties": {
+          "at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "At"
+          },
+          "event": {
+            "type": "string",
+            "title": "Event"
+          },
+          "from_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DeltaStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "to_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DeltaStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "generation": {
+            "type": "integer",
+            "title": "Generation"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          },
+          "actor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actor"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "at",
+          "event",
+          "from_status",
+          "to_status",
+          "generation",
+          "run_id",
+          "actor",
+          "reason"
+        ],
+        "title": "DeltaHistoryEntry"
+      },
       "DeltaMethod": {
         "type": "string",
         "enum": [
@@ -7738,6 +8102,117 @@
         ],
         "title": "DeltaSemantics",
         "description": "Proceso de delta del extractor (RSA2). No se detecta: lo declara el usuario."
+      },
+      "DeltaStateResponse": {
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/DeltaStatus"
+          },
+          "generation": {
+            "type": "integer",
+            "title": "Generation"
+          },
+          "current_token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Token"
+          },
+          "pending_run_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pending Run Id"
+          },
+          "sap_close_pending": {
+            "type": "boolean",
+            "title": "Sap Close Pending",
+            "description": "La suscripción anterior sigue abierta en SAP"
+          },
+          "requires_reinit": {
+            "type": "boolean",
+            "title": "Requires Reinit",
+            "description": "Los filtros cambiaron desde la inicialización"
+          },
+          "watermark_value": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Watermark Value"
+          },
+          "initialized_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Initialized At"
+          },
+          "last_delta_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Delta At"
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/DeltaHistoryEntry"
+            },
+            "type": "array",
+            "title": "History"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "generation",
+          "current_token",
+          "pending_run_id",
+          "sap_close_pending",
+          "requires_reinit",
+          "watermark_value",
+          "initialized_at",
+          "last_delta_at",
+          "history"
+        ],
+        "title": "DeltaStateResponse"
+      },
+      "DeltaStatus": {
+        "type": "string",
+        "enum": [
+          "NOT_INITIALIZED",
+          "INITIALIZING",
+          "INITIALIZED",
+          "BROKEN"
+        ],
+        "title": "DeltaStatus"
       },
       "DependentResponse": {
         "properties": {
@@ -9047,7 +9522,7 @@
             "$ref": "#/components/schemas/sapextract__identity__domain__entra__StepName"
           },
           "status": {
-            "$ref": "#/components/schemas/StepStatus"
+            "$ref": "#/components/schemas/sapextract__identity__domain__entra__StepStatus"
           },
           "message": {
             "type": "string",
@@ -11300,24 +11775,6 @@
         ],
         "title": "PropertyResponse"
       },
-      "ReasonRequest": {
-        "properties": {
-          "reason": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 500
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Reason"
-          }
-        },
-        "type": "object",
-        "title": "ReasonRequest"
-      },
       "RetryPolicyBody": {
         "properties": {
           "max_attempts": {
@@ -11769,6 +12226,18 @@
             ],
             "title": "Error Message"
           },
+          "rows_extracted": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rows Extracted",
+            "description": "Filas leídas de SAP (motor)"
+          },
           "attempts": {
             "items": {
               "$ref": "#/components/schemas/AttemptResponse"
@@ -11872,6 +12341,51 @@
               }
             ],
             "title": "Window End"
+          },
+          "next_token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Token",
+            "description": "Token confirmado por este run"
+          },
+          "rows_inserted": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rows Inserted"
+          },
+          "rows_updated": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rows Updated"
+          },
+          "rows_deleted": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rows Deleted"
           }
         },
         "type": "object",
@@ -11904,6 +12418,99 @@
           "window_end"
         ],
         "title": "RunDetail"
+      },
+      "RunLogLine": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "ts": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Ts"
+          },
+          "attempt": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attempt"
+          },
+          "step": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/sapextract__extraction__domain__model__StepName"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "level": {
+            "type": "string",
+            "title": "Level"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "data": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "ts",
+          "attempt",
+          "step",
+          "level",
+          "message",
+          "data"
+        ],
+        "title": "RunLogLine"
+      },
+      "RunLogPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/RunLogLine"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "next_after": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next After",
+            "description": "Cursor para la siguiente consulta (after)"
+          },
+          "finished": {
+            "type": "boolean",
+            "title": "Finished",
+            "description": "El run terminó: no llegarán más líneas"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "next_after",
+          "finished"
+        ],
+        "title": "RunLogPage"
       },
       "RunMode": {
         "type": "string",
@@ -12072,6 +12679,18 @@
               }
             ],
             "title": "Error Message"
+          },
+          "rows_extracted": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rows Extracted",
+            "description": "Filas leídas de SAP (motor)"
           }
         },
         "type": "object",
@@ -14699,15 +15318,83 @@
         "type": "object",
         "title": "StatusReasonRequest"
       },
-      "StepStatus": {
+      "StepResponse": {
+        "properties": {
+          "attempt": {
+            "type": "integer",
+            "title": "Attempt"
+          },
+          "step": {
+            "$ref": "#/components/schemas/sapextract__extraction__domain__model__StepName"
+          },
+          "status": {
+            "$ref": "#/components/schemas/sapextract__extraction__domain__model__StepStatus"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "metrics": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Metrics"
+          }
+        },
+        "type": "object",
+        "required": [
+          "attempt",
+          "step",
+          "status",
+          "started_at",
+          "finished_at",
+          "metrics"
+        ],
+        "title": "StepResponse"
+      },
+      "SubscriptionAction": {
         "type": "string",
         "enum": [
-          "ok",
-          "warning",
-          "failed",
-          "skipped"
+          "closed",
+          "left_open"
         ],
-        "title": "StepStatus"
+        "title": "SubscriptionAction"
+      },
+      "SubscriptionRequest": {
+        "properties": {
+          "action": {
+            "$ref": "#/components/schemas/SubscriptionAction"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "action"
+        ],
+        "title": "SubscriptionRequest"
       },
       "SystemInfo": {
         "properties": {
@@ -14825,7 +15512,7 @@
             "$ref": "#/components/schemas/sapextract__sap_connections__domain__testing__StepName"
           },
           "status": {
-            "$ref": "#/components/schemas/StepStatus"
+            "$ref": "#/components/schemas/sapextract__sap_connections__domain__testing__StepStatus"
           },
           "message": {
             "type": "string",
@@ -15405,6 +16092,60 @@
         ],
         "title": "X509CredentialsIn"
       },
+      "sapextract__extraction__api__schemas__ReasonRequest": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 5,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "ReasonRequest"
+      },
+      "sapextract__extraction__domain__model__StepName": {
+        "type": "string",
+        "enum": [
+          "prepare",
+          "extract",
+          "load",
+          "commit_delta",
+          "cleanup"
+        ],
+        "title": "StepName"
+      },
+      "sapextract__extraction__domain__model__StepStatus": {
+        "type": "string",
+        "enum": [
+          "running",
+          "succeeded",
+          "failed",
+          "skipped"
+        ],
+        "title": "StepStatus"
+      },
+      "sapextract__identity__api__schemas__ReasonRequest": {
+        "properties": {
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "title": "ReasonRequest"
+      },
       "sapextract__identity__domain__entra__StepName": {
         "type": "string",
         "enum": [
@@ -15413,6 +16154,16 @@
           "credential"
         ],
         "title": "StepName"
+      },
+      "sapextract__identity__domain__entra__StepStatus": {
+        "type": "string",
+        "enum": [
+          "ok",
+          "warning",
+          "failed",
+          "skipped"
+        ],
+        "title": "StepStatus"
       },
       "sapextract__sap_connections__domain__testing__StepName": {
         "type": "string",
@@ -15423,6 +16174,16 @@
           "latency"
         ],
         "title": "StepName"
+      },
+      "sapextract__sap_connections__domain__testing__StepStatus": {
+        "type": "string",
+        "enum": [
+          "ok",
+          "warning",
+          "failed",
+          "skipped"
+        ],
+        "title": "StepStatus"
       }
     }
   }

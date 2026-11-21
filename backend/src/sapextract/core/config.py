@@ -145,6 +145,14 @@ class Settings(BaseSettings):
     scheduler_misfire_grace_seconds: float = Field(
         60.0, ge=0, description="Retraso a partir del cual un disparo cuenta como atrasado"
     )
+    # --- Motor (plan 06)
+    spool_keep_on_success: bool = Field(
+        default=False, description="Conservar el spool tras una carga correcta (diagnóstico)"
+    )
+    page_timeout_seconds: int = Field(300, ge=10, le=3600, description="Timeout por página SAP")
+    watermark_safety_lag_seconds: int = Field(
+        120, ge=0, le=3600, description="Margen para no leer transacciones en curso (plan 06 §5)"
+    )
 
     @model_validator(mode="after")
     def _validate_network(self) -> Self:

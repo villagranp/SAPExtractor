@@ -805,6 +805,8 @@ class PipelineService:
             reason=reason,
         )
         self.session.execute(delete(Schedule).where(Schedule.pipeline_id == pipeline.id))
+        if self.tk.hooks is not None:
+            self.tk.hooks.pipeline_deleted(self.session, pipeline, actor)
         pipeline.deleted_at = self.tk.clock()
         pipeline.updated_by = actor.username
         self.session.commit()

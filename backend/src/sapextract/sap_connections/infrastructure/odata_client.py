@@ -19,7 +19,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from types import TracebackType
 from typing import Any, Self
-from urllib.parse import parse_qsl, urlsplit
+from urllib.parse import parse_qsl, quote, urlencode, urlsplit
 
 import httpx
 import structlog
@@ -58,6 +58,9 @@ log = structlog.get_logger(__name__)
 
 CATALOG_PATH = "/sap/opu/odata/iwfnd/CATALOGSERVICE;v=2"
 RETRY_STATUSES = frozenset({429, 502, 503, 504})
+# Caracteres que viajan sin codificar en la consulta, como en los enlaces de SAP y en el spike:
+# `!deltatoken='…'`, `$filter=… eq '1000'` (los espacios van como %20, nunca como «+»).
+QUERY_SAFE = "$'(),:!"
 MAX_PAGES = 500
 _rng = secrets.SystemRandom()
 
@@ -128,6 +131,13 @@ class SapResponse:
             msg = "SAP devolvió un JSON inesperado."
             raise SapResponseError(msg, http_status=self.status_code)
         return data
+
+
+def with_query(url: str, params: Mapping[str, str]) -> str:
+    """URL con la consulta codificada como la envía SAP en sus enlaces (``QUERY_SAFE``)."""
+    if not params:
+        return url
+    return f"{url}?{urlencode(dict(params), quote_via=quote, safe=QUERY_SAFE)}"
 
 
 def odata_v2_results(body: Mapping[str, Any]) -> tuple[list[dict[str, Any]], str | None]:
@@ -416,7 +426,7 @@ class SapODataClient:
             for attempt in range(1, attempts + 1):
                 started = time.perf_counter()
                 try:
-                    response = self._http.request(method, url, params=params, headers=headers)
+                    response = self._http.request(method, with_query(url, params), headers=headers)
                 except httpx.HTTPError as exc:
                     error = error_for_transport(
                         exc, host=self._host, timeout=float(self.spec.timeout_seconds)

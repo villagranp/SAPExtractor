@@ -558,6 +558,7 @@ class RunSummary(BaseModel):
     error_code: str | None
     error_kind: ErrorKind | None
     error_message: str | None
+    rows_extracted: int | None = Field(None, description="Filas leídas de SAP (motor)")
 
     @classmethod
     def of(cls, v: RunView) -> RunSummary:
@@ -579,6 +580,7 @@ class RunSummary(BaseModel):
             error_code=r.error_code,
             error_kind=ErrorKind(r.error_kind) if r.error_kind else None,
             error_message=r.error_message,
+            rows_extracted=r.rows_extracted,
         )
 
 
@@ -591,6 +593,11 @@ class AttemptResponse(BaseModel):
     error_code: str | None
     error_kind: ErrorKind | None
     error_message: str | None
+    has_spool: bool = Field(
+        False,
+        description="El worker de este intento tiene un spool válido del lote (un reintento "
+        "allí no vuelve a llamar a SAP)",
+    )
 
     @classmethod
     def of(cls, a: RunAttempt) -> AttemptResponse:
@@ -603,6 +610,7 @@ class AttemptResponse(BaseModel):
             error_code=a.error_code,
             error_kind=ErrorKind(a.error_kind) if a.error_kind else None,
             error_message=a.error_message,
+            has_spool=a.spool_worker_id is not None,
         )
 
 
@@ -617,6 +625,10 @@ class RunDetail(RunSummary):
     start_token: str | None
     window_start: datetime | None
     window_end: datetime | None
+    next_token: str | None = Field(None, description="Token confirmado por este run")
+    rows_inserted: int | None = None
+    rows_updated: int | None = None
+    rows_deleted: int | None = None
 
     @classmethod
     def of_view(cls, v: RunView) -> RunDetail:
@@ -633,6 +645,10 @@ class RunDetail(RunSummary):
             start_token=r.start_token,
             window_start=r.window_start,
             window_end=r.window_end,
+            next_token=r.next_token,
+            rows_inserted=r.rows_inserted,
+            rows_updated=r.rows_updated,
+            rows_deleted=r.rows_deleted,
         )
 
 

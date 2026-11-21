@@ -147,6 +147,8 @@ class RunService:
             delta_semantics=semantics,
             can_manage=actor.has("pipeline:manage"),
         )
+        if self.tk.hooks is not None:  # el motor decide si el estado de delta lo permite
+            self.tk.hooks.check_run(self.session, pipeline, run_mode)
         api = actor.auth_method is AuthMethod.API_TOKEN
         run = enqueue_run(
             self.session,
@@ -186,6 +188,8 @@ class RunService:
         now = self.tk.clock()
         if run.status == RunStatus.QUEUED.value:
             run.status, run.finished_at = RunStatus.CANCELLED.value, now
+            if self.tk.hooks is not None:
+                self.tk.hooks.run_finished(self.session, run)
         elif run.status != RunStatus.RUNNING.value:
             msg = "La ejecución ya terminó."
             raise ConflictError(msg, code="SX-RUN-FINISHED")

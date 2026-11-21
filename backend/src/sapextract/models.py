@@ -8,6 +8,12 @@ from sapextract.core.db import Base
 from sapextract.core.secret_store import Secret
 from sapextract.core.system_settings import SystemSetting
 from sapextract.destinations.infrastructure.models import Destination
+from sapextract.extraction.infrastructure.models import (
+    DeltaState,
+    DeltaStateHistory,
+    RunLog,
+    RunStep,
+)
 from sapextract.identity.infrastructure.models import (
     ApiToken,
     IdentityProvider,
@@ -36,6 +42,8 @@ __all__ = [
     "AuditEventRow",
     "Base",
     "ConcurrencyGroup",
+    "DeltaState",
+    "DeltaStateHistory",
     "Destination",
     "IdentityProvider",
     "IdpGroupMapping",
@@ -46,6 +54,8 @@ __all__ = [
     "RolePermission",
     "Run",
     "RunAttempt",
+    "RunLog",
+    "RunStep",
     "SapCatalogCache",
     "SapSystem",
     "Schedule",

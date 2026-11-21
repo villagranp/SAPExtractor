@@ -24,6 +24,7 @@ import sapextract.main_scheduler as scheduler_main
 import sapextract.main_worker as worker_main
 from sapextract.core.config import Settings
 from sapextract.dataflow.domain.errors import DataflowError, ErrorKind
+from sapextract.extraction.application.engine import ExtractionEngine
 from sapextract.orchestration.application.lifecycle import Verdict, VerdictKind, settle
 from sapextract.orchestration.application.scheduler import SchedulerService
 from sapextract.orchestration.application.toolkit import OrchestrationToolkit
@@ -690,7 +691,7 @@ def test_worker_process_takes_work_and_stops_cleanly(
     monkeypatch.setattr(
         OrchestrationToolkit,
         "build",
-        classmethod(lambda cls, settings: replace(orch.toolkit, settings=settings)),
+        classmethod(lambda cls, settings, **_: replace(orch.toolkit, settings=settings)),
     )
     failsafe = threading.Timer(20, shutdown.event.set)  # si algo falla, la prueba no se cuelga
     failsafe.start()
@@ -705,14 +706,9 @@ def test_worker_process_takes_work_and_stops_cleanly(
         mine = session.scalars(select(Worker).where(Worker.pools.contains([pool]))).one()
     assert mine.status == "offline"
 
-    # Sin motor registrado el proceso arranca, da latido y no toma nada.
-    waiting = orch.run_now(orch_admin, pipeline["id"])
-    idle_shutdown = _Shutdown()
-    monkeypatch.setattr(worker_main, "GracefulShutdown", lambda: idle_shutdown)
-    threading.Timer(0.3, idle_shutdown.event.set).start()
-    worker_main.run(_process_settings(orch, pool))
-    assert orch.run(waiting["id"]).status == "queued"
-    assert worker_main.build_executor(orch.toolkit.settings) is None
+    # El proceso registra el motor de extracción (It5) como ejecutor y lo engancha a la cola.
+    _, extraction = worker_main.build_toolkit(orch.toolkit.settings)
+    assert isinstance(worker_main.build_executor(orch.db, extraction), ExtractionEngine)
     assert ":" in worker_main.worker_id()
 
 

@@ -144,6 +144,12 @@ class Run(IdMixin, Base):
     error_code: Mapped[str | None] = mapped_column(String(60))
     error_kind: Mapped[str | None] = mapped_column(String(20))
     error_message: Mapped[str | None] = mapped_column(Text)
+    # Resultado que deja el motor al confirmar (It5): token confirmado y filas.
+    next_token: Mapped[str | None] = mapped_column(Text)
+    rows_extracted: Mapped[int | None] = mapped_column(BigInteger)
+    rows_inserted: Mapped[int | None] = mapped_column(BigInteger)
+    rows_updated: Mapped[int | None] = mapped_column(BigInteger)
+    rows_deleted: Mapped[int | None] = mapped_column(BigInteger)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
@@ -165,3 +171,5 @@ class RunAttempt(Base):
     error_kind: Mapped[str | None] = mapped_column(String(20))
     error_message: Mapped[str | None] = mapped_column(Text)
     spool_worker_id: Mapped[uuid.UUID | None] = mapped_column()
+    # El intento llegó a pedir datos a SAP: una init cortada puede dejar la suscripción (H10).
+    sap_requested: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)

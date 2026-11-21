@@ -106,6 +106,11 @@ ACTIONS: dict[str, Category] = {
     "run.triggered_manual": Category.EXECUTION,
     "run.cancelled": Category.EXECUTION,
     "run.retried": Category.EXECUTION,
+    # execution: estado de delta (plan 06 §3.6)
+    "pipeline.delta_reset": Category.EXECUTION,
+    "pipeline.delta_broken": Category.EXECUTION,
+    "pipeline.sap_subscription_closed": Category.EXECUTION,
+    "pipeline.sap_subscription_left_open": Category.EXECUTION,
     # security
     "audit.exported": Category.SECURITY,
     "audit.verified": Category.SECURITY,

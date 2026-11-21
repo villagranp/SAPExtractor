@@ -33,10 +33,13 @@ from sapextract.orchestration.domain.ports import (
     RunStoppedError,
     StopReason,
 )
-from sapextract.orchestration.infrastructure.models import Worker
+from sapextract.orchestration.infrastructure.models import Run, Worker
 from sapextract.orchestration.infrastructure.queue import ClaimedRun, claim, heartbeat
 
 log = structlog.get_logger(__name__)
+
+# Intentos que dejan el run terminado sin éxito: el motor suelta su estado de delta.
+FINAL_FAILURES = (AttemptOutcome.FAILED, AttemptOutcome.CANCELLED)
 
 
 class LeaseGuard:
@@ -254,6 +257,10 @@ class WorkerRuntime:
         now = self.tk.clock()
         with self.db.session() as session:
             outcome = settle(session, claimed, verdict, now=now, random=self.tk.random())
+            if self.tk.hooks is not None and outcome in FINAL_FAILURES:
+                run = session.get(Run, claimed.run_id)
+                if run is not None and run.lease_epoch == claimed.lease_epoch:
+                    self.tk.hooks.run_finished(session, run)
             session.execute(
                 update(Worker)
                 .where(Worker.id == self.worker_id)

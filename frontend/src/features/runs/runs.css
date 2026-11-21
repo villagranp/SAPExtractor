@@ -1,0 +1,69 @@
+/* Pantallas de ejecuciones: log en vivo y resumen del run (plan 03 §2, plan 10). */
+
+.sx-run-log {
+  list-style: none;
+  margin: 0;
+  padding: var(--sx-space-3);
+  max-height: 28rem;
+  overflow: auto;
+  border-radius: var(--sx-radius-md);
+  background: var(--sx-color-surface-alt);
+  box-shadow: var(--sx-shadow-well);
+  font-family: var(--sx-font-mono);
+  font-size: var(--sx-text-sm);
+  display: grid;
+  gap: var(--sx-space-1);
+}
+
+.sx-run-log__line {
+  display: grid;
+  grid-template-columns: max-content max-content minmax(0, 1fr);
+  gap: var(--sx-space-3);
+  color: var(--sx-color-text);
+  overflow-wrap: anywhere;
+}
+
+.sx-run-log__line time,
+.sx-run-log__step {
+  color: var(--sx-color-text-muted);
+}
+
+/* El nivel se marca con un filete (no con el color del texto: el contraste se mantiene). */
+.sx-run-log__line {
+  padding-inline-start: var(--sx-space-2);
+  border-inline-start: 3px solid transparent;
+}
+
+.sx-run-log__line--warning {
+  border-inline-start-color: var(--sx-color-warning);
+}
+
+.sx-run-log__line--error {
+  border-inline-start-color: var(--sx-color-danger);
+  font-weight: 600;
+}
+
+.sx-run__cards {
+  /* minmax(0, 1fr): una tabla ancha se desplaza dentro de su tarjeta, no estira la página. */
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--sx-space-5);
+}
+
+.sx-run__metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
+  gap: var(--sx-space-4);
+}
+
+.sx-run__token {
+  font-family: var(--sx-font-mono);
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 640px) {
+  .sx-run-log__line {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+}

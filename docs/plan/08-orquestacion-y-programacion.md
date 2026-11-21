@@ -144,6 +144,8 @@ GET    /api/v1/concurrency-groups   PUT …
 - [ ] Asistente de pipeline, constructor de programación y validaciones en vivo (con plan 10). El backend ya expone lo que necesitan; las pantallas son de Dev B.
 - [x] Pruebas: concurrencia (dos workers no toman el mismo run ni superan el límite por sistema), caída del líder, cambio de horario, blackout.
 
+**Conexión con el motor (It5, 21.11.2026).** El worker ejecuta `ExtractionEngine` como `RunExecutor`. Se añadió un segundo puerto, `EngineHooks` (`orchestration/domain/ports.py`), que la orquestación llama en cuatro puntos: antes de encolar a mano (`check_run`: 409 si el delta está roto o tiene una suscripción sin cerrar), al terminar un run sin éxito en el worker, al recuperar runs caídos y al cancelar uno en cola (`run_finished`: suelta el estado de delta), y al borrar un pipeline (`pipeline_deleted`). `reap_stale` recibe el gancho como `on_final`. Sin motor registrado (`hooks=None`) la orquestación funciona igual. Detalle en el plan 06, «Lo construido en la iteración 5».
+
 ## Criterios de aceptación
 
 - Un usuario crea un pipeline desde el asistente, programa "cada 30 min en días laborables" y ve las próximas ejecuciones.

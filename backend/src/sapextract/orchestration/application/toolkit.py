@@ -11,6 +11,7 @@ from sapextract.audit.application.service import AuditService
 from sapextract.core.clock import utcnow
 from sapextract.core.config import Settings
 from sapextract.destinations.application.toolkit import DestinationsToolkit
+from sapextract.orchestration.domain.ports import EngineHooks
 from sapextract.sap_connections.application.toolkit import SapToolkit
 
 
@@ -28,6 +29,8 @@ class OrchestrationToolkit:
     # Reloj y azar inyectables: las pruebas fijan la hora y el jitter.
     clock: Callable[[], datetime] = utcnow
     random: Callable[[], float] = _random
+    # El motor (It5) se engancha aquí; sin él la orquestación funciona igual.
+    hooks: EngineHooks | None = None
 
     @classmethod
     def build(
@@ -39,6 +42,7 @@ class OrchestrationToolkit:
         destinations: DestinationsToolkit | None = None,
         clock: Callable[[], datetime] = utcnow,
         random_fn: Callable[[], float] = _random,
+        hooks: EngineHooks | None = None,
     ) -> OrchestrationToolkit:
         audit = audit or AuditService()
         return cls(
@@ -48,6 +52,7 @@ class OrchestrationToolkit:
             destinations=destinations or DestinationsToolkit.build(settings, audit=audit),
             clock=clock,
             random=random_fn,
+            hooks=hooks,
         )
 
     @property
