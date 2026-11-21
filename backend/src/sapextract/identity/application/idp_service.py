@@ -191,6 +191,10 @@ class IdentityProviderService:
             actor=actor,
         )
         credential = self._credential(data.credential, row, now=now)
+        if row is not None and _widens_access(row, tenant_id, client_id, domains, data):
+            # Otro inquilino o un acceso más abierto hace llegar los roles de la configuración
+            # a cuentas nuevas: solo puede hacerlo quien podría conceder esos roles él mismo.
+            self._ensure_can_grant_all(row, actor)
         old_payload = self._stored_payload(row)
         if row is not None and row.enabled:
             # Con Entra activo, un inquilino, client ID o credencial erróneos dejarían a los
@@ -269,6 +273,14 @@ class IdentityProviderService:
                 )
         return role
 
+    @staticmethod
+    def _ensure_can_grant_all(row: IdentityProvider, actor: Principal) -> None:
+        """Anti-escalada: permisos de todos los roles que la configuración concede."""
+        roles = [m.role for m in row.group_mappings]
+        if row.default_role is not None:
+            roles.append(row.default_role)
+        ensure_can_grant(actor.permissions, {p for r in roles for p in r.permission_codes})
+
     def _credential(
         self, data: CredentialInput | None, row: IdentityProvider | None, *, now: datetime
     ) -> _Credential | None:
@@ -335,6 +347,7 @@ class IdentityProviderService:
     def enable(self, version: int, actor: Principal, request: RequestInfo) -> IdentityProvider:
         row = self._require_row()
         self._check_version(row, version)
+        self._ensure_can_grant_all(row, actor)  # activar reparte todos los roles configurados
         if row.secret_id is None or not self._test_current(row):
             msg = (
                 "Antes de activar Entra ID, pruebe la configuración guardada y compruebe que "
@@ -493,6 +506,24 @@ class IdentityProviderService:
             actor=actor.actor,
             request=request,
         )
+
+
+def _widens_access(
+    row: IdentityProvider,
+    tenant_id: str,
+    client_id: str,
+    domains: list[str],
+    data: EntraSettings,
+) -> bool:
+    """¿El cambio deja entrar a cuentas que antes no podían?"""
+    old_domains = set(row.allowed_domains)
+    return (
+        tenant_id != row.tenant_id
+        or client_id != row.client_id
+        or (data.jit_provisioning and not row.jit_provisioning)
+        or (row.require_group_membership and not data.require_group_membership)
+        or (bool(old_domains) and (not domains or not set(domains) <= old_domains))
+    )
 
 
 def _snapshot(row: IdentityProvider) -> dict[str, Any]:

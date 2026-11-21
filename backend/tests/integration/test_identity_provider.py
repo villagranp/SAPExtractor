@@ -327,6 +327,45 @@ def test_anti_escalation_and_permissions(
     )
     assert default_admin.status_code == 403
 
+    # Con un grupo ya mapeado a administrador (por quien sí puede), quien no tiene esos
+    # permisos no puede abrir el acceso ni llevarlo a otro inquilino, ni activar Entra ID.
+    mapped = admin.put(
+        f"{ENTRA}/group-mappings",
+        {
+            "version": body["version"],
+            "mappings": [
+                {
+                    "group_object_id": GROUP_A,
+                    "group_name": "SG-Admins",
+                    "role_id": role_id(admin, "platform_admin"),
+                }
+            ],
+        },
+    ).json()
+    version = mapped["version"]
+    other_tenant = idp_admin.put(
+        ENTRA,
+        _settings(
+            version=version, credential=None, tenant_id="99999999-2222-3333-4444-555555555555"
+        ),
+    )
+    assert other_tenant.status_code == 403
+    assert other_tenant.json()["code"] == "SX-IDN-ESCALATION"
+    open_access = idp_admin.put(
+        ENTRA, _settings(version=version, credential=None, require_group_membership=False)
+    )
+    assert open_access.status_code == 403
+    any_domain = idp_admin.put(
+        ENTRA, _settings(version=version, credential=None, allowed_domains=[])
+    )
+    assert any_domain.status_code == 403
+    assert idp_admin.post(f"{ENTRA}/enable", {"version": version}).status_code == 403
+    # Restringir sí puede: menos dominios, sin alta automática.
+    narrower = idp_admin.put(
+        ENTRA, _settings(version=version, credential=None, jit_provisioning=False)
+    )
+    assert narrower.status_code == 200, narrower.text
+
     viewer_user = create_user(admin, "viewer")
     viewer = client_factory()
     activate_user(viewer, viewer_user["user"]["username"], viewer_user["temporary_password"])

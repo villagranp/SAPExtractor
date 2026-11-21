@@ -251,6 +251,7 @@ Código: `backend/src/sapextract/identity/` (`domain/entra.py`, `infrastructure/
 
 **Reglas añadidas:**
 - *Anti-escalada*: quien configura no puede poner como rol por defecto, ni añadir o quitar del mapeo, un rol con permisos que no tiene.
+- *Anti-escalada* al abrir el acceso: cambiar de inquilino o de client ID, activar el alta automática, dejar de exigir grupo, ampliar los dominios o activar Entra ID exige poder conceder todos los roles que reparte la configuración (rol por defecto y mapeo). Restringir el acceso no lo exige.
 - No se borra un rol usado como rol por defecto o en el mapeo (`SX-IDN-ROLE-IN-USE`).
 - La pantalla avisa de lo que es válido pero probablemente no deseado: nadie recibiría roles, se exige grupo y no hay grupos, alta automática sin exigir grupo, URI no https, credencial que caduca en 30 días o menos.
 - Auditoría: `idp.updated` (con *diff*), `idp.credentials_rotated`, `idp.tested`, `idp.enabled`, `idp.disabled` y `idp.group_mappings_changed`. El secreto y la clave no aparecen nunca; la prueba guarda en sus detalles el ID de correlación de Entra para que IT busque el error.
