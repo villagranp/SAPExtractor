@@ -6,6 +6,8 @@ import { DestinationDetailPage } from '@/features/destinations/pages/Destination
 import { DestinationsPage } from '@/features/destinations/pages/DestinationsPage';
 import { DestinationWizardPage } from '@/features/destinations/pages/DestinationWizardPage';
 import { LoginPage } from '@/features/auth/pages/LoginPage';
+import { AlertsPage } from '@/features/monitoring/pages/AlertsPage';
+import { DashboardPage } from '@/features/monitoring/pages/DashboardPage';
 import { PipelineDetailPage } from '@/features/pipelines/pages/PipelineDetailPage';
 import { PipelineNewPage } from '@/features/pipelines/pages/PipelineNewPage';
 import { PipelinesPage } from '@/features/pipelines/pages/PipelinesPage';
@@ -74,6 +76,8 @@ export const routes: RouteObject[] = [
       guarded('destinations/new', 'destination:manage', <DestinationWizardPage />),
       guarded('destinations/:destinationId', 'destination:read', <DestinationDetailPage />),
       guarded('destinations/:destinationId/edit', 'destination:manage', <DestinationWizardPage />),
+      guarded('dashboard', 'dashboard:read', <DashboardPage />),
+      guarded('alerts', 'dashboard:read', <AlertsPage />),
       guarded('pipelines', 'pipeline:read', <PipelinesPage />),
       guarded('pipelines/new', 'pipeline:manage', <PipelineNewPage />),
       guarded('pipelines/:pipelineId', 'pipeline:read', <PipelineDetailPage />),

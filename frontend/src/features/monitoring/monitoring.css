@@ -1,0 +1,112 @@
+/* Panel y alertas (plan 09, plan 10). Colores y medidas solo con tokens. */
+
+.sx-dashboard__kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr));
+  gap: var(--sx-space-4);
+}
+
+.sx-dashboard__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--sx-space-5);
+}
+
+@media (min-width: 1100px) {
+  .sx-dashboard__split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--sx-space-5);
+    align-items: start;
+  }
+}
+
+@media (max-width: 1099px) {
+  .sx-dashboard__split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--sx-space-5);
+  }
+}
+
+/* Línea de tiempo: una fila por pipeline, la pista es un pozo y cada run una barra. */
+.sx-timeline {
+  display: grid;
+  gap: var(--sx-space-2);
+}
+
+.sx-timeline__row {
+  display: grid;
+  grid-template-columns: minmax(0, 10rem) minmax(0, 1fr);
+  gap: var(--sx-space-3);
+  align-items: center;
+}
+
+.sx-timeline__label {
+  font-size: var(--sx-text-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sx-timeline__track {
+  position: relative;
+  height: 1.25rem;
+  border-radius: var(--sx-radius-pill);
+  background: var(--sx-color-surface-alt);
+  box-shadow: var(--sx-shadow-well);
+  overflow: hidden;
+}
+
+.sx-timeline__bar {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  min-width: 4px;
+  border-radius: var(--sx-radius-pill);
+  background: var(--sx-color-info);
+}
+
+.sx-timeline__bar:focus-visible {
+  outline: 2px solid var(--sx-color-focus);
+  outline-offset: 2px;
+}
+
+.sx-timeline__bar--succeeded {
+  background: var(--sx-color-success);
+}
+
+.sx-timeline__bar--failed {
+  background: var(--sx-color-danger);
+}
+
+.sx-timeline__bar--cancelled {
+  background: var(--sx-color-warning);
+}
+
+/* Campana de la cabecera: el número va sobre la tecla. */
+.sx-bell {
+  position: relative;
+}
+
+.sx-bell__count {
+  position: absolute;
+  top: -0.35rem;
+  right: -0.35rem;
+  min-width: 1.25rem;
+  padding: 0 var(--sx-space-1);
+  border-radius: var(--sx-radius-pill);
+  background: var(--sx-danger-key);
+  color: var(--sx-danger-key-ink);
+  font-size: var(--sx-text-xs);
+  font-weight: 700;
+  line-height: 1.25rem;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .sx-timeline__row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--sx-space-1);
+  }
+}

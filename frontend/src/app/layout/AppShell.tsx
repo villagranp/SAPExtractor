@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { AlertsBell } from '@/features/monitoring/components/AlertsBell';
 import { Link, NavLink, Outlet, useLocation } from 'react-router';
 import { useLogout, useMe } from '@/features/auth/api/queries';
 import { useSystemInfo } from '@/features/system/api/queries';
@@ -120,6 +121,7 @@ export function AppShell() {
                 {environment.toUpperCase()}
               </StatusPill>
             )}
+            <AlertsBell />
             <button
               type="button"
               className="sx-iconkey"

@@ -52,10 +52,10 @@ const ROADMAP: { key: string; state: MeterState }[] = [
   { key: 'fase0', state: 'partial' },
   { key: 'it3', state: 'on' },
   { key: 'it4a', state: 'partial' },
-  { key: 'it5', state: 'off' },
-  { key: 'it6', state: 'off' },
+  { key: 'it5', state: 'partial' },
+  { key: 'it6', state: 'partial' },
   { key: 'it7', state: 'off' },
-  { key: 'it8', state: 'off' },
+  { key: 'it8', state: 'partial' },
   { key: 'it9', state: 'off' },
 ];
 

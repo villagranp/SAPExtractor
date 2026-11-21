@@ -26,6 +26,13 @@ from sapextract.identity.infrastructure.models import (
     UserRole,
     UserSession,
 )
+from sapextract.monitoring.infrastructure.models import (
+    Alert,
+    AlertRule,
+    AlertSubscription,
+    Notification,
+    NotificationChannel,
+)
 from sapextract.orchestration.infrastructure.models import (
     ConcurrencyGroup,
     Pipeline,
@@ -38,6 +45,9 @@ from sapextract.sap_connections.infrastructure.models import SapCatalogCache, Sa
 from sapextract.sources.infrastructure.models import Source, SourceSchemaVersion
 
 __all__ = [
+    "Alert",
+    "AlertRule",
+    "AlertSubscription",
     "ApiToken",
     "AuditEventRow",
     "Base",
@@ -48,6 +58,8 @@ __all__ = [
     "IdentityProvider",
     "IdpGroupMapping",
     "LocalCredential",
+    "Notification",
+    "NotificationChannel",
     "Permission",
     "Pipeline",
     "Role",

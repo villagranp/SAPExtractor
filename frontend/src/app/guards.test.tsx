@@ -63,7 +63,10 @@ describe('visibleNavigation', () => {
     const labels = (perms: string[]) =>
       visibleNavigation(perms).flatMap((s) => s.items.map((i) => i.labelKey));
     expect(labels([])).not.toContain('nav.users');
-    expect(labels([])).toContain('nav.alerts'); // deshabilitada, visible como "próximamente"
+    expect(labels([])).not.toContain('nav.alerts');
+    expect(labels(['dashboard:read'])).toEqual(
+      expect.arrayContaining(['nav.dashboard', 'nav.alerts']),
+    );
     expect(labels([])).not.toContain('nav.identityProvider');
     expect(labels(['idp:manage'])).toContain('nav.identityProvider');
     expect(labels(['user:read', 'audit:read'])).toEqual(

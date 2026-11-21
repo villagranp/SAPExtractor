@@ -12,6 +12,7 @@ export {
   IconHome,
   IconId,
   IconKey,
+  IconLayoutDashboard,
   IconLogout,
   IconMoon,
   IconPlayerPlay,

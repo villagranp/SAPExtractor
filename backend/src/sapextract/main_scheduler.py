@@ -22,6 +22,8 @@ from sapextract.core.runtime import GracefulShutdown
 from sapextract.destinations.application.toolkit import DestinationsToolkit
 from sapextract.extraction.application.delta_service import DeltaHooks
 from sapextract.extraction.application.resolve import ExtractionToolkit
+from sapextract.monitoring.application.evaluator import AlertEngine
+from sapextract.monitoring.application.toolkit import MonitoringToolkit
 from sapextract.orchestration.application.scheduler import SchedulerService, TickResult
 from sapextract.orchestration.application.toolkit import OrchestrationToolkit
 from sapextract.sap_connections.application.toolkit import SapToolkit
@@ -78,6 +80,7 @@ def run(settings: Settings | None = None) -> None:
     shutdown.install()
     db = Database(settings)
     service = SchedulerService(db, build_toolkit(settings))
+    alerts = AlertEngine(db, MonitoringToolkit.build(settings))
     log.info("scheduler_started")
 
     try:
@@ -91,6 +94,7 @@ def run(settings: Settings | None = None) -> None:
                         break
                     log.info("scheduler_leadership_acquired")
                     last_maintenance: float | None = None
+                    last_alerts = 0.0
                     while not shutdown.requested:
                         conn.execute(text("SELECT 1"))  # mantiene viva la conexión del bloqueo
                         if (
@@ -107,6 +111,12 @@ def run(settings: Settings | None = None) -> None:
                         except Exception:
                             # Un ciclo fallido no suelta el liderazgo: se reintenta en el siguiente.
                             log.exception("scheduler_tick_failed")
+                        if time.monotonic() - last_alerts >= settings.alert_eval_seconds:
+                            try:
+                                alerts.evaluate()
+                            except Exception:
+                                log.exception("alert_evaluation_failed")
+                            last_alerts = time.monotonic()
                         shutdown.wait(settings.scheduler_tick_seconds)
             except Exception:
                 log.exception("scheduler_loop_error")

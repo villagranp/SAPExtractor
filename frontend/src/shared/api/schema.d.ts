@@ -1590,6 +1590,283 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/dashboard/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Panel: resumen */
+        get: operations["dashboard_summary_api_v1_dashboard_summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/dashboard/timeline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Panel: runs por pipeline */
+        get: operations["dashboard_timeline_api_v1_dashboard_timeline_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/dashboard/freshness": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Panel: último dato cargado por pipeline frente a su SLA */
+        get: operations["dashboard_freshness_api_v1_dashboard_freshness_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/alerts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Alertas */
+        get: operations["list_alerts_api_v1_alerts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/alerts/counts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Alertas abiertas (campana) */
+        get: operations["alert_counts_api_v1_alerts_counts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/alerts/{alert_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Alert */
+        get: operations["get_alert_api_v1_alerts__alert_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/alerts/{alert_id}/ack": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reconocer: alguien se está ocupando */
+        post: operations["acknowledge_alert_api_v1_alerts__alert_id__ack_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/alerts/{alert_id}/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cerrar a mano (si la condición sigue, la próxima evaluación la reabre) */
+        post: operations["resolve_alert_api_v1_alerts__alert_id__resolve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/alert-rule-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Tipos de regla */
+        get: operations["rule_types_api_v1_alert_rule_types_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/alert-rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Reglas de alerta */
+        get: operations["list_rules_api_v1_alert_rules_get"];
+        put?: never;
+        /** Create Rule */
+        post: operations["create_rule_api_v1_alert_rules_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/alert-rules/{rule_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Rule */
+        put: operations["update_rule_api_v1_alert_rules__rule_id__put"];
+        post?: never;
+        /** Delete Rule */
+        delete: operations["delete_rule_api_v1_alert_rules__rule_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notification-channels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Canales de aviso */
+        get: operations["list_channels_api_v1_notification_channels_get"];
+        put?: never;
+        /** Create Channel */
+        post: operations["create_channel_api_v1_notification_channels_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notification-channels/{channel_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Channel */
+        delete: operations["delete_channel_api_v1_notification_channels__channel_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Channel */
+        patch: operations["update_channel_api_v1_notification_channels__channel_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/notification-channels/{channel_id}/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Envía un mensaje de prueba y guarda el resultado */
+        post: operations["test_channel_api_v1_notification_channels__channel_id__test_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/alert-subscriptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Subscriptions */
+        get: operations["list_subscriptions_api_v1_alert_subscriptions_get"];
+        put?: never;
+        /** Create Subscription */
+        post: operations["create_subscription_api_v1_alert_subscriptions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/alert-subscriptions/{subscription_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Subscription */
+        delete: operations["delete_subscription_api_v1_alert_subscriptions__subscription_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1606,6 +1883,185 @@ export interface components {
             /** Findings */
             findings: components["schemas"]["FindingResponse"][];
         };
+        /** AlertCounts */
+        AlertCounts: {
+            /** Open */
+            open: number;
+            /**
+             * Critical
+             * @default 0
+             */
+            critical: number;
+            /**
+             * Warning
+             * @default 0
+             */
+            warning: number;
+            /**
+             * Info
+             * @default 0
+             */
+            info: number;
+        };
+        /** AlertDetail */
+        AlertDetail: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Rule Id
+             * Format: uuid
+             */
+            rule_id: string;
+            type: components["schemas"]["AlertType"];
+            severity: components["schemas"]["AlertSeverity"];
+            /** Resource Type */
+            resource_type: string;
+            /** Resource Id */
+            resource_id: string;
+            /** Resource Name */
+            resource_name: string;
+            /** Pipeline Id */
+            pipeline_id: string | null;
+            status: components["schemas"]["AlertStatus"];
+            /** Message */
+            message: string;
+            /** Details */
+            details: {
+                [key: string]: unknown;
+            };
+            /**
+             * First Seen At
+             * Format: date-time
+             */
+            first_seen_at: string;
+            /**
+             * Last Seen At
+             * Format: date-time
+             */
+            last_seen_at: string;
+            /** Count */
+            count: number;
+            /** Notified */
+            notified: boolean;
+            /** Acknowledged By */
+            acknowledged_by: string | null;
+            /** Acknowledged At */
+            acknowledged_at: string | null;
+            /** Resolved At */
+            resolved_at: string | null;
+            /** Resolved By */
+            resolved_by: string | null;
+            /** Notifications */
+            notifications: components["schemas"]["NotificationResponse"][];
+        };
+        /** AlertResponse */
+        AlertResponse: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Rule Id
+             * Format: uuid
+             */
+            rule_id: string;
+            type: components["schemas"]["AlertType"];
+            severity: components["schemas"]["AlertSeverity"];
+            /** Resource Type */
+            resource_type: string;
+            /** Resource Id */
+            resource_id: string;
+            /** Resource Name */
+            resource_name: string;
+            /** Pipeline Id */
+            pipeline_id: string | null;
+            status: components["schemas"]["AlertStatus"];
+            /** Message */
+            message: string;
+            /** Details */
+            details: {
+                [key: string]: unknown;
+            };
+            /**
+             * First Seen At
+             * Format: date-time
+             */
+            first_seen_at: string;
+            /**
+             * Last Seen At
+             * Format: date-time
+             */
+            last_seen_at: string;
+            /** Count */
+            count: number;
+            /** Notified */
+            notified: boolean;
+            /** Acknowledged By */
+            acknowledged_by: string | null;
+            /** Acknowledged At */
+            acknowledged_at: string | null;
+            /** Resolved At */
+            resolved_at: string | null;
+            /** Resolved By */
+            resolved_by: string | null;
+        };
+        /**
+         * AlertSeverity
+         * @enum {string}
+         */
+        AlertSeverity: "critical" | "warning" | "info";
+        /**
+         * AlertStatus
+         * @enum {string}
+         */
+        AlertStatus: "open" | "acknowledged" | "resolved";
+        /** AlertSubscriptionRequest */
+        AlertSubscriptionRequest: {
+            /**
+             * Channel Id
+             * Format: uuid
+             */
+            channel_id: string;
+            /**
+             * Rule Id
+             * @description null: todas las reglas
+             */
+            rule_id?: string | null;
+            /** @default warning */
+            min_severity: components["schemas"]["AlertSeverity"];
+        };
+        /** AlertSubscriptionResponse */
+        AlertSubscriptionResponse: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Channel Id
+             * Format: uuid
+             */
+            channel_id: string;
+            /** Rule Id */
+            rule_id: string | null;
+            min_severity: components["schemas"]["AlertSeverity"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by: string | null;
+        };
+        /**
+         * AlertType
+         * @enum {string}
+         */
+        AlertType: "run_failed" | "delta_broken" | "freshness" | "duration_anomaly" | "volume_anomaly" | "stale_subscription" | "unclosed_subscription" | "connection_down" | "no_workers";
         /** AnonymizeRequest */
         AnonymizeRequest: {
             /**
@@ -1961,6 +2417,84 @@ export interface components {
             /** Serial */
             serial?: string | null;
         };
+        /** ChannelCreateRequest */
+        ChannelCreateRequest: {
+            /** Name */
+            name: string;
+            type: components["schemas"]["ChannelType"];
+            /**
+             * Config
+             * @description Correo: {recipients: [...]}. Webhook genérico: {url}. Teams: vacío
+             */
+            config?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Secret
+             * @description URL de Teams o secreto de firma del webhook (solo escritura; nunca se devuelven)
+             */
+            secret?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Enabled
+             * @default true
+             */
+            enabled: boolean;
+        };
+        /** ChannelResponse */
+        ChannelResponse: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            type: components["schemas"]["ChannelType"];
+            /** Config */
+            config: {
+                [key: string]: unknown;
+            };
+            /** Has Secret */
+            has_secret: boolean;
+            /** Enabled */
+            enabled: boolean;
+            /** Last Test At */
+            last_test_at: string | null;
+            /** Last Test Ok */
+            last_test_ok: boolean | null;
+            /** Last Test Error */
+            last_test_error: string | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * ChannelType
+         * @enum {string}
+         */
+        ChannelType: "email" | "teams" | "webhook";
+        /** ChannelUpdateRequest */
+        ChannelUpdateRequest: {
+            /** Name */
+            name?: string | null;
+            /** Config */
+            config?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Secret
+             * @description URL de Teams o secreto de firma del webhook (solo escritura; nunca se devuelven)
+             */
+            secret?: {
+                [key: string]: unknown;
+            } | null;
+            /** Enabled */
+            enabled?: boolean | null;
+        };
         /** CheckReportResponse */
         CheckReportResponse: {
             /** Ok */
@@ -2129,6 +2663,36 @@ export interface components {
          * @enum {string}
          */
         CredentialType: "client_secret" | "certificate";
+        /** DashboardSummary */
+        DashboardSummary: {
+            /** Pipelines Active */
+            pipelines_active: number;
+            runs_24h: components["schemas"]["RunCounts"];
+            /** Rows 24H */
+            rows_24h: number;
+            /** Pipelines Broken */
+            pipelines_broken: number;
+            /**
+             * Success Rate 7D
+             * @description Entre 0 y 1; null sin runs terminados
+             */
+            success_rate_7d: number | null;
+            /**
+             * Alerts Open
+             * @description Alertas abiertas por gravedad
+             */
+            alerts_open: {
+                [key: string]: number;
+            };
+            /** Live Runs */
+            live_runs: components["schemas"]["LiveRun"][];
+            /** Recent Failures */
+            recent_failures: components["schemas"]["FailedRun"][];
+            /** Workers */
+            workers: components["schemas"]["WorkerState"][];
+            /** Sap Systems */
+            sap_systems: components["schemas"]["SystemState"][];
+        };
         /** DdlColumnResponse */
         DdlColumnResponse: {
             /** Source */
@@ -2737,6 +3301,29 @@ export interface components {
          * @enum {string}
          */
         ExtractionMode: "FULL" | "DELTA" | "WATERMARK";
+        /** FailedRun */
+        FailedRun: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Pipeline Id
+             * Format: uuid
+             */
+            pipeline_id: string;
+            /** Pipeline Code */
+            pipeline_code: string;
+            /** Mode */
+            mode: string;
+            /** Error Code */
+            error_code: string | null;
+            /** Error Message */
+            error_message: string | null;
+            /** Finished At */
+            finished_at: string | null;
+        };
         /** FieldError */
         FieldError: {
             /** Field */
@@ -2780,6 +3367,32 @@ export interface components {
             field: string;
             /** Message */
             message: string;
+        };
+        /** FreshnessRow */
+        FreshnessRow: {
+            /**
+             * Pipeline Id
+             * Format: uuid
+             */
+            pipeline_id: string;
+            /** Pipeline Code */
+            pipeline_code: string;
+            /** Status */
+            status: string;
+            /** Last Success At */
+            last_success_at: string | null;
+            /** Minutes Since */
+            minutes_since: number | null;
+            /**
+             * Sla Minutes
+             * @description De la regla de frescura que aplica
+             */
+            sla_minutes: number | null;
+            /**
+             * State
+             * @description ok, warning, late, no_sla o unknown
+             */
+            state: string;
         };
         /** GroupMappingIn */
         GroupMappingIn: {
@@ -2861,6 +3474,43 @@ export interface components {
             delta_processes: {
                 [key: string]: components["schemas"]["DeltaSemantics"];
             };
+        };
+        /** LiveRun */
+        LiveRun: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Pipeline Id
+             * Format: uuid
+             */
+            pipeline_id: string;
+            /** Pipeline Code */
+            pipeline_code: string;
+            /** Mode */
+            mode: string;
+            /** Status */
+            status: string;
+            /** Step */
+            step: string | null;
+            /**
+             * Rows
+             * @description Filas leídas de SAP hasta ahora
+             */
+            rows: number | null;
+            /** Pages */
+            pages: number | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Started At */
+            started_at: string | null;
+            /** Cancel Requested At */
+            cancel_requested_at: string | null;
         };
         /** LoadBody */
         LoadBody: {
@@ -2982,6 +3632,25 @@ export interface components {
          * @enum {string}
          */
         MisfirePolicy: "skip" | "run_once";
+        /** NotificationResponse */
+        NotificationResponse: {
+            /**
+             * Channel Id
+             * Format: uuid
+             */
+            channel_id: string;
+            /** Event */
+            event: string;
+            /** Status */
+            status: string;
+            /** Error */
+            error: string | null;
+            /**
+             * Sent At
+             * Format: date-time
+             */
+            sent_at: string;
+        };
         /** OAuth2CredentialsIn */
         OAuth2CredentialsIn: {
             /**
@@ -3017,6 +3686,17 @@ export interface components {
          * @enum {string}
          */
         Outcome: "success" | "failure" | "denied";
+        /** Page[AlertResponse] */
+        Page_AlertResponse_: {
+            /** Items */
+            items: components["schemas"]["AlertResponse"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+        };
         /** Page[AuditEventResponse] */
         Page_AuditEventResponse_: {
             /** Items */
@@ -3093,6 +3773,19 @@ export interface components {
             page: number;
             /** Page Size */
             page_size: number;
+        };
+        /** ParamResponse */
+        ParamResponse: {
+            /** Name */
+            name: string;
+            /** Default */
+            default: number;
+            /** Minimum */
+            minimum: number;
+            /** Maximum */
+            maximum: number;
+            /** Integer */
+            integer: boolean;
         };
         /** PasswordChangeRequest */
         PasswordChangeRequest: {
@@ -3491,6 +4184,11 @@ export interface components {
             /** Display Format */
             display_format: string | null;
         };
+        /** ResolveRequest */
+        ResolveRequest: {
+            /** Reason */
+            reason?: string | null;
+        };
         /** RetryPolicyBody */
         RetryPolicyBody: {
             /**
@@ -3587,6 +4285,71 @@ export interface components {
              */
             version?: number | null;
         };
+        /** RuleRequest */
+        RuleRequest: {
+            /** Name */
+            name: string;
+            type: components["schemas"]["AlertType"];
+            /** @default global */
+            scope: components["schemas"]["RuleScope"];
+            /** Scope Value */
+            scope_value?: string | null;
+            /** Params */
+            params?: {
+                [key: string]: unknown;
+            };
+            severity?: components["schemas"]["AlertSeverity"] | null;
+            /**
+             * Enabled
+             * @default true
+             */
+            enabled: boolean;
+        };
+        /** RuleResponse */
+        RuleResponse: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            type: components["schemas"]["AlertType"];
+            scope: components["schemas"]["RuleScope"];
+            /** Scope Value */
+            scope_value: string | null;
+            /** Params */
+            params: {
+                [key: string]: unknown;
+            };
+            severity: components["schemas"]["AlertSeverity"];
+            /** Enabled */
+            enabled: boolean;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Updated By */
+            updated_by: string | null;
+        };
+        /**
+         * RuleScope
+         * @enum {string}
+         */
+        RuleScope: "global" | "pipeline" | "tag";
+        /** RuleTypeResponse */
+        RuleTypeResponse: {
+            type: components["schemas"]["AlertType"];
+            default_severity: components["schemas"]["AlertSeverity"];
+            /**
+             * Pipeline Scope
+             * @description Admite ámbito por pipeline o etiqueta
+             */
+            pipeline_scope: boolean;
+            /** Params */
+            params: components["schemas"]["ParamResponse"][];
+        };
         /** RunBrief */
         RunBrief: {
             /**
@@ -3608,6 +4371,17 @@ export interface components {
             finished_at: string | null;
             /** Error Code */
             error_code: string | null;
+        };
+        /** RunCounts */
+        RunCounts: {
+            /** Succeeded */
+            succeeded: number;
+            /** Failed */
+            failed: number;
+            /** Running */
+            running: number;
+            /** Queued */
+            queued: number;
         };
         /** RunDetail */
         RunDetail: {
@@ -4675,6 +5449,26 @@ export interface components {
             /** Build Commit */
             build_commit: string;
         };
+        /** SystemState */
+        SystemState: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Code */
+            code: string;
+            /** Environment */
+            environment: string;
+            /** Status */
+            status: string;
+            /** Last Test Ok */
+            last_test_ok: boolean | null;
+            /** Last Test At */
+            last_test_at: string | null;
+            /** Running */
+            running: number;
+        };
         /**
          * SystemStatus
          * @description ``draft``: sin prueba correcta aún · ``active``: usable · ``inactive``: desactivado.
@@ -4729,6 +5523,32 @@ export interface components {
             details: {
                 [key: string]: unknown;
             };
+        };
+        /** TimelineRun */
+        TimelineRun: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Pipeline Id
+             * Format: uuid
+             */
+            pipeline_id: string;
+            /** Pipeline Code */
+            pipeline_code: string;
+            /** Mode */
+            mode: string;
+            /** Status */
+            status: string;
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /** Finished At */
+            finished_at: string | null;
         };
         /** UserCreateRequest */
         UserCreateRequest: {
@@ -4904,6 +5724,32 @@ export interface components {
              * Format: date-time
              */
             started_at: string;
+            /**
+             * Heartbeat At
+             * Format: date-time
+             */
+            heartbeat_at: string;
+        };
+        /** WorkerState */
+        WorkerState: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Hostname */
+            hostname: string;
+            /** Pools */
+            pools: string[];
+            /**
+             * Status
+             * @description online, stopping o silent (sin latido reciente)
+             */
+            status: string;
+            /** Busy */
+            busy: boolean;
+            /** Current Run Id */
+            current_run_id: string | null;
             /**
              * Heartbeat At
              * Format: date-time
@@ -8710,6 +9556,671 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["DeltaStateResponse"];
                 };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    dashboard_summary_api_v1_dashboard_summary_get: {
+        parameters: {
+            query?: {
+                environment?: string | null;
+                sap_system_id?: string | null;
+                tag?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DashboardSummary"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    dashboard_timeline_api_v1_dashboard_timeline_get: {
+        parameters: {
+            query?: {
+                hours?: number;
+                environment?: string | null;
+                sap_system_id?: string | null;
+                tag?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TimelineRun"][];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    dashboard_freshness_api_v1_dashboard_freshness_get: {
+        parameters: {
+            query?: {
+                environment?: string | null;
+                sap_system_id?: string | null;
+                tag?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FreshnessRow"][];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    list_alerts_api_v1_alerts_get: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["AlertStatus"] | null;
+                live?: boolean;
+                pipeline_id?: string | null;
+                page?: number;
+                page_size?: number;
+                sort?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_AlertResponse_"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    alert_counts_api_v1_alerts_counts_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AlertCounts"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    get_alert_api_v1_alerts__alert_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                alert_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AlertDetail"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    acknowledge_alert_api_v1_alerts__alert_id__ack_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                alert_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AlertResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    resolve_alert_api_v1_alerts__alert_id__resolve_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                alert_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResolveRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AlertResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    rule_types_api_v1_alert_rule_types_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RuleTypeResponse"][];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    list_rules_api_v1_alert_rules_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RuleResponse"][];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    create_rule_api_v1_alert_rules_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RuleRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RuleResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    update_rule_api_v1_alert_rules__rule_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rule_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RuleRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RuleResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    delete_rule_api_v1_alert_rules__rule_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rule_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    list_channels_api_v1_notification_channels_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChannelResponse"][];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    create_channel_api_v1_notification_channels_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChannelCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChannelResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    delete_channel_api_v1_notification_channels__channel_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                channel_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    update_channel_api_v1_notification_channels__channel_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                channel_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChannelUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChannelResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    test_channel_api_v1_notification_channels__channel_id__test_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                channel_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChannelResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    list_subscriptions_api_v1_alert_subscriptions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AlertSubscriptionResponse"][];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    create_subscription_api_v1_alert_subscriptions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AlertSubscriptionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AlertSubscriptionResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    delete_subscription_api_v1_alert_subscriptions__subscription_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                subscription_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Error */
             default: {

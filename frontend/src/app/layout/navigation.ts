@@ -1,6 +1,7 @@
 import {
   IconArrowsShuffle,
   IconBell,
+  IconLayoutDashboard,
   IconChecklist,
   IconDatabaseExport,
   IconDatabaseImport,
@@ -38,13 +39,19 @@ export const navigation: NavSection[] = [
     titleKey: 'nav.sectionOperation',
     items: [
       {
+        to: '/dashboard',
+        labelKey: 'nav.dashboard',
+        icon: IconLayoutDashboard,
+        permission: 'dashboard:read',
+      },
+      {
         to: '/pipelines',
         labelKey: 'nav.pipelines',
         icon: IconArrowsShuffle,
         permission: 'pipeline:read',
       },
       { to: '/runs', labelKey: 'nav.runs', icon: IconPlayerPlay, permission: 'pipeline:read' },
-      { to: '/alerts', labelKey: 'nav.alerts', icon: IconBell, iteration: 8 },
+      { to: '/alerts', labelKey: 'nav.alerts', icon: IconBell, permission: 'dashboard:read' },
     ],
   },
   {

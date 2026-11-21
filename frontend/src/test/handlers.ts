@@ -42,6 +42,9 @@ const ALL_PERMISSIONS = [
   'pipeline:run',
   'pipeline:pause',
   'pipeline:reset_delta',
+  'dashboard:read',
+  'alert:manage',
+  'alert:ack',
 ];
 
 export const adminRole: S['RoleRef'] = {
@@ -688,6 +691,137 @@ export const initializedDelta: S['DeltaStateResponse'] = {
   ],
 };
 
+// ---------------------------------------------------------------- monitoreo (It8)
+export const failedAlert: S['AlertResponse'] = {
+  id: '01930000-0000-7000-8000-0000000000e1',
+  rule_id: '01930000-0000-7000-8000-0000000000f1',
+  type: 'run_failed',
+  severity: 'critical',
+  resource_type: 'pipeline',
+  resource_id: glPipeline.id,
+  resource_name: glPipeline.code,
+  pipeline_id: glPipeline.id,
+  status: 'open',
+  message: 'El último run falló: SX-DST-DOWN. Destino caído.',
+  details: { run_id: deltaRun.id, error_code: 'SX-DST-DOWN', count: 2 },
+  first_seen_at: '2026-11-20T10:05:00Z',
+  last_seen_at: '2026-11-20T10:15:00Z',
+  count: 2,
+  notified: true,
+  acknowledged_by: null,
+  acknowledged_at: null,
+  resolved_at: null,
+  resolved_by: null,
+};
+
+export const dashboardSummary: S['DashboardSummary'] = {
+  pipelines_active: 12,
+  runs_24h: { succeeded: 40, failed: 2, running: 1, queued: 1 },
+  rows_24h: 125000,
+  pipelines_broken: 1,
+  success_rate_7d: 0.953,
+  alerts_open: { critical: 1 },
+  live_runs: [
+    {
+      id: '01930000-0000-7000-8000-0000000000c2',
+      pipeline_id: glPipeline.id,
+      pipeline_code: glPipeline.code,
+      mode: 'DELTA',
+      status: 'running',
+      step: 'extract',
+      rows: 3000,
+      pages: 3,
+      created_at: '2026-11-20T10:20:00Z',
+      started_at: '2026-11-20T10:20:01Z',
+      cancel_requested_at: null,
+    },
+  ],
+  recent_failures: [
+    {
+      id: deltaRun.id,
+      pipeline_id: glPipeline.id,
+      pipeline_code: glPipeline.code,
+      mode: 'DELTA',
+      error_code: 'SX-DST-DOWN',
+      error_message: 'Destino caído.',
+      finished_at: '2026-11-20T10:15:00Z',
+    },
+  ],
+  workers: [
+    {
+      id: '01930000-0000-7000-8000-0000000000d1',
+      hostname: 'worker-1',
+      pools: ['default'],
+      status: 'online',
+      busy: true,
+      current_run_id: '01930000-0000-7000-8000-0000000000c2',
+      heartbeat_at: '2026-11-20T10:20:30Z',
+    },
+  ],
+  sap_systems: [
+    {
+      id: sapSystem.id,
+      code: sapSystem.code,
+      environment: 'QAS',
+      status: 'active',
+      last_test_ok: true,
+      last_test_at: '2026-11-20T09:00:00Z',
+      running: 1,
+    },
+  ],
+};
+
+export const freshnessRows: S['FreshnessRow'][] = [
+  {
+    pipeline_id: glPipeline.id,
+    pipeline_code: glPipeline.code,
+    status: 'active',
+    last_success_at: '2026-11-20T06:00:00Z',
+    minutes_since: 260,
+    sla_minutes: 240,
+    state: 'late',
+  },
+];
+
+export const ruleTypes: S['RuleTypeResponse'][] = [
+  { type: 'run_failed', default_severity: 'critical', pipeline_scope: true, params: [] },
+  {
+    type: 'freshness',
+    default_severity: 'warning',
+    pipeline_scope: true,
+    params: [{ name: 'minutes', default: 240, minimum: 5, maximum: 10080, integer: true }],
+  },
+  { type: 'no_workers', default_severity: 'critical', pipeline_scope: false, params: [] },
+];
+
+export const alertRules: S['RuleResponse'][] = [
+  {
+    id: failedAlert.rule_id,
+    name: 'Run fallido',
+    type: 'run_failed',
+    scope: 'global',
+    scope_value: null,
+    params: {},
+    severity: 'critical',
+    enabled: true,
+    updated_at: '2026-11-20T09:00:00Z',
+    updated_by: 'system',
+  },
+];
+
+export const emailChannel: S['ChannelResponse'] = {
+  id: '01930000-0000-7000-8000-0000000000a9',
+  name: 'Equipo de datos',
+  type: 'email',
+  config: { recipients: ['datos@example.com'] },
+  has_secret: false,
+  enabled: true,
+  last_test_at: null,
+  last_test_ok: null,
+  last_test_error: null,
+  updated_at: '2026-11-20T09:00:00Z',
+};
+
 export const handlers = [
   http.get('*/api/v1/system/info', () => HttpResponse.json(systemInfo)),
   http.get('*/api/v1/health/ready', () => HttpResponse.json(healthyReport)),
@@ -743,6 +877,29 @@ export const handlers = [
   http.get('*/api/v1/runs/:id', () => HttpResponse.json(deltaRun)),
   http.get('*/api/v1/runs/:id/steps', () => HttpResponse.json(runSteps)),
   http.get('*/api/v1/runs/:id/logs', () => HttpResponse.json(runLog)),
+  http.get('*/api/v1/dashboard/summary', () => HttpResponse.json(dashboardSummary)),
+  http.get('*/api/v1/dashboard/timeline', () =>
+    HttpResponse.json([
+      {
+        id: deltaRun.id,
+        pipeline_id: glPipeline.id,
+        pipeline_code: glPipeline.code,
+        mode: 'DELTA',
+        status: 'failed',
+        started_at: new Date(Date.now() - 3_600_000).toISOString(),
+        finished_at: new Date(Date.now() - 3_000_000).toISOString(),
+      },
+    ]),
+  ),
+  http.get('*/api/v1/dashboard/freshness', () => HttpResponse.json(freshnessRows)),
+  http.get('*/api/v1/alerts', () =>
+    HttpResponse.json({ items: [failedAlert], total: 1, page: 1, page_size: 25 }),
+  ),
+  http.get('*/api/v1/alerts/counts', () => HttpResponse.json({ open: 1, critical: 1 })),
+  http.get('*/api/v1/alert-rule-types', () => HttpResponse.json(ruleTypes)),
+  http.get('*/api/v1/alert-rules', () => HttpResponse.json(alertRules)),
+  http.get('*/api/v1/notification-channels', () => HttpResponse.json([emailChannel])),
+  http.get('*/api/v1/alert-subscriptions', () => HttpResponse.json([])),
 ];
 
 export function problem(status: number, code: string, detail: string) {

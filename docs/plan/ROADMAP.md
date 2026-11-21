@@ -38,7 +38,7 @@ v2   Streaming (plan 12)
 | **6** | Orquestación (backend ✅ adelantado el 21.11.2026 y conectado al motor de la It5; faltan el asistente de pipeline y la programación en pantalla) | [08](08-orquestacion-y-programacion.md) | Asistente de pipelines, programación cron/simple, cola, workers, reintentos, pausa, clonado entre entornos | 5 |
 | **4b** | Destino: SQL Server | [07](07-destinos.md) | SQL Server con las mismas garantías que Snowflake | 5 |
 | **7** | Entra ID (7a configuración ✅ adelantada el 20.11.2026; falta 7b, inicio de sesión) | [02](02-usuarios-autenticacion-roles.md) (Entra) | SSO configurable desde la UI, JIT, grupos → roles; admin local sigue funcionando | 1 + *App registration* de IT |
-| **8** | Monitoreo y alertas | [09](09-monitoreo-y-alertas.md) | Dashboard en vivo, frescura, alertas por correo/Teams, `/metrics` | 6 |
+| **8** 🟡 | Monitoreo y alertas (construido el 21.11.2026 contra el mock; faltan SSE, regla de seguridad, tendencias y la prueba de carga del panel) | [09](09-monitoreo-y-alertas.md) | Dashboard en vivo, frescura, alertas por correo/Teams, `/metrics` | 6 |
 | **9** | Endurecimiento y PRD | [11](11-despliegue-y-operacion.md) | Despliegue QA y PRD, SSO activo en PRD, backups probados, runbooks, revisión de seguridad → **v1.0** | Todas |
 
 ### Hitos

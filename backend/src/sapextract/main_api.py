@@ -27,6 +27,8 @@ from sapextract.extraction.application.delta_service import DeltaHooks
 from sapextract.extraction.application.resolve import ExtractionToolkit
 from sapextract.identity.api import admin_routes, auth_routes, idp_routes
 from sapextract.identity.application.toolkit import IdentityToolkit
+from sapextract.monitoring.api import routes as monitoring_routes
+from sapextract.monitoring.application.toolkit import MonitoringToolkit
 from sapextract.orchestration.api import routes as orchestration_routes
 from sapextract.orchestration.application import pipeline_service as pipelines
 from sapextract.orchestration.application.toolkit import OrchestrationToolkit
@@ -53,6 +55,7 @@ def build_api_router() -> APIRouter:
     for router in orchestration_routes.routers:
         api.include_router(router)
     api.include_router(extraction_routes.router)
+    api.include_router(monitoring_routes.router)
     return api
 
 
@@ -102,6 +105,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.sap.dependents.append(pipelines.sap_system_dependents)
     app.state.sap.source_dependents.append(pipelines.source_dependents)
     app.state.destinations.dependents.append(pipelines.destination_dependents)
+    app.state.monitoring = MonitoringToolkit.build(settings, audit=app.state.identity.audit)
     app.state.auth_limiter = SlidingWindowLimiter(settings.auth_rate_limit_per_minute)
 
     register_exception_handlers(app)

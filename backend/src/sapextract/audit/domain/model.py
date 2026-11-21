@@ -111,6 +111,18 @@ ACTIONS: dict[str, Category] = {
     "pipeline.delta_broken": Category.EXECUTION,
     "pipeline.sap_subscription_closed": Category.EXECUTION,
     "pipeline.sap_subscription_left_open": Category.EXECUTION,
+    # monitoreo y alertas (plan 09)
+    "alert.acknowledged": Category.EXECUTION,
+    "alert.resolved": Category.EXECUTION,
+    "alert_rule.created": Category.CONFIG,
+    "alert_rule.updated": Category.CONFIG,
+    "alert_rule.deleted": Category.CONFIG,
+    "notification_channel.created": Category.CONFIG,
+    "notification_channel.updated": Category.CONFIG,
+    "notification_channel.deleted": Category.CONFIG,
+    "notification_channel.tested": Category.CONFIG,
+    "alert_subscription.created": Category.CONFIG,
+    "alert_subscription.deleted": Category.CONFIG,
     # security
     "audit.exported": Category.SECURITY,
     "audit.verified": Category.SECURITY,

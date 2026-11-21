@@ -50,6 +50,8 @@ test.describe('pantallas con sesión', () => {
       ['/pipelines', 'Pipelines'],
       ['/pipelines/new', 'Nuevo pipeline'],
       ['/runs', 'Ejecuciones'],
+      ['/dashboard', 'Panel'],
+      ['/alerts', 'Alertas'],
       ['/admin/users', 'Usuarios'],
       ['/admin/audit', 'Auditoría'],
       ['/admin/identity-provider', 'Microsoft Entra ID'],

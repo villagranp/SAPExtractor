@@ -153,10 +153,33 @@ class Settings(BaseSettings):
     watermark_safety_lag_seconds: int = Field(
         120, ge=0, le=3600, description="Margen para no leer transacciones en curso (plan 06 §5)"
     )
+    # --- Monitoreo y alertas (plan 09)
+    alert_eval_seconds: float = Field(
+        20.0, ge=1, description="Cada cuánto evalúa el scheduler las reglas de alerta"
+    )
+    alert_cooldown_minutes: int = Field(
+        10, ge=0, le=1440, description="Una alerta que reaparece antes de este plazo no avisa"
+    )
+    alert_allowed_hosts: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Hosts permitidos para los webhooks de avisos (Teams, genérico): sufijos DNS o "
+            "redes. Vacío = cualquiera; obligatorio en PRD"
+        ),
+    )
+    smtp_host: str | None = Field(None, description="Servidor SMTP de los avisos por correo")
+    smtp_port: int = Field(587, ge=1, le=65535)
+    smtp_starttls: bool = True
+    smtp_user: str | None = None
+    smtp_password: SecretStr | None = None
+    smtp_from: str | None = Field(None, description="Remitente de los avisos")
+    metrics_token: SecretStr | None = Field(
+        None, description="Token Bearer de /metrics (Prometheus); sin él, /metrics no responde"
+    )
 
     @model_validator(mode="after")
     def _validate_network(self) -> Self:
-        for entry in [*self.sap_allowed_hosts, *self.dest_allowed_hosts]:
+        for entry in [*self.sap_allowed_hosts, *self.dest_allowed_hosts, *self.alert_allowed_hosts]:
             parse_entry(entry)  # ValueError con la entrada concreta
         for proxy in self.trusted_proxies:
             if proxy.strip() == "*":
@@ -222,6 +245,14 @@ class Settings(BaseSettings):
             allowed=tuple(self.sap_allowed_hosts),
             allow_loopback=self.is_local_dev,
             label="SX_SAP_ALLOWED_HOSTS",
+        )
+
+    @property
+    def alert_host_policy(self) -> HostPolicy:
+        return HostPolicy(
+            allowed=tuple(self.alert_allowed_hosts),
+            allow_loopback=self.is_local_dev,
+            label="SX_ALERT_ALLOWED_HOSTS",
         )
 
     @property

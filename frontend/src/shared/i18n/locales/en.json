@@ -45,7 +45,8 @@
     "sectionAdmin": "Administration",
     "soon": "Iteration {{it}}",
     "breadcrumb": "Breadcrumb",
-    "soonShort": "It{{it}}"
+    "soonShort": "It{{it}}",
+    "dashboard": "Dashboard"
   },
   "userMenu": {
     "logout": "Sign out",
@@ -721,6 +722,225 @@
       "noSteps": "No steps yet: the run is queued.",
       "attemptsTitle": "Attempts",
       "noAttempts": "No worker has taken it yet."
+    }
+  },
+  "monitoring": {
+    "dashboard": {
+      "title": "Dashboard",
+      "description": "Extraction health at a glance: refreshes itself every few seconds.",
+      "environment": "SAP environment",
+      "tag": "Tag",
+      "kpisTitle": "Last 24 hours",
+      "liveTitle": "Runs in progress",
+      "noLive": "No queued or running runs.",
+      "progress": "Progress",
+      "progressValue": "{{rows}} rows in {{pages}} pages",
+      "failuresTitle": "Recent failures",
+      "noFailures": "No recent failures."
+    },
+    "kpis": {
+      "pipelines": "Active pipelines",
+      "succeeded": "Succeeded runs",
+      "failed": "Failed runs",
+      "live": "Queued or running",
+      "rows": "Rows read",
+      "successRate": "7-day success",
+      "broken": "Broken deltas",
+      "alerts": "Open alerts",
+      "seeAlerts": "See alerts"
+    },
+    "timeline": {
+      "title": "Timeline of the last 24 hours",
+      "empty": "No runs in the last 24 hours.",
+      "bar": "{{pipeline}}: {{mode}}, {{status}}, from {{from}} to {{to}}",
+      "now": "now"
+    },
+    "freshness": {
+      "title": "Data freshness",
+      "empty": "No active pipelines.",
+      "state": "Status",
+      "lastSuccess": "Last data loaded",
+      "never": "Never",
+      "ago": "{{minutes}} min ago",
+      "sla": "Expected delay",
+      "slaValue": "{{minutes}} min",
+      "states": {
+        "ok": "Up to date",
+        "warning": "Close to the limit",
+        "late": "Late",
+        "no_sla": "No limit",
+        "unknown": "No data"
+      }
+    },
+    "workers": {
+      "title": "Workers",
+      "empty": "No registered workers.",
+      "host": "Host",
+      "busy": "Work",
+      "running": "Running a run",
+      "idle": "Idle",
+      "heartbeat": "Last heartbeat",
+      "statuses": {
+        "online": "Active",
+        "stopping": "Stopping",
+        "silent": "No heartbeat"
+      }
+    },
+    "systems": {
+      "title": "SAP systems",
+      "empty": "No SAP systems.",
+      "system": "System",
+      "environment": "Environment",
+      "lastTest": "Last test",
+      "never": "Not tested",
+      "ok": "Passed",
+      "failed": "Failed",
+      "running": "Runs in progress"
+    },
+    "alerts": {
+      "title": "Alerts",
+      "description": "Incidents found by the rules: one notice when they open and another when they recover.",
+      "tabsLabel": "Alert sections",
+      "tabs": {
+        "live": "Open",
+        "history": "History",
+        "rules": "Rules",
+        "channels": "Channels"
+      },
+      "liveTitle": "Open alerts",
+      "historyTitle": "Alert history",
+      "emptyLive": "No open alerts.",
+      "emptyHistory": "No alert with that status.",
+      "severity": "Severity",
+      "alert": "Alert",
+      "since": "Since",
+      "count": "{{count}} times",
+      "status": "Status",
+      "ack": "Acknowledge",
+      "resolve": "Close",
+      "resolveTitle": "Close the alert",
+      "resolveMessage": "If the problem persists, the next evaluation opens another alert (without notifying again).",
+      "reason": "Reason"
+    },
+    "severities": {
+      "critical": "Critical",
+      "warning": "Warning",
+      "info": "Information"
+    },
+    "alertStatuses": {
+      "open": "Open",
+      "acknowledged": "Acknowledged",
+      "resolved": "Resolved"
+    },
+    "scopes": {
+      "global": "All pipelines",
+      "tag": "Tag",
+      "pipeline": "Pipeline"
+    },
+    "params": {
+      "minutes": "Minutes",
+      "factor": "Times the usual",
+      "samples": "Reference runs",
+      "zero_runs": "Consecutive runs without rows",
+      "days": "Days"
+    },
+    "ruleTypes": {
+      "run_failed": {
+        "label": "Failed run",
+        "description": "The pipeline's last run failed after exhausting retries."
+      },
+      "delta_broken": {
+        "label": "Broken delta",
+        "description": "SAP rejected the delta token: it must be reset."
+      },
+      "freshness": {
+        "label": "Stale data",
+        "description": "No successful load within the given time."
+      },
+      "duration_anomaly": {
+        "label": "Unusual duration",
+        "description": "The last run took several times the usual."
+      },
+      "volume_anomaly": {
+        "label": "Unusual volume",
+        "description": "Several incremental loads in a row without rows."
+      },
+      "stale_subscription": {
+        "label": "Stale subscription",
+        "description": "No confirmed delta read for several days: the queue grows in SAP."
+      },
+      "unclosed_subscription": {
+        "label": "Unclosed subscription",
+        "description": "A previous subscription is still pending closure in ODQMON."
+      },
+      "connection_down": {
+        "label": "Connection down",
+        "description": "The last test of a SAP system or destination failed."
+      },
+      "no_workers": {
+        "label": "No workers",
+        "description": "Runs are queued and no active worker can take them."
+      }
+    },
+    "rules": {
+      "new": "New rule",
+      "newTitle": "New alert rule",
+      "editTitle": "Edit alert rule",
+      "edit": "Edit",
+      "save": "Save rule",
+      "empty": "No rules.",
+      "name": "Name",
+      "type": "Type",
+      "scope": "Scope",
+      "tag": "Tag",
+      "pipelineCode": "Pipeline code",
+      "params": "Parameters",
+      "range": "Between {{min}} and {{max}}",
+      "enabled": "Enabled",
+      "deleteTitle": "Delete the rule “{{name}}”",
+      "deleteMessage": "Its open alerts are closed and its channels stop receiving its notices."
+    },
+    "channelTypes": {
+      "email": "Email",
+      "teams": "Microsoft Teams",
+      "webhook": "Webhook"
+    },
+    "channels": {
+      "new": "New channel",
+      "newTitle": "New notification channel",
+      "create": "Create channel",
+      "empty": "No channels: create one to receive notices.",
+      "name": "Name",
+      "type": "Type",
+      "target": "Target",
+      "recipients": "Recipients",
+      "recipientsHint": "Email addresses separated by commas.",
+      "url": "Webhook URL",
+      "teamsUrl": "Teams webhook URL",
+      "teamsHint": "Stored encrypted and never shown again.",
+      "teamsStored": "Teams URL stored",
+      "hmac": "Signing secret (optional)",
+      "hmacHint": "At least 16 characters. Each notice carries the X-SX-Signature header.",
+      "minSeverity": "Minimum severity",
+      "minSeverityHint": "The channel receives every rule from this severity; you can refine it later.",
+      "lastTest": "Last test",
+      "untested": "Not tested",
+      "testOk": "Passed",
+      "testFailed": "Failed",
+      "test": "Send test",
+      "subscriptions": "Notices",
+      "subscriptionsTitle": "Notices received by {{name}}",
+      "rule": "Rule",
+      "allRules": "All rules",
+      "subscribe": "Add",
+      "unsubscribe": "Remove",
+      "noSubscriptions": "This channel receives no notices.",
+      "deleteTitle": "Delete the channel “{{name}}”",
+      "deleteMessage": "It stops receiving notices and its credentials are deleted."
+    },
+    "bell": {
+      "open": "{{count}} open alerts",
+      "none": "No open alerts"
     }
   }
 }

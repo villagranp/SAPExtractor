@@ -22,6 +22,8 @@ const SCREENS: [string, string][] = [
   ['pipelines', '/pipelines'],
   ['pipeline-new', '/pipelines/new'],
   ['runs', '/runs'],
+  ['dashboard', '/dashboard'],
+  ['alerts', '/alerts'],
   ['users', '/admin/users'],
   ['audit', '/admin/audit'],
   ['identity-provider', '/admin/identity-provider'],

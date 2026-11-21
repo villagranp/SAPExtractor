@@ -78,7 +78,7 @@
   display: grid;
   gap: 1px;
   margin: 0;
-  padding: 6px 0 0;
+  padding: 4px 0 0;
   list-style: none;
   border-top: 1px solid var(--sx-color-border);
 }
@@ -91,7 +91,7 @@
   display: grid;
   justify-items: center;
   gap: 2px;
-  padding: 6px 4px 5px;
+  padding: 5px 4px 4px;
   font-size: 0.6875rem;
   font-weight: 600;
   line-height: 1.15;
@@ -116,7 +116,7 @@
 .sx-rail__key.active::before {
   content: '';
   position: absolute;
-  top: 4px;
+  top: 3px;
   left: 50%;
   width: 18px;
   height: 3px;

@@ -72,6 +72,7 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     # Monitoreo
     PermissionDef("dashboard:read", "monitoring", "Ver el panel de monitoreo"),
     PermissionDef("alert:manage", "monitoring", "Gestionar reglas de alerta"),
+    PermissionDef("alert:ack", "monitoring", "Reconocer y cerrar alertas"),
     # Sistema
     PermissionDef("settings:manage", "system", "Cambiar ajustes globales"),
     PermissionDef("secret:rotate", "system", "Rotar la clave maestra de cifrado"),
@@ -114,6 +115,7 @@ SYSTEM_ROLES: tuple[SystemRoleDef, ...] = (
             "pipeline:run",
             "pipeline:pause",
             "alert:manage",
+            "alert:ack",
             "log:read",
         },
     ),
@@ -121,7 +123,7 @@ SYSTEM_ROLES: tuple[SystemRoleDef, ...] = (
         "operator",
         "Operador",
         "Ejecutar, pausar y reintentar pipelines; ver logs.",
-        _READ_DATA | {"pipeline:run", "pipeline:pause", "log:read"},
+        _READ_DATA | {"pipeline:run", "pipeline:pause", "log:read", "alert:ack"},
     ),
     SystemRoleDef(
         "viewer",
