@@ -59,6 +59,7 @@
     "api": "API",
     "database": "Metadata database",
     "migrations": "Migrations",
+    "sapNone": "No SAP systems registered yet.",
     "version": "Version",
     "environment": "Environment",
     "commit": "Commit",

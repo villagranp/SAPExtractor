@@ -143,12 +143,11 @@
   gap: var(--sx-space-4);
   margin-bottom: var(--sx-space-5);
 }
+/* Sentence case, sin mayúsculas forzadas (CLAUDE.md global: nunca etiquetas en ALL CAPS). */
 .sx-page-header__eyebrow {
   margin: 0 0 var(--sx-space-1);
-  font-size: var(--sx-text-xs);
+  font-size: var(--sx-text-sm);
   font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   color: var(--sx-color-text-muted);
 }
 .sx-page-header h1 {

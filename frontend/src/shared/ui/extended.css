@@ -106,11 +106,10 @@ select.sx-input {
   vertical-align: top;
   border-bottom: 1px solid var(--sx-color-border);
 }
+/* Cabeceras en sentence case, como se escriben; sin mayúsculas forzadas. */
 .sx-table th {
   font-size: var(--sx-text-xs);
   font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
   color: var(--sx-color-text-muted);
   background: transparent;
 }

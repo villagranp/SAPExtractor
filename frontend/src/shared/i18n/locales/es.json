@@ -72,6 +72,7 @@
     "allOk": "Todo en orden",
     "review": "Revisar",
     "sapSystems": "Sistemas SAP",
+    "sapNone": "Aún no hay sistemas SAP registrados.",
     "sapHealthy": "Todas las conexiones con la última prueba correcta.",
     "sapFailing_one": "1 conexión con la prueba fallida o pendiente.",
     "sapFailing_other": "{{count}} conexiones con la prueba fallida o pendiente.",
@@ -96,7 +97,7 @@
     "seeAudit": "Ver auditoría",
     "roadmap": "Hoja de ruta",
     "roadmapUnit": "de {{total}} etapas",
-    "roadmapNext": "En curso: Fase 0 (preparación). Siguen orígenes SAP (It3) y destinos CSV y Snowflake (It4a).",
+    "roadmapNext": "En curso: spike SAP de la Fase 0 y validación de Snowflake (It4a). Sigue el motor de extracción y deltas (It5).",
     "iterations": {
       "it0": "It0 · Fundaciones",
       "it1": "It1 · Identidad y auditoría",

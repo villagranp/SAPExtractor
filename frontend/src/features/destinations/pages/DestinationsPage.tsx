@@ -34,10 +34,12 @@ const PAGE_SIZE = 25;
 
 /** Tarjetas de los tipos disponibles: describen cada destino y abren el asistente. */
 function TypeCards({ canManage }: { canManage: boolean }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const types = useDestinationTypes();
   if (!types.data) return null;
+  // «Añadir, Reemplazar y Upsert (MERGE)»: lista natural del idioma, no «A · B · C».
+  const list = new Intl.ListFormat(i18n.resolvedLanguage ?? 'es', { type: 'conjunction' });
   return (
     <div
       className="sx-two-columns"
@@ -51,7 +53,7 @@ function TypeCards({ canManage }: { canManage: boolean }) {
             </p>
             <p style={{ margin: 0 }}>
               {t('destinations.fields.loadModes')}:{' '}
-              {type.supported_modes.map((m) => t(`destinations.loadModes.${m}`)).join(' · ')}
+              {list.format(type.supported_modes.map((m) => t(`destinations.loadModes.${m}`)))}
             </p>
             {canManage && (
               <div>
@@ -208,7 +210,8 @@ export function DestinationsPage() {
         <Alert tone="danger">{describeError(destinations.error).message}</Alert>
       )}
       {destinations.data?.total === 0 && !filtered ? (
-        <EmptyState title={t('destinations.emptyFirstTitle')} action={newButton || undefined}>
+        // Sin botón propio: la cabecera y las tarjetas de tipo ya ofrecen el alta.
+        <EmptyState title={t('destinations.emptyFirstTitle')}>
           <p>{t('destinations.emptyFirst')}</p>
         </EmptyState>
       ) : (

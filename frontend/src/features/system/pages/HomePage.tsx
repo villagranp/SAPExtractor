@@ -41,14 +41,17 @@ function checkState(report: HealthReport | undefined, name: string, loading: boo
   return check ? check.status : 'unknown';
 }
 
-/** Estado de cada iteración del ROADMAP (docs/plan/ROADMAP.md). */
+/**
+ * Estado de cada iteración del ROADMAP (docs/plan/ROADMAP.md); actualizarlo al cerrar una.
+ * Fase 0 sigue en curso por el spike SAP; It4a está construida pero falta validar Snowflake.
+ */
 const ROADMAP: { key: string; state: MeterState }[] = [
   { key: 'it0', state: 'on' },
   { key: 'it1', state: 'on' },
   { key: 'it2', state: 'on' },
   { key: 'fase0', state: 'partial' },
-  { key: 'it3', state: 'off' },
-  { key: 'it4a', state: 'off' },
+  { key: 'it3', state: 'on' },
+  { key: 'it4a', state: 'partial' },
   { key: 'it5', state: 'off' },
   { key: 'it6', state: 'off' },
   { key: 'it7', state: 'off' },
@@ -77,6 +80,11 @@ const eyebrowFormat = new Intl.DateTimeFormat('es', {
   hour: '2-digit',
   minute: '2-digit',
 });
+
+/** «viernes, 20 de noviembre» → «Viernes, 20 de noviembre» (en español el día va en minúscula). */
+function sentenceCase(text: string): string {
+  return text.charAt(0).toLocaleUpperCase('es') + text.slice(1);
+}
 
 function PlatformCard() {
   const { t } = useTranslation();
@@ -135,7 +143,13 @@ function SapSystemsCard() {
       <Metric
         label={t('home.sapSystems')}
         value={systems.data ? systems.data.total : '—'}
-        hint={failing > 0 ? t('home.sapFailing', { count: failing }) : t('home.sapHealthy')}
+        hint={
+          systems.data?.total === 0
+            ? t('home.sapNone')
+            : failing > 0
+              ? t('home.sapFailing', { count: failing })
+              : t('home.sapHealthy')
+        }
       >
         <div className="sx-row">
           <StatusPill tone="success">{t('home.sapActive', { count: count('active') })}</StatusPill>
@@ -204,13 +218,13 @@ export function HomePage() {
   const canCreateSap = useCan('sap_connection:manage');
   const canUsers = useCan('user:read');
   const canAudit = useCan('audit:read');
-  const environment = info.data?.environment.toUpperCase();
   const done = ROADMAP.filter((r) => r.state === 'on').length;
 
   return (
     <>
+      {/* El entorno ya está en la cabecera: aquí solo la fecha. */}
       <PageHeader
-        eyebrow={[eyebrowFormat.format(now), environment].filter(Boolean).join(' · ')}
+        eyebrow={sentenceCase(eyebrowFormat.format(now))}
         title={t('home.title')}
         description={t('home.description')}
         actions={

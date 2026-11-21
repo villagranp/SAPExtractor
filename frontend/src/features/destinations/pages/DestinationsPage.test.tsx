@@ -27,7 +27,7 @@ describe('DestinationsPage', () => {
       await screen.findByRole('button', { name: 'Nuevo destino Snowflake' }),
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Nuevo destino Archivos CSV' })).toBeInTheDocument();
-    expect(screen.getByText(/Añadir · Reemplazar · Upsert/)).toBeInTheDocument();
+    expect(screen.getByText(/Añadir, Reemplazar y Upsert/)).toBeInTheDocument();
   });
 
   it('sin destinos invita a registrar el primero', async () => {
@@ -38,6 +38,8 @@ describe('DestinationsPage', () => {
     );
     renderWithProviders(<DestinationsPage />);
     expect(await screen.findByText('Aún no hay destinos')).toBeInTheDocument();
+    // Un solo «Nuevo destino» (cabecera): el estado vacío no repite el botón.
+    expect(screen.getAllByRole('button', { name: 'Nuevo destino' })).toHaveLength(1);
   });
 
   it('un lector no ve las acciones de alta', async () => {
