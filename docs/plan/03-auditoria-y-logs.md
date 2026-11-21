@@ -84,6 +84,7 @@ No hay archivo de log en el disco del worker: con varias instancias, la API no p
 ## 3. Logs técnicos
 
 - structlog en JSON a stdout (12-factor); en despliegues sin colector, `RotatingFileHandler` en `logs/app/`.
+- **El texto de una excepción nunca se escribe en el log** (21.11.2026): puede llevar datos o credenciales (parámetros de una consulta, una fila, una URL). `log.exception` y las bibliotecas que registran con `exc_info` (uvicorn, sqlalchemy) dejan `error_type` y `trace`: el tipo de cada excepción encadenada y sus marcos (archivo, línea, función). Lo hace el procesador `safe_exc_info` de `core/logging.py`. Para dejar constancia de un detalle que no es sensible, se añade como campo explícito del evento.
 - Campos estándar: `ts`, `level`, `logger`, `event`, `request_id`, `user_id`, `run_id`, `module`, `duration_ms`.
 - **Enmascarado** obligatorio de: contraseñas, secretos, tokens, cabeceras `Authorization`/`Cookie`, cadenas de conexión.
 - Log de acceso HTTP (método, ruta, estado, duración) sin cuerpos.

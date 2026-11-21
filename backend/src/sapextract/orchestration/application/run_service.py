@@ -220,6 +220,10 @@ class RunService:
         if pipeline is None or pipeline.deleted_at is not None:
             msg = "El pipeline de esta ejecución ya no existe."
             raise ConflictError(msg, code="SX-PIPE-NOT-FOUND")
+        if pipeline.status != PipelineStatus.ACTIVE.value:
+            # Igual que el run manual: reintentar no puede saltarse una pausa.
+            msg = "Solo se reintenta en un pipeline activo: reanúdelo antes."
+            raise ConflictError(msg, code="SX-PIPE-NOT-ACTIVE")
         if live_run(self.session, run.pipeline_id) is not None:
             msg = "El pipeline ya tiene una ejecución en cola o en curso."
             raise ConflictError(msg, code="SX-RUN-ALREADY-LIVE")

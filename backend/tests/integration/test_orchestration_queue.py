@@ -22,6 +22,7 @@ from sqlalchemy import select, text, update
 
 import sapextract.main_scheduler as scheduler_main
 import sapextract.main_worker as worker_main
+import sapextract.orchestration.application.worker as worker_module
 from sapextract.core.config import Settings
 from sapextract.dataflow.domain.errors import DataflowError, ErrorKind
 from sapextract.extraction.application.engine import ExtractionEngine
@@ -295,6 +296,74 @@ def test_non_transient_errors_fail_at_once(orch: OrchEnv, orch_admin: ApiClient)
     stale_retry = orch_admin.post(f"/runs/{configuration['id']}/retry")
     assert stale_retry.status_code == 409
     assert stale_retry.json()["code"] == "SX-RUN-NOT-LATEST"
+
+
+class _LogRecorder:
+    """Sustituye al logger del worker: guarda cada evento con sus campos."""
+
+    def __init__(self) -> None:
+        self.events: list[tuple[str, str, dict[str, Any]]] = []
+
+    def __getattr__(self, level: str) -> Any:
+        def record(event: str, **fields: Any) -> None:
+            self.events.append((level, event, fields))
+
+        return record
+
+
+def test_unexpected_error_text_never_reaches_the_log(
+    orch: OrchEnv, orch_admin: ApiClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    pool = _pool()
+    pipeline = orch.pipeline(orch_admin, worker_pool=pool)
+    recorder = _LogRecorder()
+    monkeypatch.setattr(worker_module, "log", recorder)
+
+    def boom(ctx: RunContext) -> None:
+        try:
+            msg = "fila con IBAN ES7620770024003102575766"
+            raise KeyError(msg)
+        except KeyError as exc:
+            msg = "clave=Secreta.2026 en el mensaje"
+            raise ValueError(msg) from exc
+
+    orch.run_now(orch_admin, pipeline["id"])
+    assert orch.worker(ScriptedExecutor(boom), pool).poll_once() is True
+
+    level, _, fields = next(e for e in recorder.events if e[1] == "run_unexpected_error")
+    # Sin ``exc_info``: el formateador escribiría el mensaje de la excepción.
+    assert level == "error"
+    assert "exc_info" not in fields
+    assert fields["error_type"] == "ValueError"
+    assert [line for line in fields["trace"] if ":" not in line] == ["ValueError", "KeyError"]
+    assert any(line.endswith(" boom") for line in fields["trace"])
+    assert "Secreta" not in repr(recorder.events)
+    assert "IBAN" not in repr(recorder.events)
+
+
+def test_paused_pipeline_holds_its_runs(orch: OrchEnv, orch_admin: ApiClient) -> None:
+    pool = _pool()
+    pid = orch.pipeline(orch_admin, worker_pool=pool)["id"]
+    worker = orch.worker(ScriptedExecutor(_config_error), pool)
+    failed = orch.run_now(orch_admin, pid)
+    assert worker.poll_once() is True
+
+    # Reintentar no se salta la pausa, igual que el run manual.
+    assert orch_admin.post(f"/pipelines/{pid}/pause", {}).status_code == 200
+    retry = orch_admin.post(f"/runs/{failed['id']}/retry")
+    assert retry.status_code == 409
+    assert retry.json()["code"] == "SX-PIPE-NOT-ACTIVE"
+    assert orch.run(failed["id"]).status == "failed"
+
+    # Un run que ya estaba en cola espera a que el pipeline se reanude.
+    assert orch_admin.post(f"/pipelines/{pid}/resume").status_code == 200
+    queued = orch.run_now(orch_admin, pid)
+    assert orch_admin.post(f"/pipelines/{pid}/pause", {}).status_code == 200
+    assert worker.poll_once() is False
+    assert orch.run(queued["id"]).status == "queued"
+    assert orch_admin.post(f"/pipelines/{pid}/resume").status_code == 200
+    assert worker.poll_once() is True
+    assert orch.run(queued["id"]).status == "succeeded"
 
 
 # ====================================================================== worker: paradas

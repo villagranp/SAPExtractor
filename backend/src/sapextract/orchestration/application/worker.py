@@ -17,6 +17,7 @@ import structlog
 from sqlalchemy import update
 
 from sapextract.core.db import Database, new_id
+from sapextract.core.logging import safe_trace
 from sapextract.dataflow.domain.errors import DataflowError, ErrorKind
 from sapextract.orchestration.application.lifecycle import Verdict, VerdictKind, settle
 from sapextract.orchestration.application.toolkit import OrchestrationToolkit
@@ -235,8 +236,13 @@ class WorkerRuntime:
                 error_message=exc.message,
             )
         except Exception as exc:
-            # El texto de una excepción inesperada puede llevar datos: solo se guarda su tipo.
-            log.exception("run_unexpected_error")
+            # El texto de una excepción inesperada puede llevar datos (filas, credenciales):
+            # ni el run ni el log lo guardan, solo el tipo y dónde ocurrió.
+            log.error(
+                "run_unexpected_error",
+                error_type=type(exc).__name__,
+                trace=safe_trace(exc),
+            )
             verdict = Verdict(
                 kind=VerdictKind.FAILED,
                 error_code=ERROR_UNEXPECTED,

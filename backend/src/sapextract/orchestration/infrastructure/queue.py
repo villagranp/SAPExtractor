@@ -34,6 +34,8 @@ _CLAIM = text(
           LEFT JOIN sx.concurrency_group g ON g.code = p.concurrency_group
          WHERE r.status = 'queued'
            AND r.available_at <= :now
+           AND p.status = 'active'
+           AND p.deleted_at IS NULL
            AND p.worker_pool = ANY(CAST(:pools AS text[]))
            AND (SELECT count(*)
                   FROM sx.run x
