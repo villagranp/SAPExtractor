@@ -132,6 +132,10 @@
     "mfaSetupTitle": "Configure la verificación en dos pasos",
     "mfaSetupHelp": "Su cuenta de administrador requiere un segundo factor antes de continuar.",
     "useAnotherAccount": "Usar otra cuenta",
+    "lede": "Use su usuario y contraseña de SAPExtract.",
+    "help": "¿No puede entrar? Hable con un administrador.",
+    "environment": "Entorno",
+    "version": "Versión {{version}}",
     "invalidCredentials": "Usuario o contraseña incorrectos.",
     "lockoutHint": "Tras varios intentos fallidos, la cuenta se bloquea temporalmente."
   },

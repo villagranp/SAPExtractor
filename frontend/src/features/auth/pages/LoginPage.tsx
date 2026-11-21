@@ -1,9 +1,10 @@
 import { useState, type SubmitEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Navigate, useSearchParams } from 'react-router';
+import { useSystemInfo } from '@/features/system/api/queries';
 import { describeError } from '@/shared/api/errors';
 import { useShake } from '@/shared/motion/useShake';
-import { Alert, Button, Card, Spinner, TextField } from '@/shared/ui';
+import { Alert, BrandMark, Button, Spinner, StatusPill, TextField } from '@/shared/ui';
 import {
   safeNext,
   useLogin,
@@ -14,7 +15,11 @@ import {
 } from '../api/queries';
 import { ChangePasswordForm } from '../components/ChangePasswordForm';
 import { MfaSetup } from '../components/MfaSetup';
+import photoL from '../assets/login-main-1199.webp';
+import photoS from '../assets/login-main-640.webp';
 import './login.css';
+
+const PHOTO_SIZES = '(min-width: 900px) 55vw, 100vw';
 
 /** La API responde igual con contraseña errónea y con cuenta bloqueada (no revela cuál). */
 const INVALID_CREDENTIALS = 'SX-AUTH-INVALID-CREDENTIALS';
@@ -110,7 +115,6 @@ function MfaStep() {
       }}
       noValidate
     >
-      <p>{t('login.mfaHelp')}</p>
       {verify.error && <Alert tone="danger">{describeError(verify.error).message}</Alert>}
       <TextField
         label={t('mfa.code')}
@@ -134,10 +138,11 @@ function MfaStep() {
   );
 }
 
-const STEP_TITLES: Record<Exclude<SessionStage, 'active'>, string> = {
-  mfa: 'login.mfaTitle',
-  password_change: 'login.passwordChangeTitle',
-  mfa_setup: 'login.mfaSetupTitle',
+/** Título y subtítulo de cada paso; el subtítulo dice qué hacer en ese paso. */
+const STEPS: Record<Exclude<SessionStage, 'active'>, { title: string; lede: string }> = {
+  mfa: { title: 'login.mfaTitle', lede: 'login.mfaHelp' },
+  password_change: { title: 'login.passwordChangeTitle', lede: 'login.passwordChangeHelp' },
+  mfa_setup: { title: 'login.mfaSetupTitle', lede: 'login.mfaSetupHelp' },
 };
 
 /** Inicio de sesión por pasos: contraseña → MFA → cambio obligatorio → alta de MFA. */
@@ -151,57 +156,99 @@ export function LoginPage() {
 
   if (stage === 'active') return <Navigate to={next} replace />;
 
-  let title = t('login.title');
+  const step = stage ? STEPS[stage] : null;
+  const title = t(step?.title ?? 'login.title');
+  const lede = t(step?.lede ?? 'login.lede');
   let body = <PasswordStep />;
   if (me.isPending) {
     body = <Spinner label={t('common.loading')} />;
   } else if (me.isError) {
     body = <Alert tone="danger">{t('login.apiUnavailable')}</Alert>;
   } else if (stage) {
-    title = t(STEP_TITLES[stage]);
     body =
       stage === 'mfa' ? (
         <MfaStep />
       ) : stage === 'password_change' ? (
-        <>
-          <p>{t('login.passwordChangeHelp')}</p>
-          <ChangePasswordForm forced />
-        </>
+        <ChangePasswordForm forced />
       ) : (
-        <>
-          <p>{t('login.mfaSetupHelp')}</p>
-          <MfaSetup />
-        </>
+        <MfaSetup />
       );
   }
 
   return (
     <main className="sx-login">
-      <div className="sx-login__brand">
-        <span className="sx-login__mark" aria-hidden="true">
-          SX
-        </span>
-        <span>
-          <strong>{t('app.name')}</strong>
-          <small>{t('app.tagline')}</small>
-        </span>
-      </div>
-      <Card title={title} className="sx-login__card">
-        {body}
-        {stage && (
-          <p className="sx-login__switch">
-            <Button
-              variant="ghost"
-              onClick={() => {
-                logout.mutate();
-              }}
-              disabled={logout.isPending}
-            >
-              {t('login.useAnotherAccount')}
-            </Button>
+      <div className="sx-login__frame">
+        <section className="sx-login__side" aria-labelledby="sx-login-title">
+          <p className="sx-login__brand">
+            <BrandMark size={28} />
+            <span>{t('app.name')}</span>
           </p>
-        )}
-      </Card>
+
+          <div className="sx-login__form">
+            <header className="sx-login__head">
+              <h1 id="sx-login-title">{title}</h1>
+              <p>{lede}</p>
+            </header>
+            {body}
+            {stage && (
+              <p className="sx-login__switch">
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    logout.mutate();
+                  }}
+                  disabled={logout.isPending}
+                >
+                  {t('login.useAnotherAccount')}
+                </Button>
+              </p>
+            )}
+          </div>
+
+          <footer className="sx-login__foot">
+            <p>{t('login.help')}</p>
+            <EnvironmentNote />
+          </footer>
+        </section>
+
+        <LoginVisual />
+      </div>
     </main>
+  );
+}
+
+/** Entorno y versión antes de entrar: evita iniciar sesión en PRD creyendo estar en DEV. */
+function EnvironmentNote() {
+  const { t } = useTranslation();
+  const info = useSystemInfo();
+  if (!info.data) return null;
+  const { environment, version } = info.data;
+  return (
+    <p className="sx-login__meta">
+      <span className="sx-visually-hidden">{t('login.environment')}</span>
+      <StatusPill
+        tone={environment === 'prd' ? 'danger' : environment === 'qa' ? 'warning' : 'info'}
+      >
+        {environment.toUpperCase()}
+      </StatusPill>
+      <span>{t('login.version', { version })}</span>
+    </p>
+  );
+}
+
+/** Panel de imagen, decorativo (`aria-hidden`); la misma imagen sirve en los dos temas. */
+function LoginVisual() {
+  return (
+    <div className="sx-login__visual" aria-hidden="true">
+      <img
+        className="sx-login__photo"
+        src={photoL}
+        srcSet={`${photoS} 640w, ${photoL} 1199w`}
+        sizes={PHOTO_SIZES}
+        alt=""
+        decoding="async"
+        fetchPriority="high"
+      />
+    </div>
   );
 }

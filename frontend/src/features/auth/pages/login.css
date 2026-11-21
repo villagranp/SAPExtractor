@@ -1,58 +1,166 @@
+/*
+ * Inicio de sesión: un marco en relieve sobre el suelo. A la izquierda la marca, el formulario
+ * y el pie (ayuda, entorno y versión); a la derecha un panel de imagen hundido. En pantallas
+ * estrechas la imagen pasa a una franja superior. Solo tokens (ADR 0007, paleta en CLAUDE.md).
+ */
+
 .sx-login {
   display: grid;
-  align-content: center;
-  justify-items: center;
-  gap: var(--sx-space-5);
+  place-items: center;
   min-height: 100%;
   padding: var(--sx-space-4);
 }
+
+/* ---------- Marco */
+.sx-login__frame {
+  /* Margen entre el borde del marco y el panel de imagen; el radio exterior es el interior
+     más este margen, para que las dos curvas sean concéntricas. */
+  --sx-login-inset: var(--sx-space-3);
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--sx-login-inset);
+  width: min(1180px, 100%);
+  padding: var(--sx-login-inset);
+  background: linear-gradient(160deg, var(--sx-surface-top), var(--sx-surface-bottom));
+  border-radius: calc(var(--sx-radius-xl) + var(--sx-login-inset));
+  box-shadow: var(--sx-shadow-raised);
+}
+
+/* ---------- Lado del formulario */
+.sx-login__side {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: var(--sx-space-5);
+  min-width: 0;
+  padding: var(--sx-space-3) var(--sx-space-2) var(--sx-space-2);
+}
+
 .sx-login__brand {
-  display: flex;
+  justify-self: start;
+  display: inline-flex;
   align-items: center;
-  gap: var(--sx-space-3);
-}
-.sx-login__brand > span:last-child {
-  display: grid;
-  line-height: 1.2;
-}
-.sx-login__brand strong {
+  gap: var(--sx-space-2);
+  margin: 0;
   font-family: var(--sx-font-display);
-  font-size: var(--sx-text-lg);
-  font-weight: var(--sx-weight-display);
-  letter-spacing: var(--sx-track-display);
-}
-.sx-login__brand small {
-  color: var(--sx-color-text-muted);
-}
-.sx-login__mark {
-  display: grid;
-  place-items: center;
-  width: 52px;
-  height: 52px;
-  margin-bottom: var(--sx-key-travel);
-  font-family: var(--sx-font-display);
-  font-weight: var(--sx-weight-display);
-  color: var(--sx-color-primary-contrast);
-  background: linear-gradient(180deg, var(--sx-accent-top), var(--sx-color-primary));
-  border-radius: var(--sx-radius-md);
-  --sx-key-edge: var(--sx-accent-edge);
-  box-shadow: var(--sx-shadow-key);
-}
-.sx-login__card {
-  width: min(440px, 100%);
-  padding: var(--sx-space-6);
-  border-radius: var(--sx-radius-xl);
-}
-.sx-login__card .sx-card__title {
-  font-size: var(--sx-text-xl);
-  font-weight: var(--sx-weight-display);
+  font-size: var(--sx-text-md);
+  font-weight: 700;
   letter-spacing: var(--sx-track-display);
   color: var(--sx-color-text);
 }
-.sx-login__card .sx-btn--primary {
+
+.sx-login__form {
+  align-self: center;
+  justify-self: center;
+  width: min(360px, 100%);
+}
+.sx-login__head {
+  margin-bottom: var(--sx-space-5);
+  text-align: center;
+}
+.sx-login__head h1 {
+  margin: 0 0 6px;
+  font-size: var(--sx-text-xl);
+  font-weight: var(--sx-weight-display);
+  letter-spacing: var(--sx-track-display);
+  line-height: 1.15;
+  color: var(--sx-color-text);
+  text-wrap: balance;
+}
+.sx-login__head p {
+  margin: 0;
+  color: var(--sx-color-text-2);
+  text-wrap: pretty;
+}
+
+/* Campos y teclas en píldora, solo aquí; la etiqueta y los mensajes se alinean con el texto
+   de dentro del campo. */
+.sx-login__form {
+  --sx-login-field-x: 20px;
+}
+.sx-login__form .sx-input {
+  min-height: 46px;
+  padding-inline: var(--sx-login-field-x);
+  border-radius: var(--sx-radius-pill);
+}
+.sx-login__form .sx-field label,
+.sx-login__form .sx-field__hint,
+.sx-login__form .sx-field__error {
+  padding-inline: var(--sx-login-field-x);
+}
+.sx-login__form .sx-btn {
+  min-height: 46px;
+  border-radius: var(--sx-radius-pill);
+}
+.sx-login__form .sx-btn--primary {
   width: 100%;
+  margin-top: var(--sx-space-2);
 }
 .sx-login__switch {
-  margin: var(--sx-space-4) 0 0;
+  margin: var(--sx-space-3) 0 0;
   text-align: center;
+}
+
+.sx-login__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sx-space-2) var(--sx-space-4);
+  font-size: var(--sx-text-xs);
+  color: var(--sx-color-text-muted);
+}
+.sx-login__foot > p {
+  margin: 0;
+}
+.sx-login__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--sx-space-2);
+}
+
+/* ---------- Panel de imagen */
+.sx-login__visual {
+  position: relative;
+  isolation: isolate;
+  order: -1;
+  min-height: 168px;
+  overflow: hidden;
+  background: var(--sx-color-surface-alt);
+  border-radius: var(--sx-radius-xl);
+}
+/* Pozo: la imagen queda hundida en el marco, como los campos. */
+.sx-login__visual::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: var(--sx-shadow-well);
+  pointer-events: none;
+}
+.sx-login__photo {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* SAP, flechas y base de datos ocupan la franja media (33 % a 68 % del alto). */
+  object-position: 50% 50%;
+}
+
+/* ---------- Escritorio: dos columnas */
+@media (min-width: 900px) {
+  .sx-login__frame {
+    grid-template-columns: minmax(340px, 5fr) minmax(0, 7fr);
+    min-height: min(720px, calc(100vh - 2 * var(--sx-space-4)));
+    min-height: min(720px, calc(100dvh - 2 * var(--sx-space-4)));
+  }
+  .sx-login__side {
+    padding: var(--sx-space-4) var(--sx-space-5) var(--sx-space-3);
+  }
+  .sx-login__visual {
+    order: 0;
+    min-height: 0;
+  }
 }

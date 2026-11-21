@@ -83,6 +83,10 @@
     "mfaSetupTitle": "Set up two-step verification",
     "mfaSetupHelp": "Your administrator account requires a second factor before continuing.",
     "useAnotherAccount": "Use another account",
+    "lede": "Use your SAPExtract username and password.",
+    "help": "Can't sign in? Contact an administrator.",
+    "environment": "Environment",
+    "version": "Version {{version}}",
     "invalidCredentials": "Incorrect username or password.",
     "lockoutHint": "After several failed attempts, the account is locked for a while."
   },
