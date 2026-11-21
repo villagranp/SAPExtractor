@@ -1,0 +1,115 @@
+/*
+ * Entrada a la aplicación tras iniciar sesión: el único momento orquestado (enterApp()).
+ *
+ * La view transition tiene dos fotos, el login y la aplicación ya montada:
+ *   1. el login se hunde en el material: pierde opacidad, encoge a 0,985 y se desenfoca;
+ *   2. el marco (carril y cabecera) aparece enfocándose y, 60 ms después, el contenido
+ *      sube 6 px hasta su sitio.
+ * Mezcla normal sobre el color del suelo: las opacidades no se suman ni destellan.
+ * Con movimiento reducido solo queda un fundido breve, sin desplazamiento ni desenfoque.
+ */
+
+:root[data-sx-transition='enter-app'] .sx-content {
+  view-transition-name: sx-app-content;
+}
+
+:root[data-sx-transition='enter-app']::view-transition {
+  background: var(--sx-color-bg);
+}
+
+:root[data-sx-transition='enter-app']::view-transition-old(root),
+:root[data-sx-transition='enter-app']::view-transition-new(root),
+:root[data-sx-transition='enter-app']::view-transition-new(sx-app-content) {
+  mix-blend-mode: normal;
+}
+
+:root[data-sx-transition='enter-app']::view-transition-old(root) {
+  animation: sx-login-leave var(--sx-dur-leave) var(--sx-ease-out) both;
+}
+
+:root[data-sx-transition='enter-app']::view-transition-new(root) {
+  animation: sx-app-arrive var(--sx-dur-arrive) var(--sx-ease-out) var(--sx-delay-arrive) both;
+}
+
+:root[data-sx-transition='enter-app']::view-transition-new(sx-app-content) {
+  animation: sx-content-arrive var(--sx-dur-arrive) var(--sx-ease-out)
+    calc(var(--sx-delay-arrive) + 60ms) both;
+}
+
+@keyframes sx-login-leave {
+  to {
+    opacity: 0;
+    transform: scale(0.985);
+    filter: blur(4px);
+  }
+}
+
+@keyframes sx-app-arrive {
+  from {
+    opacity: 0;
+    filter: blur(6px);
+  }
+}
+
+@keyframes sx-content-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+    filter: blur(4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-sx-transition='enter-app']::view-transition-old(root) {
+    animation: sx-fade-out 160ms ease both;
+  }
+  :root[data-sx-transition='enter-app']::view-transition-new(root),
+  :root[data-sx-transition='enter-app']::view-transition-new(sx-app-content) {
+    animation: sx-fade-in 200ms ease both;
+  }
+}
+
+/*
+ * Rechazo (useShake): credenciales incorrectas. Cuatro vaivenes que se amortiguan (6, 5, 3 y
+ * 1,5 px), como algo que se niega con la cabeza. `translate` no pisa otros transform.
+ */
+.sx-shaking {
+  animation: sx-shake var(--sx-dur-shake) var(--sx-ease-shake);
+}
+
+@keyframes sx-shake {
+  0%,
+  100% {
+    translate: 0;
+  }
+  18% {
+    translate: -6px;
+  }
+  38% {
+    translate: 5px;
+  }
+  58% {
+    translate: -3px;
+  }
+  78% {
+    translate: 1.5px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sx-shaking {
+    animation: none;
+  }
+}
+
+@keyframes sx-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes sx-fade-in {
+  from {
+    opacity: 0;
+  }
+}

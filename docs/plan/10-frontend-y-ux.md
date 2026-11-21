@@ -135,6 +135,8 @@ Un pipeline es un origen hacia un destino y no habrá multi-destino (decisión d
 - [x] Tokens y `shared/ui` adaptados; layout definitivo; `/ui-kit`. Material táctil (relieve, teclas, pozos), temas claro y grafito con `light-dark()`, densidad compacta, carril de teclas con iconos Tabler, fuente Onest autoalojada, inicio rediseñado con tarjetas de estado.
 - [x] Revisión de accesibilidad y responsive: contrastes ≥ 4,5:1 en ambos temas, axe en CI en claro y grafito, carril en fila superior por debajo de 900 px.
 - [x] Paleta: acento naranja con grises neutros (decidido el 19.11.2026), contrastes verificados en ambos temas.
+- [x] Paleta Mega Lucario (20.11.2026): azul de aura, negro de pelaje, crema del pecho y rojo de ojos, en OKLCH; todos los pares ≥ 4,5:1 (foco y acento ≥ 3:1) en claro y grafito. Sustituye al naranja; colores sueltos del layout y del diálogo pasan a tokens (`--sx-fur-*`, `--sx-scrim`, `--sx-shade-strong`). Tecla deshabilitada plana y neutra (antes, acento al 55 %). Alto contraste: `prefers-contrast: more` sube la tinta secundaria y añade contornos; con `forced-colors` cada pieza recibe contorno y la selección usa `Highlight` (antes, sin sombras, no quedaba ningún límite visible).
+- [x] Tecla de usuario del carril (20.11.2026): icono de usuario de Tabler en lugar de las iniciales; en claro pasa a crema del pecho con icono negro (antes, negro de pelaje); en grafito no cambia.
 - [ ] Logo definitivo (hoy, monograma «SX»).
 
 **Por cada módulo**

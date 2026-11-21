@@ -60,7 +60,34 @@ describe('LoginPage', () => {
     await user.click(screen.getByRole('button', { name: 'Entrar' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Usuario o contraseña incorrectos.');
     // Tras el 401 del login seguimos en el formulario (no es una sesión caducada).
-    expect(screen.getByLabelText('Contraseña')).toHaveValue('');
+    const passwordField = screen.getByLabelText('Contraseña');
+    expect(passwordField).toHaveValue('');
+    expect(passwordField).toHaveFocus();
+    expect(passwordField).toHaveAttribute('aria-invalid', 'true');
+    expect(passwordField.closest('.sx-shaking')).not.toBeNull();
+    expect(screen.queryByText(/se bloquea temporalmente/)).not.toBeInTheDocument();
+
+    // Al segundo rechazo seguido se avisa del bloqueo.
+    await user.type(passwordField, 'otra');
+    await user.click(screen.getByRole('button', { name: 'Entrar' }));
+    expect(await screen.findByText(/se bloquea temporalmente/)).toBeInTheDocument();
+  });
+
+  it('otros fallos del login siguen en una alerta, sin sacudida', async () => {
+    server.use(
+      http.get('*/api/v1/me', () => problem(401, 'SX-AUTH-UNAUTHENTICATED', 'x')),
+      http.post('*/api/v1/auth/login', () =>
+        problem(429, 'SX-GEN-RATE-LIMIT', 'Demasiados intentos seguidos. Espere 30 segundos.'),
+      ),
+    );
+    const user = userEvent.setup();
+    renderWithProviders(<LoginPage />, { route: '/login' });
+    await user.type(await screen.findByLabelText('Usuario'), 'root');
+    await user.type(screen.getByLabelText('Contraseña'), 'clave');
+    await user.click(screen.getByRole('button', { name: 'Entrar' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Espere 30 segundos');
+    expect(screen.getByLabelText('Contraseña')).not.toHaveAttribute('aria-invalid');
+    expect(document.querySelector('.sx-shaking')).toBeNull();
   });
 
   it('pide el código TOTP cuando la sesión está en el paso mfa', async () => {

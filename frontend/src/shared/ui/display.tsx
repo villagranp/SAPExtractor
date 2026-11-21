@@ -1,6 +1,36 @@
 import { useId, type ReactNode } from 'react';
+import logo128 from './assets/logo-128.webp';
+import logo192 from './assets/logo-192.webp';
+import logo64 from './assets/logo-64.webp';
 
-/* Piezas de presentación: métricas, medidores y control segmentado. */
+/* Piezas de presentación: logotipo, métricas, medidores y control segmentado. */
+
+// ------------------------------------------------------------------ BrandMark
+export interface BrandMarkProps {
+  /** Lado en píxeles CSS; el navegador elige la resolución (1x, 2x, 3x). */
+  size?: number;
+  className?: string;
+}
+
+/**
+ * Logotipo de SAPExtract. Decorativo (`alt=""`): el nombre lo da quien lo contiene
+ * (texto oculto del enlace al inicio, nombre al lado en el login).
+ */
+export function BrandMark({ size = 44, className }: BrandMarkProps) {
+  return (
+    <img
+      className={className ? `sx-brandmark ${className}` : 'sx-brandmark'}
+      src={logo64}
+      srcSet={`${logo64} 64w, ${logo128} 128w, ${logo192} 192w`}
+      sizes={`${size}px`}
+      width={size}
+      height={size}
+      alt=""
+      decoding="async"
+      draggable={false}
+    />
+  );
+}
 
 // ------------------------------------------------------------------ Metric
 export interface MetricProps {

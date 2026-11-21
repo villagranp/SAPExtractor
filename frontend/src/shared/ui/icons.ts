@@ -20,6 +20,7 @@ export {
   IconServer2,
   IconShieldLock,
   IconSun,
+  IconUser,
   IconUsers,
   type Icon as IconComponent,
 } from '@tabler/icons-react';

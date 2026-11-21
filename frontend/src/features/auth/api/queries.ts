@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, unwrap } from '@/shared/api/client';
 import type { components } from '@/shared/api/schema';
+import { enterApp } from '@/shared/motion/enterApp';
 
 export type Me = components['schemas']['MeResponse'];
 export type SessionStage = components['schemas']['SessionStage'];
@@ -12,17 +13,15 @@ export const authKeys = {
   mySessions: ['auth', 'me', 'sessions'] as const,
 };
 
+async function fetchMe(): Promise<Me | null> {
+  const result = await api.GET('/api/v1/me');
+  if (result.response.status === 401) return null;
+  return unwrap(result);
+}
+
 /** Sesión actual; `null` si no hay sesión (401). */
 export function useMe() {
-  return useQuery({
-    queryKey: authKeys.me,
-    queryFn: async (): Promise<Me | null> => {
-      const result = await api.GET('/api/v1/me');
-      if (result.response.status === 401) return null;
-      return unwrap(result);
-    },
-    staleTime: 60_000,
-  });
+  return useQuery({ queryKey: authKeys.me, queryFn: fetchMe, staleTime: 60_000 });
 }
 
 /** Permite mostrar u ocultar opciones. La autorización real la hace siempre el backend. */
@@ -31,9 +30,32 @@ export function useCan(permission: string): boolean {
   return data?.permissions.includes(permission) ?? false;
 }
 
+/**
+ * Vuelve a leer la sesión tras un paso de autenticación. Si con ese paso la sesión queda
+ * completa, la escribe dentro de enterApp(): el login se desvanece y aparece la aplicación.
+ */
 function useRefreshMe() {
   const queryClient = useQueryClient();
-  return () => queryClient.invalidateQueries({ queryKey: authKeys.me });
+  return async () => {
+    const invalidate = () => queryClient.invalidateQueries({ queryKey: authKeys.me });
+    if (queryClient.getQueryData<Me | null>(authKeys.me)?.stage === 'active') {
+      await invalidate();
+      return;
+    }
+    let me: Me | null;
+    try {
+      me = await fetchMe();
+    } catch {
+      // Que la consulta refleje el fallo igual que antes (aviso de API no disponible).
+      await invalidate();
+      return;
+    }
+    const commit = () => {
+      queryClient.setQueryData(authKeys.me, me);
+    };
+    if (me?.stage === 'active') await enterApp(commit);
+    else commit();
+  };
 }
 
 /** Los 401 de estos pasos son «credenciales incorrectas», no «sesión caducada». */

@@ -30,7 +30,7 @@ v2   Streaming (plan 12)
 |---|---|---|---|---|
 | **0** ✅ | Fundaciones + Spike SAP (falta ejecutar el spike en el SAP real: empieza en la Fase 0) | [01](01-fundaciones.md), [10](10-frontend-y-ux.md) §0 | `docker compose up` con API, front, BD, mock SAP; CI; ADR 0002 con el comportamiento real del delta en el SAP de AG | — |
 | **1** ✅ | Identidad local, RBAC y auditoría base | [02](02-usuarios-autenticacion-roles.md) (local), [03](03-auditoria-y-logs.md) (base) | Login admin local + MFA; gestión de usuarios y roles; pantalla de auditoría con integridad verificable | 0 |
-| **1b** ✅ | Estilo visual propio (acento naranja; falta el logo definitivo) | [10](10-frontend-y-ux.md) §1, [ADR 0007](../adr/0007-estilo-visual-tactil.md) | Layout y design system «táctil», temas claro y grafito, densidad compacta; `/ui-kit` | 0 |
+| **1b** ✅ | Estilo visual propio (paleta Mega Lucario; falta el logo definitivo) | [10](10-frontend-y-ux.md) §1, [ADR 0007](../adr/0007-estilo-visual-tactil.md) | Layout y design system «táctil», temas claro y grafito, densidad compacta; `/ui-kit` | 0 |
 | **2** ✅ | Conexiones SAP (falta validar contra el SAP real) | [04](04-conexiones-sap.md) | Alta de sistema SAP, prueba de conexión por pasos, explorador de servicios ODP/CDS | 1 |
 | **3** ✅ | Orígenes SAP (falta revisar la guía con el equipo SAP y cambiar el mock por respuestas reales del spike) | [05](05-origenes-sap.md) | Asistente de origen (extractor estándar, Z y CDS), esquema versionado, vista previa sin suscripción; guía SAP validada | 2 |
 | **4a** | Destinos: CSV y Snowflake | [07](07-destinos.md) | CSV y Snowflake con prueba de conexión, DDL previsualizado y tabla de control | 1 + cuenta de pruebas de Snowflake |
@@ -62,7 +62,7 @@ Dev A lleva el flujo SAP y Dev B los destinos y la plataforma. Los dos construye
 | **3 · Orquestación** | 3 semanas | **It6** backend | **It6** pantallas; después **It4b** SQL Server | **H3 · Autónoma** |
 | **4 · Operación** | 2–3 semanas | **It8** backend; prueba de volumen de 10 M de filas | **It7** Entra ID; dashboard y pantallas de alertas | SSO, alertas y dashboard |
 | **5 · Endurecimiento** | 2 semanas | **It9**, entre los dos | | **H4 · v1.0** |
-| Flotante | — | — | ✅ **It1b** hecha (estilo propio, acento naranja); queda el logo definitivo | Layout definitivo y `/ui-kit` |
+| Flotante | — | — | ✅ **It1b** hecha (estilo propio, paleta Mega Lucario); queda el logo definitivo | Layout definitivo y `/ui-kit` |
 
 Total estimado: 13–15 semanas, más It1b. Las duraciones se recalculan al cerrar la Fase 1 con la velocidad real.
 

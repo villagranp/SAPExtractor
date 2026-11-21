@@ -82,7 +82,9 @@
     "passwordChangeHelp": "You are using a temporary password. Choose a new one to continue.",
     "mfaSetupTitle": "Set up two-step verification",
     "mfaSetupHelp": "Your administrator account requires a second factor before continuing.",
-    "useAnotherAccount": "Use another account"
+    "useAnotherAccount": "Use another account",
+    "invalidCredentials": "Incorrect username or password.",
+    "lockoutHint": "After several failed attempts, the account is locked for a while."
   },
   "password": {
     "current": "Current password",

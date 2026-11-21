@@ -21,6 +21,20 @@ Plataforma para orquestar extracciones SAP (ODP/CDS vía OData) con deltas hacia
 - Frontend: las pantallas (`features/*`) solo importan componentes de `src/shared/ui`, nunca de la plantilla directamente.
 - Errores HTTP en formato Problem Details (RFC 9457).
 
+## Paleta de color: Mega Lucario
+
+La identidad visual de toda la UI usa la paleta de **Mega Lucario** (Pokémon). Cada color tiene un solo papel:
+
+| Color | Papel |
+|---|---|
+| Azul de aura (`#1e65aa` claro, `#67aae9` grafito) | Acento: acción primaria, estado activo, foco e información |
+| Negro de pelaje (tono OKLCH 266) | Tinta del tema claro, material del grafito, tecla de usuario (grafito) |
+| Crema del pecho (tono 92) | Leyenda sobre las teclas azules (claro), tinta del grafito, tecla de usuario (claro), aviso |
+| Rojo de ojos (tono 24–26) | Solo peligro y error; nunca como acento |
+
+- Todo color vive como token en `frontend/src/shared/theme/tokens.css` (OKLCH, `light-dark()`); nada de hex sueltos en `features/` ni `app/`. Neutros con leve tinte azul o de pelaje, nunca gris puro. Éxito: verde azulado afinado a la paleta.
+- Al tocar un color, recalcular contrastes: texto ≥ 4,5:1, foco y acento ≥ 3:1, en claro y grafito. Detalle en ADR 0007.
+
 ## Comandos
 
 - Todo el entorno: `docker compose up --build` (API :8000, web :5173, mock SAP :8081, PostgreSQL :5432).

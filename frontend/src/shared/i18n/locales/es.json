@@ -131,7 +131,9 @@
     "passwordChangeHelp": "Está usando una contraseña temporal. Elija una nueva para continuar.",
     "mfaSetupTitle": "Configure la verificación en dos pasos",
     "mfaSetupHelp": "Su cuenta de administrador requiere un segundo factor antes de continuar.",
-    "useAnotherAccount": "Usar otra cuenta"
+    "useAnotherAccount": "Usar otra cuenta",
+    "invalidCredentials": "Usuario o contraseña incorrectos.",
+    "lockoutHint": "Tras varios intentos fallidos, la cuenta se bloquea temporalmente."
   },
   "password": {
     "current": "Contraseña actual",

@@ -2,17 +2,11 @@ import { useTranslation } from 'react-i18next';
 import { Link, NavLink, Outlet, useLocation } from 'react-router';
 import { useLogout, useMe } from '@/features/auth/api/queries';
 import { useSystemInfo } from '@/features/system/api/queries';
+import { useAppShellReady } from '@/shared/motion/enterApp';
 import { usePreferences } from '@/shared/theme/preferences';
-import { IconLogout, IconMoon, IconSun, StatusPill } from '@/shared/ui';
+import { BrandMark, IconLogout, IconMoon, IconSun, IconUser, StatusPill } from '@/shared/ui';
 import { locate, visibleNavigation } from './navigation';
 import './layout.css';
-
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  const letters =
-    parts.length > 1 ? `${parts[0]?.[0] ?? ''}${parts.at(-1)?.[0] ?? ''}` : name.slice(0, 2);
-  return letters.toUpperCase();
-}
 
 /** ¿Se ve ahora el tema grafito? (preferencia explícita o, si sigue al sistema, el del SO). */
 function isDarkNow(theme: 'system' | 'light' | 'dark'): boolean {
@@ -35,6 +29,7 @@ export function AppShell() {
   const current = locate(location.pathname, sections);
   const dark = isDarkNow(prefs.theme);
   const environment = info.data?.environment;
+  useAppShellReady();
 
   return (
     <div className="sx-shell">
@@ -43,7 +38,7 @@ export function AppShell() {
       </a>
       <aside className="sx-rail" aria-label={t('nav.menu')}>
         <Link to="/" className="sx-rail__brand">
-          <span aria-hidden="true">SX</span>
+          <BrandMark size={44} />
           <span className="sx-visually-hidden">{t('app.homeLink')}</span>
         </Link>
         <nav className="sx-rail__nav">
@@ -89,7 +84,7 @@ export function AppShell() {
         </nav>
         {me.data && (
           <Link to="/profile" className="sx-rail__avatar">
-            <span aria-hidden="true">{initials(me.data.display_name)}</span>
+            <IconUser size={22} stroke={1.75} aria-hidden="true" />
             <span className="sx-visually-hidden">
               {t('userMenu.profileOf', { name: me.data.display_name })}
             </span>

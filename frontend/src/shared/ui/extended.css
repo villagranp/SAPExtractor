@@ -167,13 +167,13 @@ select.sx-input {
   border-radius: var(--sx-radius-xl);
   box-shadow:
     inset 1px 1px 0 var(--sx-highlight),
-    0 30px 60px -20px rgb(0 0 0 / 45%);
+    0 30px 60px -20px var(--sx-shade-strong);
 }
 .sx-dialog--lg {
   width: min(900px, calc(100vw - 32px));
 }
 .sx-dialog::backdrop {
-  background: rgb(10 14 20 / 45%);
+  background: var(--sx-scrim);
   backdrop-filter: blur(3px);
 }
 .sx-dialog__header {
@@ -596,4 +596,74 @@ textarea.sx-input {
 .sx-segmented__option input:focus-visible + span {
   outline: 2px solid var(--sx-color-focus);
   outline-offset: 2px;
+}
+
+/* ---------- Alto contraste */
+/* Más contraste: el relieve no basta para separar las piezas; se añade un contorno sólido. */
+@media (prefers-contrast: more) {
+  :is(
+    .sx-card,
+    .sx-btn:not(.sx-btn--ghost),
+    .sx-input,
+    .sx-pill,
+    .sx-alert,
+    .sx-table-wrap,
+    .sx-segmented__track,
+    .sx-secret,
+    .sx-dialog,
+    .sx-rail,
+    .sx-iconkey,
+    .sx-empty
+  ):not(:focus-visible) {
+    outline: 1px solid var(--sx-color-border);
+    outline-offset: -1px;
+  }
+}
+
+/* Colores forzados (alto contraste de Windows): el sistema quita sombras y fondos, así que
+   cada pieza recibe un contorno y la selección pasa a Highlight. */
+@media (forced-colors: active) {
+  :is(
+    .sx-card,
+    .sx-input,
+    .sx-pill,
+    .sx-alert,
+    .sx-table-wrap,
+    .sx-segmented__track,
+    .sx-secret,
+    .sx-dialog,
+    .sx-rail,
+    .sx-empty,
+    .sx-rail__brand,
+    .sx-rail__avatar
+  ):not(:focus-visible) {
+    outline: 1px solid CanvasText;
+    outline-offset: -1px;
+  }
+  :is(.sx-btn, .sx-iconkey):not(:focus-visible) {
+    outline: 1px solid ButtonText;
+    outline-offset: -1px;
+  }
+  .sx-btn:disabled {
+    color: GrayText;
+    outline-color: GrayText;
+  }
+  .sx-input[aria-invalid='true']:not(:focus-visible) {
+    outline-width: 3px; /* sin el anillo rojo, el error se marca con un contorno más grueso */
+  }
+  .sx-rail__key.active,
+  .sx-tabs__tab[aria-selected='true'],
+  .sx-segmented__option input:checked + span,
+  .sx-stepper__step--current .sx-stepper__index {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+  .sx-rail__key.active::before,
+  .sx-meter__segment--on {
+    forced-color-adjust: none;
+    background: Highlight;
+  }
+  .sx-meter__segment {
+    outline: 1px solid CanvasText;
+  }
 }

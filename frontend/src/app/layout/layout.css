@@ -37,6 +37,7 @@
   border-radius: var(--sx-radius-xl);
   box-shadow: var(--sx-shadow-raised);
 }
+/* Tecla neutra: el logotipo trae su propio azul y el acento queda para la acción primaria. */
 .sx-rail__brand {
   display: grid;
   place-items: center;
@@ -44,16 +45,17 @@
   width: 54px;
   height: 54px;
   margin-bottom: var(--sx-key-travel);
-  font-family: var(--sx-font-display);
-  font-size: 1.05rem;
-  font-weight: var(--sx-weight-display);
-  letter-spacing: -0.02em;
-  color: var(--sx-color-primary-contrast);
   text-decoration: none;
-  background: linear-gradient(180deg, var(--sx-accent-top), var(--sx-color-primary));
+  background: linear-gradient(180deg, var(--sx-key-top), var(--sx-key-bottom));
   border-radius: var(--sx-radius-lg);
-  --sx-key-edge: var(--sx-accent-edge);
   box-shadow: var(--sx-shadow-key);
+  transition:
+    translate var(--sx-dur-press) var(--sx-ease),
+    box-shadow var(--sx-dur-press) var(--sx-ease);
+}
+.sx-rail__brand:active {
+  translate: 0 var(--sx-key-travel);
+  box-shadow: var(--sx-shadow-key-pressed);
 }
 .sx-rail__nav {
   display: grid;
@@ -169,12 +171,11 @@
   width: 46px;
   height: 46px;
   margin-bottom: var(--sx-key-travel);
-  font-weight: 700;
-  color: light-dark(#ffffff, var(--sx-color-text));
+  color: var(--sx-fur-ink);
   text-decoration: none;
-  background: linear-gradient(180deg, light-dark(#4a5565, #39414c), light-dark(#323b47, #2b323b));
+  background: linear-gradient(180deg, var(--sx-fur-top), var(--sx-fur-bottom));
   border-radius: var(--sx-radius-md);
-  --sx-key-edge: light-dark(#1d232c, #0a0c10);
+  --sx-key-edge: var(--sx-fur-edge);
   box-shadow: var(--sx-shadow-key);
 }
 
@@ -301,6 +302,10 @@
   .sx-rail__brand {
     width: 52px;
     height: 52px;
+  }
+  .sx-rail__brand .sx-brandmark {
+    width: 42px;
+    height: 42px;
   }
   .sx-rail__nav {
     display: flex;
