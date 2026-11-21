@@ -1,4 +1,5 @@
 import {
+  IconAdjustmentsHorizontal,
   IconArrowsShuffle,
   IconBell,
   IconLayoutDashboard,
@@ -94,6 +95,12 @@ export const navigation: NavSection[] = [
         labelKey: 'nav.identityProvider',
         icon: IconId,
         permission: 'idp:manage',
+      },
+      {
+        to: '/admin/settings',
+        labelKey: 'nav.settings',
+        icon: IconAdjustmentsHorizontal,
+        permission: 'pipeline:read',
       },
     ],
   },

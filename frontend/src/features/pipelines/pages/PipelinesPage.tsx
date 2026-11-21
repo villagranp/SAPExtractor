@@ -214,6 +214,7 @@ export function PipelinesPage() {
               rowKey={(p) => p.id}
               loading={pipelines.isPending}
               empty={t('pipelines.empty')}
+              stacked
             />
           </div>
           {pipelines.data && (

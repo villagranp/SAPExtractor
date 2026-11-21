@@ -274,8 +274,11 @@ El criterio del asistente («cada 30 min en días laborables» con sus próximas
 
 La It5 llegó a `main` con unas pantallas mínimas de pipelines y ejecuciones (alta en un formulario, activar y ejecutar). Se unieron con estas: quedan el asistente, la programación, el clonado y las acciones de aquí, y de las del motor la pestaña Delta, los pasos, el log en vivo y las cifras de cada ejecución. El formulario de alta anterior se retiró. El historial de un pipeline filtra con `?pipeline=`: las pantallas del motor enviaban `pipeline_id`, que la API ignora, y mostraban las ejecuciones de todos.
 
+### Ajustes: grupos de concurrencia
+
+`/admin/settings` (`features/settings/`, permiso `pipeline:read`; crear, cambiar y eliminar piden `pipeline:manage`). Lista cada grupo con su límite, cuántos pipelines lo usan y cuántas ejecuciones tiene en curso; el alta y la edición van en un diálogo y un grupo con pipelines no se puede eliminar (la API lo explica). Los workers se ven en el panel de monitoreo (plan 09), así que aquí solo hay un enlace.
+
 ### Pendiente
 
-- Gestión de grupos de concurrencia y vista de workers (Ajustes, plan 10 §3). El asistente deja elegir un grupo si ya existe alguno.
 - «Probar pipeline» (`test-run`): el motor aún no lo expone.
 - El E2E del motor (`tests/e2e/smoke.spec.ts`) recorre el asistente, la comprobación previa, «Ejecutar ahora» y la pestaña Delta contra `sap-mock`.

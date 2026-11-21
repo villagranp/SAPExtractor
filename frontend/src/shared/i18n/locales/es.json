@@ -48,7 +48,8 @@
     "soon": "Iteración {{it}}",
     "breadcrumb": "Ruta",
     "soonShort": "It{{it}}",
-    "dashboard": "Panel"
+    "dashboard": "Panel",
+    "settings": "Ajustes"
   },
   "userMenu": {
     "logout": "Cerrar sesión",
@@ -2196,6 +2197,41 @@
     "bell": {
       "open": "{{count}} alertas abiertas",
       "none": "Sin alertas abiertas"
+    }
+  },
+  "settings": {
+    "title": "Ajustes",
+    "description": "Límites que la plataforma aplica al repartir las ejecuciones.",
+    "groups": {
+      "title": "Grupos de concurrencia",
+      "intro": "Un grupo limita cuántos de sus pipelines se ejecutan a la vez, por ejemplo para no cargar producción en horario de oficina. Cada pipeline elige su grupo en el asistente.",
+      "empty": "Aún no hay grupos: los pipelines solo tienen el límite de su sistema SAP.",
+      "group": "Grupo",
+      "limit": "Ejecuciones a la vez",
+      "pipelines": "Pipelines",
+      "running": "En curso",
+      "atOnce_one": "{{count}} a la vez",
+      "atOnce_other": "{{count}} a la vez",
+      "new": "Nuevo grupo",
+      "newTitle": "Nuevo grupo de concurrencia",
+      "editTitle": "Editar el grupo {{code}}",
+      "edit": "Editar",
+      "editOf": "Editar el grupo {{code}}",
+      "delete": "Eliminar",
+      "deleteOf": "Eliminar el grupo {{code}}",
+      "save": "Guardar grupo",
+      "code": "Código",
+      "codeHint": "De 2 a 30 letras, números o guion bajo. No se puede cambiar después.",
+      "codeFixed": "El código no se puede cambiar.",
+      "codeError": "Use de 2 a 30 letras, números o guion bajo, empezando por una letra.",
+      "limitHint": "Entre 1 y 64. Las ejecuciones que no caben esperan en la cola.",
+      "limitError": "Escriba un número entre 1 y 64.",
+      "description": "Descripción",
+      "deleteTitle": "¿Eliminar el grupo {{code}}?",
+      "deleteMessage": "Solo se puede eliminar un grupo sin pipelines. Sus ejecuciones dejan de tener este límite.",
+      "deleteConfirm": "Eliminar grupo",
+      "workersNote": "Los workers en línea y lo que ejecutan se ven en el panel.",
+      "seeDashboard": "Ir al panel"
     }
   }
 }

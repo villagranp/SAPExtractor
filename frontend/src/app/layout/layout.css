@@ -103,6 +103,19 @@
     background-color var(--sx-dur) var(--sx-ease),
     translate var(--sx-dur-press) var(--sx-ease);
 }
+/* Pantallas bajas (portátiles de 1366 × 768 a 830): el carril se aprieta para caber sin scroll. */
+@media (min-width: 901px) and (max-height: 880px) {
+  .sx-rail__nav {
+    gap: var(--sx-space-1);
+  }
+  .sx-rail__group {
+    padding-top: 2px;
+  }
+  .sx-rail__key {
+    gap: 1px;
+    padding: 4px 4px 3px;
+  }
+}
 .sx-rail__key:hover {
   color: var(--sx-color-text);
   background: var(--sx-color-surface-alt);

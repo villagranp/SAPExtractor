@@ -19,6 +19,11 @@ export interface DataTableProps<T> {
   loading?: boolean;
   empty?: ReactNode;
   onRowClick?: (row: T) => void;
+  /**
+   * En pantallas estrechas cada fila pasa a ficha: una línea por columna, con su cabecera
+   * delante. Sin esto la tabla se desplaza en horizontal dentro de su tarjeta.
+   */
+  stacked?: boolean;
 }
 
 export function DataTable<T>({
@@ -29,30 +34,40 @@ export function DataTable<T>({
   loading = false,
   empty,
   onRowClick,
+  stacked = false,
 }: DataTableProps<T>) {
+  const group = stacked ? { role: 'rowgroup' } : {};
+  const rowRole = stacked ? { role: 'row' } : {};
   return (
     <div
-      className="sx-table-wrap"
+      className={stacked ? 'sx-table-wrap sx-table-wrap--stacked' : 'sx-table-wrap'}
       aria-busy={loading}
       // En pantallas estrechas la tabla se desplaza en horizontal: con nombre, la región se
       // puede enfocar y mover con las flechas (WCAG 2.1.1).
       {...(caption ? { role: 'region', 'aria-label': caption, tabIndex: 0 } : {})}
     >
-      <table className="sx-table">
+      {/* Apilada, la tabla deja de pintarse como tabla: los roles la mantienen para los lectores. */}
+      <table className="sx-table" {...(stacked ? { role: 'table' } : {})}>
         {caption && <caption className="sx-visually-hidden">{caption}</caption>}
-        <thead>
-          <tr>
+        <thead {...group}>
+          <tr {...rowRole}>
             {columns.map((c) => (
-              <th key={c.key} scope="col" style={{ width: c.width, textAlign: c.align ?? 'left' }}>
+              <th
+                key={c.key}
+                scope="col"
+                style={{ width: c.width, textAlign: c.align ?? 'left' }}
+                {...(stacked ? { role: 'columnheader' } : {})}
+              >
                 {c.header}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody>
+        <tbody {...group}>
           {rows.map((row) => (
             <tr
               key={rowKey(row)}
+              {...rowRole}
               className={onRowClick ? 'sx-table__row--clickable' : undefined}
               onClick={
                 onRowClick
@@ -63,15 +78,28 @@ export function DataTable<T>({
               }
             >
               {columns.map((c) => (
-                <td key={c.key} style={{ textAlign: c.align ?? 'left' }}>
+                <td
+                  key={c.key}
+                  style={{ textAlign: c.align ?? 'left' }}
+                  {...(stacked
+                    ? {
+                        role: 'cell',
+                        'data-label': typeof c.header === 'string' ? c.header : undefined,
+                      }
+                    : {})}
+                >
                   {c.render(row)}
                 </td>
               ))}
             </tr>
           ))}
           {!loading && rows.length === 0 && (
-            <tr>
-              <td colSpan={columns.length} className="sx-table__empty">
+            <tr {...rowRole}>
+              <td
+                colSpan={columns.length}
+                className="sx-table__empty"
+                {...(stacked ? { role: 'cell' } : {})}
+              >
                 {empty ?? '—'}
               </td>
             </tr>

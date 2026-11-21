@@ -46,7 +46,8 @@
     "soon": "Iteration {{it}}",
     "breadcrumb": "Breadcrumb",
     "soonShort": "It{{it}}",
-    "dashboard": "Dashboard"
+    "dashboard": "Dashboard",
+    "settings": "Settings"
   },
   "userMenu": {
     "logout": "Sign out",
@@ -1391,6 +1392,41 @@
     "bell": {
       "open": "{{count}} open alerts",
       "none": "No open alerts"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "description": "Limits the platform applies when handing out runs.",
+    "groups": {
+      "title": "Concurrency groups",
+      "intro": "A group limits how many of its pipelines run at the same time, for example to spare production during office hours. Each pipeline picks its group in the wizard.",
+      "empty": "No groups yet: pipelines only have the limit of their SAP system.",
+      "group": "Group",
+      "limit": "Runs at a time",
+      "pipelines": "Pipelines",
+      "running": "Running",
+      "atOnce_one": "{{count}} at a time",
+      "atOnce_other": "{{count}} at a time",
+      "new": "New group",
+      "newTitle": "New concurrency group",
+      "editTitle": "Edit group {{code}}",
+      "edit": "Edit",
+      "editOf": "Edit group {{code}}",
+      "delete": "Delete",
+      "deleteOf": "Delete group {{code}}",
+      "save": "Save group",
+      "code": "Code",
+      "codeHint": "2 to 30 letters, numbers or underscores. It cannot be changed later.",
+      "codeFixed": "The code cannot be changed.",
+      "codeError": "Use 2 to 30 letters, numbers or underscores, starting with a letter.",
+      "limitHint": "Between 1 and 64. Runs that do not fit wait in the queue.",
+      "limitError": "Enter a number between 1 and 64.",
+      "description": "Description",
+      "deleteTitle": "Delete group {{code}}?",
+      "deleteMessage": "Only a group without pipelines can be deleted. Its runs stop having this limit.",
+      "deleteConfirm": "Delete group",
+      "workersNote": "Online workers and what they run are shown on the dashboard.",
+      "seeDashboard": "Go to the dashboard"
     }
   }
 }

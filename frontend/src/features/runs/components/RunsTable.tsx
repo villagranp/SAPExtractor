@@ -76,6 +76,7 @@ export function RunsTable({ runs, loading, caption, empty, showPipeline = true }
       rowKey={(r) => r.id}
       loading={loading}
       empty={empty}
+      stacked
     />
   );
 }

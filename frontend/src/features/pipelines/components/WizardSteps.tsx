@@ -223,6 +223,7 @@ function ColumnMapping({ form, source }: { form: Form; source: SourceDetail }) {
           caption={t('pipelines.wizard.mappingTitle')}
           rows={rows}
           rowKey={(r) => r.column.name}
+          stacked
           columns={[
             {
               key: 'include',

@@ -136,8 +136,21 @@
   white-space: nowrap; /* un código partido no se lee: la tabla se desplaza en horizontal */
 }
 /* Columnas de la lista con un ancho mínimo legible; por debajo, la tabla se desplaza. */
-.sx-pipelines__list .sx-table {
-  min-width: 860px;
+@media (min-width: 641px) {
+  .sx-pipelines__list .sx-table {
+    min-width: 860px;
+  }
+}
+/* En ficha (pantalla estrecha) el recorrido sí puede partirse entre código y entorno. */
+@media (max-width: 640px) {
+  .sx-pipelines__mini-route div {
+    grid-template-columns: 3.75rem minmax(0, 1fr);
+  }
+  .sx-pipelines__mini-route dd {
+    flex-wrap: wrap;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
 }
 
 /* ---------- Avisos y bloqueos */

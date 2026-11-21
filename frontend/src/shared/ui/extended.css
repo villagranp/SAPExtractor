@@ -141,6 +141,49 @@ select.sx-input {
   color: var(--sx-color-text-muted);
 }
 
+/* Tabla apilada: por debajo de 640 px cada fila es una ficha (cabecera y valor por línea). */
+@media (max-width: 640px) {
+  .sx-table-wrap--stacked .sx-table,
+  .sx-table-wrap--stacked .sx-table tbody,
+  .sx-table-wrap--stacked .sx-table tr,
+  .sx-table-wrap--stacked .sx-table td {
+    display: block;
+  }
+  /* Las cabeceras siguen para los lectores de pantalla; a la vista las repite cada celda. */
+  .sx-table-wrap--stacked .sx-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .sx-table-wrap--stacked .sx-table tbody tr {
+    padding: var(--sx-space-2) 0;
+    border-bottom: 1px solid var(--sx-color-border);
+  }
+  .sx-table-wrap--stacked .sx-table tbody tr:last-child {
+    border-bottom: 0;
+  }
+  .sx-table-wrap--stacked .sx-table td {
+    padding: var(--sx-space-1) var(--sx-space-3);
+    border-bottom: 0;
+    overflow-wrap: anywhere;
+  }
+  .sx-table-wrap--stacked .sx-table td[data-label] {
+    display: grid;
+    grid-template-columns: minmax(0, 6.5rem) minmax(0, 1fr);
+    align-items: start;
+    gap: var(--sx-space-3);
+  }
+  .sx-table-wrap--stacked .sx-table td[data-label]::before {
+    content: attr(data-label);
+    font-size: var(--sx-text-xs);
+    font-weight: 600;
+    color: var(--sx-color-text-muted);
+  }
+}
+
 /* ---------- Pagination */
 .sx-pagination {
   display: flex;

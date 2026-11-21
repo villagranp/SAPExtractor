@@ -21,6 +21,7 @@ import { RolesPage } from '@/features/roles/pages/RolesPage';
 import { SapSystemDetailPage } from '@/features/sap-systems/pages/SapSystemDetailPage';
 import { SapSystemsPage } from '@/features/sap-systems/pages/SapSystemsPage';
 import { SapSystemWizardPage } from '@/features/sap-systems/pages/SapSystemWizardPage';
+import { SettingsPage } from '@/features/settings/pages/SettingsPage';
 import { SourceDetailPage } from '@/features/sources/pages/SourceDetailPage';
 import { SourceGuidePage } from '@/features/sources/pages/SourceGuidePage';
 import { SourcesPage } from '@/features/sources/pages/SourcesPage';
@@ -91,6 +92,7 @@ export const routes: RouteObject[] = [
       guarded('admin/roles/:roleId', 'role:read', <RoleEditorPage />),
       guarded('admin/api-tokens', 'api_token:manage', <ApiTokensPage />),
       guarded('admin/audit', 'audit:read', <AuditPage />),
+      guarded('admin/settings', 'pipeline:read', <SettingsPage />),
       guarded('admin/identity-provider', 'idp:manage', <IdentityProviderPage />),
       guarded('admin/identity-provider/guide', 'idp:manage', <IdentityProviderGuidePage />),
       ...devRoutes,

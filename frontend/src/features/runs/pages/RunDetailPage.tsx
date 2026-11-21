@@ -226,50 +226,52 @@ export function RunDetailPage() {
         </div>
 
         <Card title={t('runs.detail.dataTitle')}>
-          <div className="sx-run__metrics">
-            <Metric label={t('runs.fields.rows')} value={rows(r.rows_extracted)} />
-            <Metric label={t('runs.fields.inserted')} value={rows(r.rows_inserted)} />
-            <Metric label={t('runs.fields.updated')} value={rows(r.rows_updated)} />
-            <Metric label={t('runs.fields.deleted')} value={rows(r.rows_deleted)} />
+          <div className="sx-stack">
+            <div className="sx-run__metrics">
+              <Metric label={t('runs.fields.rows')} value={rows(r.rows_extracted)} />
+              <Metric label={t('runs.fields.inserted')} value={rows(r.rows_inserted)} />
+              <Metric label={t('runs.fields.updated')} value={rows(r.rows_updated)} />
+              <Metric label={t('runs.fields.deleted')} value={rows(r.rows_deleted)} />
+            </div>
+            <DetailList
+              items={[
+                {
+                  label: t('runs.fields.batch'),
+                  value: r.batch_id ? <code>{r.batch_id}</code> : null,
+                },
+                ...(r.delta_generation !== null
+                  ? [{ label: t('runs.fields.generation'), value: String(r.delta_generation) }]
+                  : []),
+                ...(r.start_token
+                  ? [
+                      {
+                        label: t('runs.fields.startToken'),
+                        value: <span className="sx-run__token">{r.start_token}</span>,
+                      },
+                    ]
+                  : []),
+                ...(r.next_token
+                  ? [
+                      {
+                        label: t('runs.fields.nextToken'),
+                        value: <span className="sx-run__token">{r.next_token}</span>,
+                      },
+                    ]
+                  : []),
+                ...(r.window_end
+                  ? [
+                      {
+                        label: t('runs.fields.window'),
+                        value: t('runs.detail.window', {
+                          from: r.window_start ?? '—',
+                          to: r.window_end,
+                        }),
+                      },
+                    ]
+                  : []),
+              ]}
+            />
           </div>
-          <DetailList
-            items={[
-              {
-                label: t('runs.fields.batch'),
-                value: r.batch_id ? <code>{r.batch_id}</code> : null,
-              },
-              ...(r.delta_generation !== null
-                ? [{ label: t('runs.fields.generation'), value: String(r.delta_generation) }]
-                : []),
-              ...(r.start_token
-                ? [
-                    {
-                      label: t('runs.fields.startToken'),
-                      value: <span className="sx-run__token">{r.start_token}</span>,
-                    },
-                  ]
-                : []),
-              ...(r.next_token
-                ? [
-                    {
-                      label: t('runs.fields.nextToken'),
-                      value: <span className="sx-run__token">{r.next_token}</span>,
-                    },
-                  ]
-                : []),
-              ...(r.window_end
-                ? [
-                    {
-                      label: t('runs.fields.window'),
-                      value: t('runs.detail.window', {
-                        from: r.window_start ?? '—',
-                        to: r.window_end,
-                      }),
-                    },
-                  ]
-                : []),
-            ]}
-          />
         </Card>
 
         <Card title={t('runs.detail.logTitle')}>
@@ -284,6 +286,7 @@ export function RunDetailPage() {
             rows={steps.data ?? []}
             rowKey={(s) => `${String(s.attempt)}-${s.step}-${s.started_at}`}
             empty={t('runs.detail.noSteps')}
+            stacked
           />
         </section>
 
@@ -295,6 +298,7 @@ export function RunDetailPage() {
             rows={r.attempts}
             rowKey={(a) => String(a.number)}
             empty={t('runs.detail.noAttempts')}
+            stacked
           />
         </section>
       </div>
