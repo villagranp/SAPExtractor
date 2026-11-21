@@ -128,7 +128,7 @@ Reglas:
 | Snowflake | **snowflake-connector-python** (autenticación por *key-pair*) | `PUT` a stage interno + `COPY INTO` + `MERGE` |
 | Programación | **croniter** + scheduler propio | Cron con zona horaria; sin dependencia de Redis/Celery |
 | Cola de trabajos | Tabla en PostgreSQL (`SKIP LOCKED`) | Transaccional, auditable, menos infraestructura |
-| Autenticación | **Authlib** (OIDC Entra ID), **argon2-cffi** (contraseñas locales), **pyotp** (MFA local) | Estándares OIDC/PKCE |
+| Autenticación | **joserfc** (JWT de Entra ID, de los autores de Authlib) + **httpx** (OIDC con PKCE), **argon2-cffi** (contraseñas locales), **pyotp** (MFA local) | Estándares OIDC/PKCE; `authlib.jose` está obsoleto desde Authlib 1.7 (plan 02, It7a) |
 | Cifrado de secretos | **cryptography** (AES-256-GCM, cifrado *envelope*) | Credenciales SAP/BD nunca en claro |
 | Logs | **structlog** (JSON) + OpenTelemetry (opcional) | Logs estructurados correlacionados por `request_id` / `run_id` |
 | Calidad backend | **uv**, **ruff**, **mypy (strict)**, **pytest**, **testcontainers** | Gestión de dependencias rápida, lint, tipado, pruebas de integración reales |

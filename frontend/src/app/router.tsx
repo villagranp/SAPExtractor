@@ -7,6 +7,8 @@ import { DestinationsPage } from '@/features/destinations/pages/DestinationsPage
 import { DestinationWizardPage } from '@/features/destinations/pages/DestinationWizardPage';
 import { LoginPage } from '@/features/auth/pages/LoginPage';
 import { ProfilePage } from '@/features/auth/pages/ProfilePage';
+import { IdentityProviderGuidePage } from '@/features/identity-provider/pages/IdentityProviderGuidePage';
+import { IdentityProviderPage } from '@/features/identity-provider/pages/IdentityProviderPage';
 import { RoleEditorPage } from '@/features/roles/pages/RoleEditorPage';
 import { RolesPage } from '@/features/roles/pages/RolesPage';
 import { SapSystemDetailPage } from '@/features/sap-systems/pages/SapSystemDetailPage';
@@ -74,6 +76,8 @@ export const routes: RouteObject[] = [
       guarded('admin/roles/:roleId', 'role:read', <RoleEditorPage />),
       guarded('admin/api-tokens', 'api_token:manage', <ApiTokensPage />),
       guarded('admin/audit', 'audit:read', <AuditPage />),
+      guarded('admin/identity-provider', 'idp:manage', <IdentityProviderPage />),
+      guarded('admin/identity-provider/guide', 'idp:manage', <IdentityProviderGuidePage />),
       ...devRoutes,
       { path: '*', element: <NotFoundPage /> },
     ],

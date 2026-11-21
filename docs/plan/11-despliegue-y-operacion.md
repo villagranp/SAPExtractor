@@ -60,6 +60,7 @@ Requisitos de red: salida HTTPS hacia SAP Gateway (DEV, QAS y PRD), Snowflake (4
   | `SX_SAP_ALLOWED_HOSTS` | Hosts a los que se permite conectar como sistema SAP (plan 04 §3) |
   | `SX_DEST_ALLOWED_HOSTS` | Hosts permitidos para destinos y *webhooks* de alertas (planes 07 y 09) |
   | `SX_CSV_ROOTS` | Carpetas donde el destino CSV puede escribir (plan 07 §4) |
+  | `SX_PUBLIC_URL` | URL pública con la que se abre la plataforma (https). De ella sale la URI de redirección que se registra en Entra ID (plan 02 §4); sin ella se toma de la petición y la pantalla avisa |
 
 ## 4. Base de datos y migraciones
 

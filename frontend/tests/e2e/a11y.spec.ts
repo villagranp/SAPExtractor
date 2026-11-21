@@ -32,7 +32,7 @@ test.describe('pantallas con sesión', () => {
   test.skip(!ADMIN_USER || !ADMIN_PASSWORD, 'Defina E2E_ADMIN_USER y E2E_ADMIN_PASSWORD');
 
   test('pantallas principales en tema claro y grafito', async ({ page }) => {
-    test.setTimeout(180_000); // 11 pantallas × 2 temas con axe
+    test.setTimeout(240_000); // 13 pantallas × 2 temas con axe
     await page.goto('/login');
     await page.getByLabel('Usuario').fill(ADMIN_USER ?? '');
     await page.getByLabel('Contraseña', { exact: true }).fill(ADMIN_PASSWORD ?? '');
@@ -49,6 +49,8 @@ test.describe('pantallas con sesión', () => {
       ['/destinations/new', 'Nuevo destino'],
       ['/admin/users', 'Usuarios'],
       ['/admin/audit', 'Auditoría'],
+      ['/admin/identity-provider', 'Microsoft Entra ID'],
+      ['/admin/identity-provider/guide', 'Registro de aplicación en Entra ID'],
       ['/profile', 'Mi perfil'],
     ];
     // Los dos temas: el contraste se comprueba en claro y en grafito.

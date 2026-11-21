@@ -133,6 +133,52 @@ test.describe('con administrador', () => {
     await expect(page.getByText('Activo', { exact: true })).toBeVisible();
   });
 
+  test('configuración de Entra ID → grupos → guía → auditoría', async ({ page }) => {
+    await login(page, ADMIN_USER ?? '', ADMIN_PASSWORD ?? '');
+    await menuLink(page, 'Microsoft Entra ID').click();
+    await expect(page.getByRole('heading', { name: 'Microsoft Entra ID', level: 1 })).toBeVisible();
+    await expect(page.getByLabel('URI de redirección')).toHaveValue(
+      /\/api\/v1\/auth\/entra\/callback$/,
+    );
+
+    const secret = `E2E~${Date.now().toString(36)}.secreto-de-prueba`;
+    await page
+      .getByLabel('ID de inquilino (directorio)')
+      .fill('11111111-2222-3333-4444-555555555555');
+    await page
+      .getByLabel('ID de aplicación (cliente)')
+      .fill('aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee');
+    // El radio está oculto tras su tecla: se pulsa la etiqueta, como hace el usuario.
+    await page.locator('label').filter({ hasText: 'Secreto de cliente' }).click();
+    await expect(page.getByRole('radio', { name: 'Secreto de cliente' })).toBeChecked();
+    await page.getByLabel('Valor del secreto').fill(secret);
+    await page.getByRole('button', { name: 'Guardar', exact: true }).click();
+    await expect(page.getByText('Configuración guardada.')).toBeVisible();
+    // El secreto no vuelve al navegador.
+    await expect(page.getByLabel('Valor del secreto')).toHaveValue('');
+    await expect(page.getByText(secret)).toHaveCount(0);
+    // Sin prueba correcta no se puede activar.
+    await expect(page.getByRole('button', { name: 'Activar Entra ID' })).toBeDisabled();
+
+    const group = `${Date.now().toString(16).slice(-8)}-1111-2222-3333-444444444444`;
+    await page.getByRole('button', { name: 'Añadir grupo' }).click();
+    await page.getByLabel('ID de objeto del grupo').last().fill(group);
+    await page.getByLabel('Nombre del grupo').last().fill('SG-SAPExtract-Lectura');
+    await page.getByLabel('Rol', { exact: true }).last().selectOption({ label: 'Visualizador' });
+    await page.getByRole('button', { name: 'Guardar grupos' }).click();
+    await expect(page.getByText('Grupos guardados.')).toBeVisible();
+
+    await page.getByRole('link', { name: 'Guía del registro de aplicación' }).click();
+    await expect(
+      page.getByRole('heading', { name: 'Registro de aplicación en Entra ID', level: 1 }),
+    ).toBeVisible();
+
+    await menuLink(page, 'Auditoría').click();
+    await expect(
+      page.getByRole('table').getByText('idp.group_mappings_changed').first(),
+    ).toBeVisible();
+  });
+
   test('alta de destino CSV → prueba → activación → auditoría', async ({ page }) => {
     await login(page, ADMIN_USER ?? '', ADMIN_PASSWORD ?? '');
     await menuLink(page, 'Destinos').click();

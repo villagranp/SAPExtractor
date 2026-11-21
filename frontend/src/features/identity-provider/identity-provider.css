@@ -1,0 +1,64 @@
+/* Proveedor de identidad: filas del mapeo de grupos y detalles de la prueba. Solo usa tokens. */
+.sx-idp__mappings {
+  display: grid;
+  gap: var(--sx-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sx-idp__mapping {
+  display: grid;
+  gap: var(--sx-space-3);
+  grid-template-columns: minmax(0, 2fr) minmax(0, 2fr) minmax(0, 2fr) auto;
+  align-items: end;
+}
+@media (max-width: 720px) {
+  .sx-idp__mapping {
+    grid-template-columns: 1fr;
+    padding-bottom: var(--sx-space-3);
+    border-bottom: 1px solid var(--sx-color-border);
+  }
+}
+.sx-idp__details {
+  margin: var(--sx-space-1) 0 0;
+  padding-left: 1.2em;
+  overflow-wrap: anywhere;
+}
+.sx-idp__guide ol,
+.sx-idp__guide ul {
+  display: grid;
+  gap: var(--sx-space-2);
+  margin: 0;
+  padding-left: var(--sx-space-5);
+}
+.sx-idp__mono {
+  overflow-wrap: anywhere;
+}
+.sx-idp__command {
+  margin: 0;
+  padding: var(--sx-space-3);
+  overflow-x: auto;
+  border-radius: var(--sx-radius-md);
+  background: var(--sx-color-surface-alt);
+  font-family: var(--sx-font-mono);
+  font-size: var(--sx-text-sm);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+/* URI de redirección: caja y botón de copiar en una fila; la ayuda va debajo de las dos. */
+.sx-idp__redirect {
+  display: grid;
+  gap: 6px;
+}
+.sx-idp__copy-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--sx-space-2);
+  align-items: end;
+}
+.sx-idp__copy-row .sx-field {
+  margin-bottom: 0;
+}
+.sx-idp__redirect .sx-field__hint {
+  margin: 0;
+}

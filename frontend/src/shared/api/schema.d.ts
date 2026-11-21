@@ -487,6 +487,92 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/identity-providers/entra": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Configuración de Entra ID */
+        get: operations["get_entra_api_v1_identity_providers_entra_get"];
+        /** Guarda la configuración de Entra ID (la credencial nunca se devuelve) */
+        put: operations["save_entra_api_v1_identity_providers_entra_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/identity-providers/entra/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Prueba inquilino, claves de firma y credencial sin guardar */
+        post: operations["test_entra_api_v1_identity_providers_entra_test_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/identity-providers/entra/enable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Activa el inicio de sesión con Entra ID (exige una prueba correcta) */
+        post: operations["enable_entra_api_v1_identity_providers_entra_enable_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/identity-providers/entra/disable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Desactiva Entra ID (el administrador local sigue entrando) */
+        post: operations["disable_entra_api_v1_identity_providers_entra_disable_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/identity-providers/entra/group-mappings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Sustituye el mapeo de grupos de Entra a roles */
+        put: operations["save_group_mappings_api_v1_identity_providers_entra_group_mappings_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/audit-events": {
         parameters: {
             query?: never;
@@ -1491,6 +1577,11 @@ export interface components {
             /** Version */
             version?: number | null;
         };
+        /**
+         * CredentialType
+         * @enum {string}
+         */
+        CredentialType: "client_secret" | "certificate";
         /** DdlColumnResponse */
         DdlColumnResponse: {
             /** Source */
@@ -1868,6 +1959,172 @@ export interface components {
             /** Properties */
             properties: components["schemas"]["PropertyResponse"][];
         };
+        /**
+         * EntraCredentialIn
+         * @description Credencial nueva. Sin secreto (o sin certificado y clave) se conserva la guardada.
+         */
+        EntraCredentialIn: {
+            credential_type: components["schemas"]["CredentialType"];
+            /** Client Secret */
+            client_secret?: string | null;
+            /**
+             * Secret Expires At
+             * @description Caducidad del secreto que muestra Entra (para avisar antes)
+             */
+            secret_expires_at?: string | null;
+            /** Certificate Pem */
+            certificate_pem?: string | null;
+            /** Private Key Pem */
+            private_key_pem?: string | null;
+            /** Private Key Passphrase */
+            private_key_passphrase?: string | null;
+        };
+        /** EntraCredentialInfo */
+        EntraCredentialInfo: {
+            credential_type: components["schemas"]["CredentialType"];
+            /** Expires At */
+            expires_at: string | null;
+            /** Updated At */
+            updated_at: string | null;
+            /** Certificate Subject */
+            certificate_subject: string | null;
+            /**
+             * Certificate Thumbprint
+             * @description Huella SHA-1, la que muestra el portal de Entra
+             */
+            certificate_thumbprint: string | null;
+        };
+        /** EntraProviderResponse */
+        EntraProviderResponse: {
+            /** Configured */
+            configured: boolean;
+            /**
+             * Redirect Uri
+             * @description URI que hay que registrar en Entra (tipo Web)
+             */
+            redirect_uri: string;
+            /** Warnings */
+            warnings: string[];
+            /** Version */
+            version?: number | null;
+            /**
+             * Enabled
+             * @default false
+             */
+            enabled: boolean;
+            /** Tenant Id */
+            tenant_id?: string | null;
+            /** Client Id */
+            client_id?: string | null;
+            credential?: components["schemas"]["EntraCredentialInfo"] | null;
+            /**
+             * Jit Provisioning
+             * @default false
+             */
+            jit_provisioning: boolean;
+            default_role?: components["schemas"]["RoleRef"] | null;
+            /** Allowed Domains */
+            allowed_domains?: string[];
+            /**
+             * Require Group Membership
+             * @default true
+             */
+            require_group_membership: boolean;
+            /** Group Mappings */
+            group_mappings?: components["schemas"]["GroupMappingResponse"][];
+            last_test?: components["schemas"]["EntraTestReportResponse"] | null;
+            /**
+             * Test Current
+             * @description La última prueba correcta corresponde a la configuración guardada
+             * @default false
+             */
+            test_current: boolean;
+            /** Updated At */
+            updated_at?: string | null;
+            /** Updated By */
+            updated_by?: string | null;
+        };
+        /** EntraProviderUpdateRequest */
+        EntraProviderUpdateRequest: {
+            /**
+             * Version
+             * @description Versión leída; vacía en la primera configuración
+             */
+            version?: number | null;
+            /** Tenant Id */
+            tenant_id: string;
+            /** Client Id */
+            client_id: string;
+            credential?: components["schemas"]["EntraCredentialIn"] | null;
+            /**
+             * Jit Provisioning
+             * @default false
+             */
+            jit_provisioning: boolean;
+            /** Default Role Id */
+            default_role_id?: string | null;
+            /** Allowed Domains */
+            allowed_domains?: string[];
+            /**
+             * Require Group Membership
+             * @default true
+             */
+            require_group_membership: boolean;
+        };
+        /** EntraStatusRequest */
+        EntraStatusRequest: {
+            /** Version */
+            version: number;
+            /** Reason */
+            reason?: string | null;
+        };
+        /** EntraTestReportResponse */
+        EntraTestReportResponse: {
+            /** Ok */
+            ok: boolean;
+            /** Summary */
+            summary: string;
+            /** Error Code */
+            error_code?: string | null;
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /**
+             * Finished At
+             * Format: date-time
+             */
+            finished_at: string;
+            /** Steps */
+            steps: components["schemas"]["EntraTestStepResponse"][];
+        };
+        /**
+         * EntraTestRequest
+         * @description Valores del formulario sin guardar; lo que falte se toma de la configuración guardada.
+         */
+        EntraTestRequest: {
+            /** Tenant Id */
+            tenant_id?: string | null;
+            /** Client Id */
+            client_id?: string | null;
+            credential?: components["schemas"]["EntraCredentialIn"] | null;
+        };
+        /** EntraTestStepResponse */
+        EntraTestStepResponse: {
+            name: components["schemas"]["sapextract__identity__domain__entra__StepName"];
+            status: components["schemas"]["StepStatus"];
+            /** Message */
+            message: string;
+            /** Duration Ms */
+            duration_ms: number;
+            /** Error Code */
+            error_code?: string | null;
+            /** Details */
+            details: {
+                [key: string]: unknown;
+            };
+        };
         /** FieldError */
         FieldError: {
             /** Field */
@@ -1901,6 +2158,38 @@ export interface components {
          * @enum {string}
          */
         FilterOperator: "eq" | "ne" | "gt" | "ge" | "lt" | "le";
+        /** GroupMappingIn */
+        GroupMappingIn: {
+            /** Group Object Id */
+            group_object_id: string;
+            /** Group Name */
+            group_name: string;
+            /**
+             * Role Id
+             * Format: uuid
+             */
+            role_id: string;
+        };
+        /** GroupMappingResponse */
+        GroupMappingResponse: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Group Object Id */
+            group_object_id: string;
+            /** Group Name */
+            group_name: string;
+            role: components["schemas"]["RoleRef"];
+        };
+        /** GroupMappingsRequest */
+        GroupMappingsRequest: {
+            /** Version */
+            version: number;
+            /** Mappings */
+            mappings: components["schemas"]["GroupMappingIn"][];
+        };
         /** HealthReport */
         HealthReport: {
             status: components["schemas"]["CheckStatus"];
@@ -2976,11 +3265,6 @@ export interface components {
             reason?: string | null;
         };
         /**
-         * StepName
-         * @enum {string}
-         */
-        StepName: "network" | "authentication" | "server_info" | "latency";
-        /**
          * StepStatus
          * @enum {string}
          */
@@ -3038,7 +3322,7 @@ export interface components {
         };
         /** TestStepResponse */
         TestStepResponse: {
-            name: components["schemas"]["StepName"];
+            name: components["schemas"]["sapextract__sap_connections__domain__testing__StepName"];
             status: components["schemas"]["StepStatus"];
             /** Message */
             message: string;
@@ -3216,6 +3500,16 @@ export interface components {
             /** Private Key Passphrase */
             private_key_passphrase?: string | null;
         };
+        /**
+         * StepName
+         * @enum {string}
+         */
+        sapextract__identity__domain__entra__StepName: "discovery" | "keys" | "credential";
+        /**
+         * StepName
+         * @enum {string}
+         */
+        sapextract__sap_connections__domain__testing__StepName: "network" | "authentication" | "server_info" | "latency";
     };
     responses: never;
     parameters: never;
@@ -4329,6 +4623,200 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiTokenResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    get_entra_api_v1_identity_providers_entra_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntraProviderResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    save_entra_api_v1_identity_providers_entra_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EntraProviderUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntraProviderResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    test_entra_api_v1_identity_providers_entra_test_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EntraTestRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntraTestReportResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    enable_entra_api_v1_identity_providers_entra_enable_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EntraStatusRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntraProviderResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    disable_entra_api_v1_identity_providers_entra_disable_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EntraStatusRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntraProviderResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    save_group_mappings_api_v1_identity_providers_entra_group_mappings_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GroupMappingsRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntraProviderResponse"];
                 };
             };
             /** @description Error */

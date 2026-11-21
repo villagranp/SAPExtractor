@@ -1636,6 +1636,256 @@
         ]
       }
     },
+    "/api/v1/identity-providers/entra": {
+      "get": {
+        "tags": [
+          "Proveedor de identidad"
+        ],
+        "summary": "Configuración de Entra ID",
+        "operationId": "get_entra_api_v1_identity_providers_entra_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntraProviderResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Proveedor de identidad"
+        ],
+        "summary": "Guarda la configuración de Entra ID (la credencial nunca se devuelve)",
+        "operationId": "save_entra_api_v1_identity_providers_entra_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EntraProviderUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntraProviderResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "idp.updated",
+          "idp.credentials_rotated"
+        ]
+      }
+    },
+    "/api/v1/identity-providers/entra/test": {
+      "post": {
+        "tags": [
+          "Proveedor de identidad"
+        ],
+        "summary": "Prueba inquilino, claves de firma y credencial sin guardar",
+        "operationId": "test_entra_api_v1_identity_providers_entra_test_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EntraTestRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntraTestReportResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "idp.tested"
+        ]
+      }
+    },
+    "/api/v1/identity-providers/entra/enable": {
+      "post": {
+        "tags": [
+          "Proveedor de identidad"
+        ],
+        "summary": "Activa el inicio de sesión con Entra ID (exige una prueba correcta)",
+        "operationId": "enable_entra_api_v1_identity_providers_entra_enable_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EntraStatusRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntraProviderResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "idp.enabled"
+        ]
+      }
+    },
+    "/api/v1/identity-providers/entra/disable": {
+      "post": {
+        "tags": [
+          "Proveedor de identidad"
+        ],
+        "summary": "Desactiva Entra ID (el administrador local sigue entrando)",
+        "operationId": "disable_entra_api_v1_identity_providers_entra_disable_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EntraStatusRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntraProviderResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "idp.disabled"
+        ]
+      }
+    },
+    "/api/v1/identity-providers/entra/group-mappings": {
+      "put": {
+        "tags": [
+          "Proveedor de identidad"
+        ],
+        "summary": "Sustituye el mapeo de grupos de Entra a roles",
+        "operationId": "save_group_mappings_api_v1_identity_providers_entra_group_mappings_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GroupMappingsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntraProviderResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "idp.group_mappings_changed"
+        ]
+      }
+    },
     "/api/v1/audit-events": {
       "get": {
         "tags": [
@@ -5468,6 +5718,14 @@
         ],
         "title": "CredentialRotateRequest"
       },
+      "CredentialType": {
+        "type": "string",
+        "enum": [
+          "client_secret",
+          "certificate"
+        ],
+        "title": "CredentialType"
+      },
       "DdlColumnResponse": {
         "properties": {
           "source": {
@@ -6527,6 +6785,529 @@
         ],
         "title": "EntityTypeResponse"
       },
+      "EntraCredentialIn": {
+        "properties": {
+          "credential_type": {
+            "$ref": "#/components/schemas/CredentialType"
+          },
+          "client_secret": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 512,
+                "format": "password",
+                "writeOnly": true
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Secret"
+          },
+          "secret_expires_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Secret Expires At",
+            "description": "Caducidad del secreto que muestra Entra (para avisar antes)"
+          },
+          "certificate_pem": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Certificate Pem"
+          },
+          "private_key_pem": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100000,
+                "format": "password",
+                "writeOnly": true
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Private Key Pem"
+          },
+          "private_key_passphrase": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 256,
+                "format": "password",
+                "writeOnly": true
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Private Key Passphrase"
+          }
+        },
+        "type": "object",
+        "required": [
+          "credential_type"
+        ],
+        "title": "EntraCredentialIn",
+        "description": "Credencial nueva. Sin secreto (o sin certificado y clave) se conserva la guardada."
+      },
+      "EntraCredentialInfo": {
+        "properties": {
+          "credential_type": {
+            "$ref": "#/components/schemas/CredentialType"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          },
+          "certificate_subject": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Certificate Subject"
+          },
+          "certificate_thumbprint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Certificate Thumbprint",
+            "description": "Huella SHA-1, la que muestra el portal de Entra"
+          }
+        },
+        "type": "object",
+        "required": [
+          "credential_type",
+          "expires_at",
+          "updated_at",
+          "certificate_subject",
+          "certificate_thumbprint"
+        ],
+        "title": "EntraCredentialInfo"
+      },
+      "EntraProviderResponse": {
+        "properties": {
+          "configured": {
+            "type": "boolean",
+            "title": "Configured"
+          },
+          "redirect_uri": {
+            "type": "string",
+            "title": "Redirect Uri",
+            "description": "URI que hay que registrar en Entra (tipo Web)"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": false
+          },
+          "tenant_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tenant Id"
+          },
+          "client_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Id"
+          },
+          "credential": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EntraCredentialInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "jit_provisioning": {
+            "type": "boolean",
+            "title": "Jit Provisioning",
+            "default": false
+          },
+          "default_role": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RoleRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "allowed_domains": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Allowed Domains"
+          },
+          "require_group_membership": {
+            "type": "boolean",
+            "title": "Require Group Membership",
+            "default": true
+          },
+          "group_mappings": {
+            "items": {
+              "$ref": "#/components/schemas/GroupMappingResponse"
+            },
+            "type": "array",
+            "title": "Group Mappings"
+          },
+          "last_test": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EntraTestReportResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "test_current": {
+            "type": "boolean",
+            "title": "Test Current",
+            "description": "La última prueba correcta corresponde a la configuración guardada",
+            "default": false
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          },
+          "updated_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated By"
+          }
+        },
+        "type": "object",
+        "required": [
+          "configured",
+          "redirect_uri",
+          "warnings"
+        ],
+        "title": "EntraProviderResponse"
+      },
+      "EntraProviderUpdateRequest": {
+        "properties": {
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version",
+            "description": "Versión leída; vacía en la primera configuración"
+          },
+          "tenant_id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Tenant Id"
+          },
+          "client_id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Client Id"
+          },
+          "credential": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EntraCredentialIn"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "jit_provisioning": {
+            "type": "boolean",
+            "title": "Jit Provisioning",
+            "default": false
+          },
+          "default_role_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default Role Id"
+          },
+          "allowed_domains": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "title": "Allowed Domains"
+          },
+          "require_group_membership": {
+            "type": "boolean",
+            "title": "Require Group Membership",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "tenant_id",
+          "client_id"
+        ],
+        "title": "EntraProviderUpdateRequest"
+      },
+      "EntraStatusRequest": {
+        "properties": {
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version"
+        ],
+        "title": "EntraStatusRequest"
+      },
+      "EntraTestReportResponse": {
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "title": "Ok"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At"
+          },
+          "finished_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Finished At"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/EntraTestStepResponse"
+            },
+            "type": "array",
+            "title": "Steps"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ok",
+          "summary",
+          "started_at",
+          "finished_at",
+          "steps"
+        ],
+        "title": "EntraTestReportResponse"
+      },
+      "EntraTestRequest": {
+        "properties": {
+          "tenant_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tenant Id"
+          },
+          "client_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Id"
+          },
+          "credential": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EntraCredentialIn"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "EntraTestRequest",
+        "description": "Valores del formulario sin guardar; lo que falte se toma de la configuración guardada."
+      },
+      "EntraTestStepResponse": {
+        "properties": {
+          "name": {
+            "$ref": "#/components/schemas/sapextract__identity__domain__entra__StepName"
+          },
+          "status": {
+            "$ref": "#/components/schemas/StepStatus"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "duration_ms": {
+            "type": "integer",
+            "title": "Duration Ms"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "details": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Details"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "status",
+          "message",
+          "duration_ms",
+          "details"
+        ],
+        "title": "EntraTestStepResponse"
+      },
       "FieldError": {
         "properties": {
           "field": {
@@ -6640,6 +7421,84 @@
           "le"
         ],
         "title": "FilterOperator"
+      },
+      "GroupMappingIn": {
+        "properties": {
+          "group_object_id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Group Object Id"
+          },
+          "group_name": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Group Name"
+          },
+          "role_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Role Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "group_object_id",
+          "group_name",
+          "role_id"
+        ],
+        "title": "GroupMappingIn"
+      },
+      "GroupMappingResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "group_object_id": {
+            "type": "string",
+            "title": "Group Object Id"
+          },
+          "group_name": {
+            "type": "string",
+            "title": "Group Name"
+          },
+          "role": {
+            "$ref": "#/components/schemas/RoleRef"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "group_object_id",
+          "group_name",
+          "role"
+        ],
+        "title": "GroupMappingResponse"
+      },
+      "GroupMappingsRequest": {
+        "properties": {
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "mappings": {
+            "items": {
+              "$ref": "#/components/schemas/GroupMappingIn"
+            },
+            "type": "array",
+            "maxItems": 500,
+            "title": "Mappings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version",
+          "mappings"
+        ],
+        "title": "GroupMappingsRequest"
       },
       "HealthReport": {
         "properties": {
@@ -9811,16 +10670,6 @@
         "type": "object",
         "title": "StatusReasonRequest"
       },
-      "StepName": {
-        "type": "string",
-        "enum": [
-          "network",
-          "authentication",
-          "server_info",
-          "latency"
-        ],
-        "title": "StepName"
-      },
       "StepStatus": {
         "type": "string",
         "enum": [
@@ -9944,7 +10793,7 @@
       "TestStepResponse": {
         "properties": {
           "name": {
-            "$ref": "#/components/schemas/StepName"
+            "$ref": "#/components/schemas/sapextract__sap_connections__domain__testing__StepName"
           },
           "status": {
             "$ref": "#/components/schemas/StepStatus"
@@ -10450,6 +11299,25 @@
           "private_key_pem"
         ],
         "title": "X509CredentialsIn"
+      },
+      "sapextract__identity__domain__entra__StepName": {
+        "type": "string",
+        "enum": [
+          "discovery",
+          "keys",
+          "credential"
+        ],
+        "title": "StepName"
+      },
+      "sapextract__sap_connections__domain__testing__StepName": {
+        "type": "string",
+        "enum": [
+          "network",
+          "authentication",
+          "server_info",
+          "latency"
+        ],
+        "title": "StepName"
       }
     }
   }

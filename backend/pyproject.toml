@@ -21,6 +21,7 @@ dependencies = [
     "pyarrow>=18",
     "snowflake-connector-python>=3.12",
     "tzdata>=2025.2",
+    "joserfc>=1.6",
 ]
 
 [project.scripts]

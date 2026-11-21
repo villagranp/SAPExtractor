@@ -184,10 +184,23 @@ GET    /api/v1/api-tokens       POST /api/v1/api-tokens    DELETE /api/v1/api-to
 
 Se construye en la Fase 4 (plan 13 §5). QA puede funcionar con login local; **PRD sale con Entra ID activo** (decisión del 19.11.2026), así que el *App registration* se pide a IT en la Fase 0. El administrador local de emergencia sigue existiendo en PRD.
 
-- [ ] `identity_provider` + `idp_group_mapping` con secreto cifrado.
-- [ ] Flujo OIDC con Authlib (PKCE, state, nonce, validación de id_token).
+Se adelanta (20.11.2026) y la toma Dev A: el spike en el SAP real sigue pendiente del equipo SAP, y el plan 13 §5.4 prevé adelantar It7 en ese caso. Se parte en dos entregas para integrar pronto:
+
+*It7a · Configuración* (pantalla 5): el administrador deja Entra ID configurado y probado desde la plataforma, sin que nadie entre todavía con Microsoft.
+
+- [x] `identity_provider` + `idp_group_mapping`; la credencial (secreto **o** certificado con su clave) en el almacén de secretos cifrado (ADR 0005).
+- [x] Ajustes `SX_ENTRA_AUTHORITY_URL` (por defecto `https://login.microsoftonline.com`; en dev y test apunta a un Entra simulado) y `SX_PUBLIC_URL` (URL pública de la plataforma, de la que sale la URI de redirección).
+- [x] `GET/PUT /identity-providers/entra`, `POST …/test` y `PUT …/group-mappings`, con permiso `idp:manage` y auditoría.
+- [x] Prueba por pasos sin guardar: *discovery* del inquilino, claves de firma (JWKS) y credencial. La credencial se prueba pidiendo un token de aplicación (`client_credentials`): así se detecta un *client ID* inexistente, un secreto caducado o un certificado no subido a Entra; los códigos `AADSTS…` se traducen a mensajes. Con certificado, la aserción se firma con PS256 y `x5t#S256` (formato vigente de Microsoft).
+- [x] Reglas: Entra solo se activa con una prueba correcta de la configuración guardada (huella de inquilino, *client ID* y credencial). Si cambia algo de eso con Entra activo, hay que probarlo antes de guardar. El rol por defecto y los roles mapeados no pueden dar permisos que no tenga quien configura (*anti-escalada*). No se borra un rol que use el mapeo.
+- [x] Pantalla 5: formulario, credencial actual sin mostrar el secreto, caducidad con aviso a 30 días, URI de redirección para copiar, mapeo de grupos, prueba, activar y desactivar. Guía del *App registration* en una página aparte.
+- [x] Pruebas: unitarias (validación, aserción firmada, mensajes `AADSTS`), integración con un Entra simulado, E2E de la pantalla y axe.
+
+*It7b · Inicio de sesión*
+
+- [ ] Flujo OIDC (PKCE, state, nonce, validación de id_token con JWKS) y botón "Entrar con Microsoft".
 - [ ] JIT y mapeo de grupos; fallback a Graph para exceso de grupos.
-- [ ] Pantalla 5 con prueba de configuración y guía.
+- [ ] Alta previa de usuarios Entra (por UPN) y política de login local desde la pantalla (hoy `SX_LOCAL_LOGIN_ENABLED_FOR`).
 - [ ] Pruebas con un tenant de desarrollo.
 
 ## Lo construido en la iteración 1
@@ -219,6 +232,32 @@ Código: `backend/src/sapextract/identity/` y `frontend/src/features/{auth,users
 **API real:** además de la del §7: `POST /users/{id}/lock`, `POST /users/{id}/reset-mfa`, `GET /users/{id}/sessions`, `DELETE /me/sessions/{id}`, `POST /auth/mfa/setup` + `POST /auth/mfa/enable` (en lugar de `/mfa/verify` para el alta). `POST /auth/mfa/verify` es el segundo factor durante el login.
 
 **Pendiente para iteraciones posteriores:** pantalla de ajustes de identidad, acciones masivas en la tabla de usuarios, sincronización con Entra (It7).
+
+## Lo construido en la iteración 7a (configuración de Entra ID)
+
+Código: `backend/src/sapextract/identity/` (`domain/entra.py`, `infrastructure/entra_client.py` y `entra_credentials.py`, `application/idp_service.py`, `api/idp_routes.py`), migración `0007_identity_provider` y `frontend/src/features/identity-provider/`.
+
+**Diferencias con el diseño inicial (decididas al implementar):**
+
+| Tema | Diseño | Implementado | Motivo |
+|---|---|---|---|
+| Librería OIDC | Authlib | **joserfc** para JWT (aserción firmada ahora, validación del id_token en It7b) y **httpx** para las llamadas | `authlib.jose` está obsoleto desde Authlib 1.7 y su sustituto es joserfc, de los mismos autores. El cliente OAuth de Authlib no aporta nada que no cubran httpx y unas pocas líneas de PKCE |
+| `redirect_uri` y `scopes` | Columnas de `identity_provider` | No se guardan. La URI sale de `SX_PUBLIC_URL` (o de la petición, con aviso) y los *scopes* son fijos en código | La URI no la elige el admin: la dicta la plataforma y se copia a Entra. Sin `SX_PUBLIC_URL`, detrás del proxy de desarrollo salía `http://api:8000` |
+| `client_secret_ref` | Secreto o certificado | `secret_id` en el almacén genérico (`kind = entra_credentials`). Con certificado se guardan certificado y clave (PKCS#8, sin contraseña, dentro del secreto cifrado) | Mismo patrón que las credenciales SAP y de destinos (ADR 0005) |
+| Activar y desactivar | Campo `enabled` del `PUT` | `POST …/enable` y `POST …/disable` aparte, con confirmación en la pantalla | Activar exige una prueba vigente; separarlo evita activar por accidente al guardar |
+| Prueba de configuración | *Discovery* + que exista el client ID | *Discovery*, claves de firma y un token de aplicación (`client_credentials`) con la credencial. Se prueba el borrador del formulario sin guardar | El token es lo único que demuestra a la vez que el client ID existe y que el secreto o el certificado valen. Los códigos `AADSTS` se traducen a mensajes (secreto caducado, certificado no subido, client ID de otro inquilino…) |
+| Vigencia de la prueba | — | Huella SHA-256 de inquilino, client ID y credencial. Solo se activa si la última prueba correcta tiene la huella de lo guardado. Con Entra activo, cambiar algo de eso exige probarlo antes | Garantiza que lo activado es lo probado, también al rotar el secreto en PRD |
+| Valores por defecto | — | Alta automática (JIT) desactivada, «exigir grupo mapeado» activado | Lo más restrictivo: con Entra activo y sin grupos nadie entra por error |
+
+**Reglas añadidas:**
+- *Anti-escalada*: quien configura no puede poner como rol por defecto, ni añadir o quitar del mapeo, un rol con permisos que no tiene.
+- No se borra un rol usado como rol por defecto o en el mapeo (`SX-IDN-ROLE-IN-USE`).
+- La pantalla avisa de lo que es válido pero probablemente no deseado: nadie recibiría roles, se exige grupo y no hay grupos, alta automática sin exigir grupo, URI no https, credencial que caduca en 30 días o menos.
+- Auditoría: `idp.updated` (con *diff*), `idp.credentials_rotated`, `idp.tested`, `idp.enabled`, `idp.disabled` y `idp.group_mappings_changed`. El secreto y la clave no aparecen nunca; la prueba guarda en sus detalles el ID de correlación de Entra para que IT busque el error.
+
+**Pruebas:** 18 unitarias (validación, aserción PS256 con `x5t#S256`, mensajes `AADSTS`, cliente HTTP), 8 de integración contra un Entra simulado que verifica de verdad la firma de la aserción (`tests/support/fake_entra.py`), 8 de la pantalla, E2E del alta con grupos y guía, y axe en las dos pantallas nuevas en tema claro y grafito.
+
+**Pendiente para It7b:** flujo de inicio de sesión y botón «Entrar con Microsoft» (hasta entonces, activar Entra ID no cambia el login), JIT y sincronización de grupos, consulta a Graph cuando hay demasiados grupos, alta previa de usuarios Entra y política de login local desde la pantalla. El E2E no pulsa «Probar configuración»: haría falta un Entra simulado en el compose, que se añadirá con el login. A estudiar: generar el certificado dentro de la plataforma para que la clave privada no pase por ningún equipo.
 
 ## Criterios de aceptación
 

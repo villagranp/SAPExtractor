@@ -17,7 +17,7 @@ from sapextract.identity.domain.model import ROLE_CODE_PATTERN, Principal
 from sapextract.identity.domain.permissions import PERMISSION_CODES
 from sapextract.identity.domain.rules import ensure_can_grant
 from sapextract.identity.infrastructure.models import Permission, Role, RolePermission, UserRole
-from sapextract.identity.infrastructure.queries import get_role, role_by_code
+from sapextract.identity.infrastructure.queries import get_role, role_by_code, roles_in_use_by_idp
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -161,6 +161,12 @@ class RoleService:
         )
         if assigned:
             msg = f"El rol está asignado a {assigned} usuario(s); retírelo antes de eliminarlo."
+            raise ConflictError(msg, code="SX-IDN-ROLE-IN-USE")
+        if roles_in_use_by_idp(self.session, role.id):
+            msg = (
+                "El rol se usa en la configuración de Entra ID (rol por defecto o mapeo de "
+                "grupos); quítelo de allí antes de eliminarlo."
+            )
             raise ConflictError(msg, code="SX-IDN-ROLE-IN-USE")
         ensure_can_grant(actor.permissions, role.permission_codes)
         self._audit("role.deleted", role, actor, request, diff(_snapshot(role), None))

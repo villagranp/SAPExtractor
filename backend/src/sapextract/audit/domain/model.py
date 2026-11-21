@@ -59,6 +59,13 @@ ACTIONS: dict[str, Category] = {
     "api_token.created": Category.IDENTITY,
     "api_token.revoked": Category.IDENTITY,
     "session.revoked": Category.IDENTITY,
+    # Entra ID (plan 02 §4): quién puede entrar y con qué rol.
+    "idp.updated": Category.IDENTITY,
+    "idp.credentials_rotated": Category.SECURITY,
+    "idp.tested": Category.CONFIG,
+    "idp.enabled": Category.SECURITY,
+    "idp.disabled": Category.SECURITY,
+    "idp.group_mappings_changed": Category.SECURITY,
     # config: conexiones SAP (plan 04)
     "sap_connection.created": Category.CONFIG,
     "sap_connection.updated": Category.CONFIG,

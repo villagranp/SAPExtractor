@@ -24,6 +24,7 @@ const ALL_PERMISSIONS = [
   'role:read',
   'role:manage',
   'session:revoke',
+  'idp:manage',
   'api_token:manage',
   'audit:read',
   'audit:export',

@@ -10,6 +10,8 @@ from sapextract.core.system_settings import SystemSetting
 from sapextract.destinations.infrastructure.models import Destination
 from sapextract.identity.infrastructure.models import (
     ApiToken,
+    IdentityProvider,
+    IdpGroupMapping,
     LocalCredential,
     Permission,
     Role,
@@ -26,6 +28,8 @@ __all__ = [
     "AuditEventRow",
     "Base",
     "Destination",
+    "IdentityProvider",
+    "IdpGroupMapping",
     "LocalCredential",
     "Permission",
     "Role",

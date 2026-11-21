@@ -21,6 +21,8 @@ const SCREENS: [string, string][] = [
   ['destination-wizard', '/destinations/new?type=snowflake'],
   ['users', '/admin/users'],
   ['audit', '/admin/audit'],
+  ['identity-provider', '/admin/identity-provider'],
+  ['identity-provider-guide', '/admin/identity-provider/guide'],
   ['profile', '/profile'],
   ['ui-kit', '/ui-kit'],
 ];

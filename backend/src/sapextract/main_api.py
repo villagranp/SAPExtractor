@@ -22,7 +22,7 @@ from sapextract.core.middleware import RequestContextMiddleware
 from sapextract.core.ratelimit import SlidingWindowLimiter
 from sapextract.destinations.api import routes as destination_routes
 from sapextract.destinations.application.toolkit import DestinationsToolkit
-from sapextract.identity.api import admin_routes, auth_routes
+from sapextract.identity.api import admin_routes, auth_routes, idp_routes
 from sapextract.identity.application.toolkit import IdentityToolkit
 from sapextract.sap_connections.api import routes as sap_routes
 from sapextract.sap_connections.application.toolkit import SapToolkit
@@ -39,6 +39,7 @@ def build_api_router() -> APIRouter:
     # Los módulos se registran aquí a medida que se implementan (ver docs/plan/ROADMAP.md).
     api.include_router(auth_routes.router)
     api.include_router(admin_routes.router)
+    api.include_router(idp_routes.router)
     api.include_router(audit_routes.router)
     api.include_router(sap_routes.router)
     api.include_router(source_routes.router)

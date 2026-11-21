@@ -81,7 +81,7 @@ export const navigation: NavSection[] = [
         to: '/admin/identity-provider',
         labelKey: 'nav.identityProvider',
         icon: IconId,
-        iteration: 7,
+        permission: 'idp:manage',
       },
     ],
   },

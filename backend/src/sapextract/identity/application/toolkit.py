@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from sapextract.audit.application.service import AuditService
 from sapextract.core.config import Settings
 from sapextract.core.exceptions import BusinessRuleError
 from sapextract.core.security.crypto import SecretCipher
 from sapextract.identity.domain.password_policy import PasswordPolicy
+from sapextract.identity.infrastructure.entra_client import EntraClient
 from sapextract.identity.infrastructure.security import PasswordHashing
 
 
@@ -19,9 +20,16 @@ class IdentityToolkit:
     hashing: PasswordHashing
     policy: PasswordPolicy
     cipher: SecretCipher | None
+    entra: EntraClient = field(repr=False)
 
     @classmethod
-    def build(cls, settings: Settings, *, audit: AuditService | None = None) -> IdentityToolkit:
+    def build(
+        cls,
+        settings: Settings,
+        *,
+        audit: AuditService | None = None,
+        entra: EntraClient | None = None,
+    ) -> IdentityToolkit:
         return cls(
             settings=settings,
             audit=audit or AuditService(),
@@ -31,6 +39,7 @@ class IdentityToolkit:
                 denylist_file=settings.password_denylist_file,
             ),
             cipher=SecretCipher.from_settings(settings) if settings.master_key else None,
+            entra=entra or EntraClient(authority_url=settings.entra_authority_url),
         )
 
     def require_cipher(self) -> SecretCipher:

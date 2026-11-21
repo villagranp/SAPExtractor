@@ -25,6 +25,8 @@ x-backend: &backend
     # Destinos (plan 07): carpeta raíz para CSV y hosts de Snowflake permitidos.
     SX_CSV_ROOTS: '["/data/csv"]'
     SX_DEST_ALLOWED_HOSTS: '["snowflakecomputing.com"]'
+    # URL con la que se abre la plataforma en desarrollo (URI de redirección de Entra ID).
+    SX_PUBLIC_URL: ${SX_PUBLIC_URL:-http://localhost:5173}
   volumes:
     - ../../backend/src:/app/src
     - csvdata:/data/csv

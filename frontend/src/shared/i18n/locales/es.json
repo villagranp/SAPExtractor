@@ -1138,5 +1138,179 @@
         "text": "Proyectos SEGW y servicios: ZMM_WS_<DESCRIPCIÓN>; vistas CDS: ZMM_CV_<DESCRIPCIÓN>, donde MM es el módulo (FI, SD, MM…) o BC para objetos de la plataforma. Siga el estándar de nomenclatura de AG y confirme los casos que no cubre."
       }
     }
+  },
+  "identityProvider": {
+    "title": "Microsoft Entra ID",
+    "description": "Inicio de sesión con las cuentas corporativas. El administrador local sigue entrando con usuario y contraseña aunque Entra ID falle.",
+    "guideLink": "Guía del registro de aplicación",
+    "warningsTitle": "Revise la configuración",
+    "save": "Guardar",
+    "saving": "Guardando…",
+    "saved": "Configuración guardada.",
+    "test": "Probar configuración",
+    "testing": "Probando…",
+    "status": {
+      "title": "Estado",
+      "enabled": "Activo",
+      "disabled": "Inactivo",
+      "notConfigured": "Sin configurar",
+      "enabledText": "Entra ID está activo con la configuración guardada.",
+      "readyText": "La configuración guardada pasó la prueba. Ya se puede activar.",
+      "pendingText": "Para activarlo, guarde la configuración y pruébela: la prueba tiene que salir correcta con lo guardado.",
+      "enable": "Activar Entra ID",
+      "disable": "Desactivar Entra ID",
+      "enableTitle": "¿Activar Entra ID?",
+      "enableConfirm": "Las cuentas del inquilino podrán iniciar sesión según los grupos y el rol por defecto configurados. El administrador local sigue entrando con usuario y contraseña.",
+      "disableTitle": "¿Desactivar Entra ID?",
+      "disableConfirm": "Nadie podrá iniciar sesión con Microsoft hasta que vuelva a activarlo. El administrador local sigue entrando con usuario y contraseña."
+    },
+    "app": {
+      "title": "Registro de aplicación",
+      "intro": "Los dos identificadores están en la página de información general del registro.",
+      "tenantId": "ID de inquilino (directorio)",
+      "tenantHint": "Formato 00000000-0000-0000-0000-000000000000.",
+      "clientId": "ID de aplicación (cliente)",
+      "clientHint": "El del registro de esta plataforma, no el de otra aplicación.",
+      "redirectUri": "URI de redirección",
+      "redirectHint": "Regístrela tal cual en Entra ID, en la plataforma Web del registro."
+    },
+    "credential": {
+      "title": "Credencial",
+      "type": "Tipo de credencial",
+      "types": {
+        "certificate": "Certificado",
+        "client_secret": "Secreto de cliente"
+      },
+      "hints": {
+        "certificate": "Recomendado: la clave privada no sale de la plataforma y Entra solo guarda el certificado público.",
+        "client_secret": "El secreto caduca: anote la fecha para recibir el aviso a tiempo."
+      },
+      "current": "Credencial guardada",
+      "expires": "Caduca",
+      "noExpiry": "Sin fecha",
+      "updated": "Cargada",
+      "subject": "Sujeto",
+      "thumbprint": "Huella (SHA-1)",
+      "secret": "Valor del secreto",
+      "secretHint": "Copie el valor, no el ID del secreto. Entra solo lo muestra al crearlo.",
+      "keepSecret": "Déjelo vacío para conservar el secreto guardado.",
+      "secretExpires": "Fecha de caducidad del secreto",
+      "secretExpiresHint": "La que muestra Entra. Se avisa 30 días antes.",
+      "keepCertificate": "Deje los dos campos vacíos para conservar el certificado guardado.",
+      "certificate": "Certificado (PEM)",
+      "certificateHint": "El mismo archivo .crt que se sube al registro de aplicación.",
+      "privateKey": "Clave privada (PEM)",
+      "passphrase": "Contraseña de la clave (si tiene)"
+    },
+    "access": {
+      "title": "Acceso",
+      "requireGroup": "Exigir pertenecer a un grupo mapeado",
+      "requireGroupHint": "Quien no esté en ningún grupo de la tabla de grupos no podrá entrar.",
+      "jit": "Dar de alta al usuario en su primer acceso",
+      "jitHint": "Sin esta opción, solo entran los usuarios dados de alta antes en la plataforma.",
+      "defaultRole": "Rol por defecto",
+      "defaultRoleHint": "Se asigna a todo usuario de Entra, además de los roles de sus grupos.",
+      "noDefaultRole": "Ninguno",
+      "domains": "Dominios de correo permitidos",
+      "domainsHint": "Separados por comas, p. ej. empresa.com. Vacío: cualquier cuenta del inquilino."
+    },
+    "groups": {
+      "title": "Grupos y roles",
+      "intro": "Cada inicio de sesión asigna los roles de los grupos de seguridad del usuario. Los roles asignados a mano se conservan.",
+      "empty": "Aún no hay grupos mapeados.",
+      "saveFirst": "Guarde primero la configuración para mapear grupos.",
+      "objectId": "ID de objeto del grupo",
+      "name": "Nombre del grupo",
+      "role": "Rol",
+      "chooseRole": "Seleccione un rol",
+      "add": "Añadir grupo",
+      "remove": "Quitar",
+      "removeRow": "Quitar el grupo {{index}}",
+      "save": "Guardar grupos",
+      "saving": "Guardando…",
+      "saved": "Grupos guardados."
+    },
+    "report": {
+      "title": "Resultado de la prueba",
+      "ok": "Entra ID acepta la configuración",
+      "failed": "La prueba falló",
+      "testedAt": "Probado el {{date}}.",
+      "outdated": "La configuración cambió desde esta prueba: vuelva a probarla.",
+      "issuer": "Emisor: {{value}}",
+      "correlation": "ID de correlación: {{value}}",
+      "trace": "ID de seguimiento: {{value}}",
+      "steps": {
+        "discovery": "Inquilino",
+        "keys": "Claves de firma",
+        "credential": "Client ID y credencial"
+      },
+      "statuses": {
+        "ok": "Correcto",
+        "warning": "Aviso",
+        "failed": "Error",
+        "skipped": "Sin probar"
+      }
+    },
+    "errors": {
+      "guid": "Debe ser un GUID: 00000000-0000-0000-0000-000000000000.",
+      "required": "Campo obligatorio.",
+      "tooLong": "Demasiado largo."
+    },
+    "guide": {
+      "title": "Registro de aplicación en Entra ID",
+      "description": "Pasos para IT y para quien administra la plataforma. Se hace una vez por entorno (QA y PRD).",
+      "back": "Volver a la configuración",
+      "register": {
+        "title": "Crear el registro",
+        "intro": "En el portal de Microsoft Entra, Registros de aplicaciones, Nuevo registro.",
+        "steps": [
+          "Nombre: SAPExtract QA o SAPExtract PRD, según el entorno.",
+          "Tipos de cuenta admitidos: solo las cuentas de este directorio organizativo.",
+          "URI de redirección: plataforma Web, con la URI que muestra la pantalla de configuración.",
+          "En Autenticación, deje sin marcar los tokens del flujo implícito y «Permitir flujos de cliente público».",
+          "Copie el ID de directorio (inquilino) y el ID de aplicación (cliente) de la página de información general."
+        ]
+      },
+      "credential": {
+        "title": "Crear la credencial",
+        "intro": "En Certificados y secretos. El certificado es la opción recomendada.",
+        "steps": [
+          "Certificado: genérelo en un equipo de confianza con el comando de abajo y suba al registro solo el archivo .crt.",
+          "Pegue en la plataforma el .crt y la .key, guarde y borre la clave del equipo.",
+          "Secreto de cliente, si no hay certificado: Nuevo secreto de cliente con caducidad de 12 meses. Copie el valor en el momento y anote la fecha de caducidad.",
+          "Nunca envíe la clave ni el secreto por correo o chat: cárguelos directamente aquí."
+        ],
+        "commandIntro": "Certificado RSA de 3072 bits válido un año:",
+        "command": "openssl req -x509 -newkey rsa:3072 -sha256 -days 365 -nodes -keyout sapextract.key -out sapextract.crt -subj \"/CN=SAPExtract PRD\""
+      },
+      "groups": {
+        "title": "Enviar los grupos en el token",
+        "intro": "En Configuración del token, Agregar notificación de grupos.",
+        "steps": [
+          "Tipo: grupos de seguridad.",
+          "En el token de ID, como ID de grupo.",
+          "Copie el ID de objeto de cada grupo (Grupos, el grupo, Información general) a la tabla de grupos y roles.",
+          "Si alguien pertenece a más de 200 grupos, el token no los incluye todos: hará falta el permiso GroupMember.Read.All."
+        ]
+      },
+      "permissions": {
+        "title": "Permisos de API",
+        "intro": "En Permisos de API, Microsoft Graph, permisos delegados.",
+        "steps": [
+          "openid, profile, email y User.Read.",
+          "Solo si hay usuarios con más de 200 grupos: GroupMember.Read.All, con consentimiento de administrador."
+        ]
+      },
+      "activate": {
+        "title": "Probar y activar",
+        "intro": "De vuelta en la plataforma, en la pantalla de configuración.",
+        "steps": [
+          "Guarde los identificadores y la credencial.",
+          "Pulse Probar configuración: comprueba el inquilino, las claves de firma y que Entra acepta el client ID y la credencial.",
+          "La URI de redirección y los grupos solo se comprueban en el primer inicio de sesión real.",
+          "Mapee los grupos a roles y active Entra ID."
+        ]
+      }
+    }
   }
 }

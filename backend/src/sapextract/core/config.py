@@ -93,6 +93,17 @@ class Settings(BaseSettings):
     password_denylist_file: Path | None = None
     bootstrap_admin_user: str | None = None
     bootstrap_admin_password: SecretStr | None = None
+    public_url: str | None = Field(
+        None,
+        description=(
+            "URL pública de la plataforma (https://sapextract.empresa.local); de ella sale la "
+            "URI de redirección de Entra ID. Sin ella se toma de la petición"
+        ),
+    )
+    entra_authority_url: str = Field(
+        "https://login.microsoftonline.com",
+        description="Servidor de Entra ID; solo se cambia en dev y test (Entra simulado)",
+    )
 
     # --- Conexiones SAP (plan 04)
     sap_catalog_ttl_minutes: int = Field(
@@ -150,6 +161,14 @@ class Settings(BaseSettings):
             if any(p.strip() == "*" for p in self.trusted_proxies):
                 msg = "SX_TRUSTED_PROXIES no puede ser '*' en QA y PRD: indique la red del proxy"
                 raise ValueError(msg)
+        if not self.is_local_dev:
+            for name, url in (
+                ("SX_PUBLIC_URL", self.public_url),
+                ("SX_ENTRA_AUTHORITY_URL", self.entra_authority_url),
+            ):
+                if url is not None and not url.startswith("https://"):
+                    msg = f"{name} debe empezar por https:// fuera de dev y test"
+                    raise ValueError(msg)
         if self.environment is Environment.PRD and not self.sap_allowed_hosts:
             msg = 'SX_SAP_ALLOWED_HOSTS es obligatoria en PRD (p. ej. ["empresa.local"])'
             raise ValueError(msg)

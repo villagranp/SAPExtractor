@@ -13,6 +13,8 @@ from sapextract.identity.domain.model import UserStatus
 from sapextract.identity.domain.permissions import PLATFORM_ADMIN
 from sapextract.identity.infrastructure.models import (
     ApiToken,
+    IdentityProvider,
+    IdpGroupMapping,
     Role,
     RolePermission,
     UserAccount,
@@ -112,3 +114,16 @@ def revoke_user_tokens(session: Session, user_id: uuid.UUID, *, now: datetime) -
         .execution_options(synchronize_session=False)
     )
     return int(getattr(result, "rowcount", 0) or 0)
+
+
+def roles_in_use_by_idp(session: Session, role_id: uuid.UUID) -> int:
+    """Usos de un rol en Entra ID (rol por defecto o mapeo): impiden borrarlo."""
+    mapped = session.scalar(
+        select(func.count()).select_from(IdpGroupMapping).where(IdpGroupMapping.role_id == role_id)
+    )
+    default = session.scalar(
+        select(func.count())
+        .select_from(IdentityProvider)
+        .where(IdentityProvider.default_role_id == role_id)
+    )
+    return int(mapped or 0) + int(default or 0)
