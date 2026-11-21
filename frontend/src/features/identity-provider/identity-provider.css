@@ -54,6 +54,22 @@
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+/* Campos cortos en parejas: la página queda más corta. Una columna por debajo de 720 px. */
+.sx-idp__pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 var(--sx-space-4);
+  align-items: start;
+}
+@media (max-width: 720px) {
+  .sx-idp__pair {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+/* En la pareja de casillas, la fila no deja hueco entre una y otra. */
+.sx-idp__pair:has(> .sx-check) {
+  row-gap: var(--sx-space-3);
+}
 /* URI de redirección: caja y botón de copiar en una fila; la ayuda va debajo de las dos. */
 .sx-idp__redirect {
   display: grid;

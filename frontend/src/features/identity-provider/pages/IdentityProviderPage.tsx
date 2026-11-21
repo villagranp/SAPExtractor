@@ -197,22 +197,24 @@ function SettingsForm({ provider, roles }: { provider: EntraProvider; roles: Rol
       <Card title={t('identityProvider.app.title')}>
         <div className="sx-stack">
           <p className="sx-muted">{t('identityProvider.app.intro')}</p>
-          <TextField
-            label={t('identityProvider.app.tenantId')}
-            hint={t('identityProvider.app.tenantHint')}
-            autoComplete="off"
-            spellCheck={false}
-            error={fieldError('tenant_id')}
-            {...form.register('tenant_id')}
-          />
-          <TextField
-            label={t('identityProvider.app.clientId')}
-            hint={t('identityProvider.app.clientHint')}
-            autoComplete="off"
-            spellCheck={false}
-            error={fieldError('client_id')}
-            {...form.register('client_id')}
-          />
+          <div className="sx-idp__pair">
+            <TextField
+              label={t('identityProvider.app.tenantId')}
+              hint={t('identityProvider.app.tenantHint')}
+              autoComplete="off"
+              spellCheck={false}
+              error={fieldError('tenant_id')}
+              {...form.register('tenant_id')}
+            />
+            <TextField
+              label={t('identityProvider.app.clientId')}
+              hint={t('identityProvider.app.clientHint')}
+              autoComplete="off"
+              spellCheck={false}
+              error={fieldError('client_id')}
+              {...form.register('client_id')}
+            />
+          </div>
           <RedirectUriField value={provider.redirect_uri} />
         </div>
       </Card>
@@ -236,7 +238,7 @@ function SettingsForm({ provider, roles }: { provider: EntraProvider; roles: Rol
             hint={t(`identityProvider.credential.hints.${credentialType}`)}
           />
           {credentialType === 'client_secret' ? (
-            <>
+            <div className="sx-idp__pair">
               <TextField
                 type="password"
                 autoComplete="new-password"
@@ -256,37 +258,39 @@ function SettingsForm({ provider, roles }: { provider: EntraProvider; roles: Rol
                 error={fieldError('secret_expires_at')}
                 {...form.register('secret_expires_at')}
               />
-            </>
+            </div>
           ) : (
             <>
               {keepsStored && (
                 <p className="sx-muted">{t('identityProvider.credential.keepCertificate')}</p>
               )}
-              <TextAreaField
-                mono
-                rows={6}
-                spellCheck={false}
-                label={t('identityProvider.credential.certificate')}
-                hint={t('identityProvider.credential.certificateHint')}
-                error={fieldError('certificate_pem')}
-                {...form.register('certificate_pem')}
-              />
-              <TextAreaField
-                mono
-                rows={6}
-                spellCheck={false}
-                autoComplete="off"
-                label={t('identityProvider.credential.privateKey')}
-                error={fieldError('private_key_pem')}
-                {...form.register('private_key_pem')}
-              />
-              <TextField
-                type="password"
-                autoComplete="new-password"
-                label={t('identityProvider.credential.passphrase')}
-                error={fieldError('private_key_passphrase')}
-                {...form.register('private_key_passphrase')}
-              />
+              <div className="sx-idp__pair">
+                <TextAreaField
+                  mono
+                  rows={6}
+                  spellCheck={false}
+                  label={t('identityProvider.credential.certificate')}
+                  hint={t('identityProvider.credential.certificateHint')}
+                  error={fieldError('certificate_pem')}
+                  {...form.register('certificate_pem')}
+                />
+                <TextAreaField
+                  mono
+                  rows={6}
+                  spellCheck={false}
+                  autoComplete="off"
+                  label={t('identityProvider.credential.privateKey')}
+                  error={fieldError('private_key_pem')}
+                  {...form.register('private_key_pem')}
+                />
+                <TextField
+                  type="password"
+                  autoComplete="new-password"
+                  label={t('identityProvider.credential.passphrase')}
+                  error={fieldError('private_key_passphrase')}
+                  {...form.register('private_key_passphrase')}
+                />
+              </div>
             </>
           )}
         </div>
@@ -294,31 +298,35 @@ function SettingsForm({ provider, roles }: { provider: EntraProvider; roles: Rol
 
       <Card title={t('identityProvider.access.title')}>
         <div className="sx-stack">
-          <Checkbox
-            label={t('identityProvider.access.requireGroup')}
-            description={t('identityProvider.access.requireGroupHint')}
-            {...form.register('require_group_membership')}
-          />
-          <Checkbox
-            label={t('identityProvider.access.jit')}
-            description={t('identityProvider.access.jitHint')}
-            {...form.register('jit_provisioning')}
-          />
-          <SelectField
-            label={t('identityProvider.access.defaultRole')}
-            hint={t('identityProvider.access.defaultRoleHint')}
-            placeholder={t('identityProvider.access.noDefaultRole')}
-            options={roles}
-            error={fieldError('default_role_id')}
-            {...form.register('default_role_id')}
-          />
-          <TextField
-            label={t('identityProvider.access.domains')}
-            hint={t('identityProvider.access.domainsHint')}
-            autoComplete="off"
-            error={fieldError('allowed_domains')}
-            {...form.register('allowed_domains')}
-          />
+          <div className="sx-idp__pair">
+            <Checkbox
+              label={t('identityProvider.access.requireGroup')}
+              description={t('identityProvider.access.requireGroupHint')}
+              {...form.register('require_group_membership')}
+            />
+            <Checkbox
+              label={t('identityProvider.access.jit')}
+              description={t('identityProvider.access.jitHint')}
+              {...form.register('jit_provisioning')}
+            />
+          </div>
+          <div className="sx-idp__pair">
+            <SelectField
+              label={t('identityProvider.access.defaultRole')}
+              hint={t('identityProvider.access.defaultRoleHint')}
+              placeholder={t('identityProvider.access.noDefaultRole')}
+              options={roles}
+              error={fieldError('default_role_id')}
+              {...form.register('default_role_id')}
+            />
+            <TextField
+              label={t('identityProvider.access.domains')}
+              hint={t('identityProvider.access.domainsHint')}
+              autoComplete="off"
+              error={fieldError('allowed_domains')}
+              {...form.register('allowed_domains')}
+            />
+          </div>
         </div>
       </Card>
 
