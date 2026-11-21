@@ -348,12 +348,29 @@ function SettingsForm({ provider, roles }: { provider: EntraProvider; roles: Rol
   );
 }
 
+/** Opciones de rol sin repetir, en el orden en que llegan. */
+function optionsOf(roles: { id: string; name: string }[]): RoleOption[] {
+  const seen = new Map<string, RoleOption>();
+  for (const role of roles) {
+    if (!seen.has(role.id)) seen.set(role.id, { value: role.id, label: role.name });
+  }
+  return [...seen.values()];
+}
+
 export function IdentityProviderPage() {
   const { t } = useTranslation();
   const provider = useEntraProvider();
   const roles = useRoles();
-  const roleOptions: RoleOption[] = (roles.data ?? []).map((r) => ({ value: r.id, label: r.name }));
   const data = provider.data;
+  // Los `select` se montan con su valor: sin la opción, el navegador lo deja vacío y al
+  // guardar se perdería el rol. Se espera a la lista y se incluyen siempre los roles ya
+  // configurados (por si quien configura no puede leer la lista de roles).
+  const rolesReady = !roles.isPending;
+  const roleOptions = optionsOf([
+    ...(roles.data ?? []),
+    ...(data?.default_role ? [data.default_role] : []),
+    ...(data?.group_mappings ?? []).map((m) => m.role),
+  ]);
 
   return (
     <>
@@ -375,9 +392,9 @@ export function IdentityProviderPage() {
           </>
         }
       />
-      {provider.isPending && <Spinner label={t('common.loading')} />}
+      {(provider.isPending || !rolesReady) && <Spinner label={t('common.loading')} />}
       {provider.error && <Alert tone="danger">{describeError(provider.error).message}</Alert>}
-      {data && (
+      {data && rolesReady && (
         <div className="sx-stack">
           {data.warnings.length > 0 && (
             <Alert tone="warning" title={t('identityProvider.warningsTitle')}>

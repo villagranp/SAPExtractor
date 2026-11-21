@@ -1,6 +1,6 @@
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { http, HttpResponse } from 'msw';
+import { delay, http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
 import type { components } from '@/shared/api/schema';
 import { renderWithProviders } from '@/test/render';
@@ -171,6 +171,32 @@ describe('IdentityProviderPage', () => {
         },
       ],
     });
+  });
+
+  it('conserva los roles configurados aunque la lista de roles llegue tarde o falle', async () => {
+    let body: S['EntraProviderUpdateRequest'] | undefined;
+    server.use(
+      http.get('*/api/v1/identity-providers/entra', () => HttpResponse.json(configuredProvider)),
+      http.get('*/api/v1/roles', async () => {
+        await delay(80);
+        return HttpResponse.json(
+          { title: 'Permiso denegado', status: 403, code: 'SX-AUTH-FORBIDDEN' },
+          { status: 403 },
+        );
+      }),
+      http.put('*/api/v1/identity-providers/entra', async ({ request }) => {
+        body = (await request.json()) as S['EntraProviderUpdateRequest'];
+        return HttpResponse.json(configuredProvider);
+      }),
+    );
+    const user = userEvent.setup();
+    page();
+    const defaultRole = await screen.findByLabelText('Rol por defecto');
+    expect(defaultRole).toHaveDisplayValue('Visualizador');
+    expect(screen.getByLabelText('Rol')).toHaveDisplayValue('Visualizador');
+    await user.click(screen.getByRole('button', { name: 'Guardar' }));
+    await screen.findByText('Configuración guardada.');
+    expect(body?.default_role_id).toBe(configuredProvider.default_role?.id);
   });
 
   it('muestra la última prueba guardada', async () => {

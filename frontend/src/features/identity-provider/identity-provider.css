@@ -12,9 +12,18 @@
   grid-template-columns: minmax(0, 2fr) minmax(0, 2fr) minmax(0, 2fr) auto;
   align-items: end;
 }
+/* Un GUID no cabe en un tercio de la tarjeta: por debajo de 1180 px, dos filas por grupo. */
+@media (max-width: 1180px) {
+  .sx-idp__mapping {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .sx-idp__mapping > .sx-btn {
+    justify-self: start;
+  }
+}
 @media (max-width: 720px) {
   .sx-idp__mapping {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     padding-bottom: var(--sx-space-3);
     border-bottom: 1px solid var(--sx-color-border);
   }

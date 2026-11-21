@@ -336,5 +336,179 @@
       "reason": "Reason",
       "typeCode": "Type {{code}} to confirm"
     }
+  },
+  "identityProvider": {
+    "title": "Microsoft Entra ID",
+    "description": "Sign-in with corporate accounts. The local administrator can still sign in with username and password even if Entra ID fails.",
+    "guideLink": "App registration guide",
+    "warningsTitle": "Review the configuration",
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Configuration saved.",
+    "test": "Test configuration",
+    "testing": "Testing…",
+    "status": {
+      "title": "Status",
+      "enabled": "Active",
+      "disabled": "Inactive",
+      "notConfigured": "Not configured",
+      "enabledText": "Entra ID is active with the saved configuration.",
+      "readyText": "The saved configuration passed the test. It can be enabled now.",
+      "pendingText": "To enable it, save the configuration and test it: the test must pass with what is saved.",
+      "enable": "Enable Entra ID",
+      "disable": "Disable Entra ID",
+      "enableTitle": "Enable Entra ID?",
+      "enableConfirm": "Tenant accounts will be able to sign in according to the configured groups and default role. The local administrator can still sign in with username and password.",
+      "disableTitle": "Disable Entra ID?",
+      "disableConfirm": "Nobody will be able to sign in with Microsoft until you enable it again. The local administrator can still sign in with username and password."
+    },
+    "app": {
+      "title": "App registration",
+      "intro": "Both IDs are on the overview page of the registration.",
+      "tenantId": "Directory (tenant) ID",
+      "tenantHint": "Format 00000000-0000-0000-0000-000000000000.",
+      "clientId": "Application (client) ID",
+      "clientHint": "The one for this platform's registration, not another application's.",
+      "redirectUri": "Redirect URI",
+      "redirectHint": "Register it exactly as shown in Entra ID, under the Web platform."
+    },
+    "credential": {
+      "title": "Credential",
+      "type": "Credential type",
+      "types": {
+        "certificate": "Certificate",
+        "client_secret": "Client secret"
+      },
+      "hints": {
+        "certificate": "Recommended: the private key stays in the platform and Entra only stores the public certificate.",
+        "client_secret": "Secrets expire: enter the date to get the warning in time."
+      },
+      "current": "Saved credential",
+      "expires": "Expires",
+      "noExpiry": "No date",
+      "updated": "Uploaded",
+      "subject": "Subject",
+      "thumbprint": "Thumbprint (SHA-1)",
+      "secret": "Secret value",
+      "secretHint": "Copy the value, not the secret ID. Entra only shows it when you create it.",
+      "keepSecret": "Leave it empty to keep the saved secret.",
+      "secretExpires": "Secret expiry date",
+      "secretExpiresHint": "The one Entra shows. You are warned 30 days before.",
+      "keepCertificate": "Leave both fields empty to keep the saved certificate.",
+      "certificate": "Certificate (PEM)",
+      "certificateHint": "The same .crt file you upload to the app registration.",
+      "privateKey": "Private key (PEM)",
+      "passphrase": "Key password (if any)"
+    },
+    "access": {
+      "title": "Access",
+      "requireGroup": "Require membership in a mapped group",
+      "requireGroupHint": "Anyone not in a group from the groups table cannot sign in.",
+      "jit": "Create the user on first sign-in",
+      "jitHint": "Without this option, only users created beforehand in the platform can sign in.",
+      "defaultRole": "Default role",
+      "defaultRoleHint": "Given to every Entra user, on top of the roles from their groups.",
+      "noDefaultRole": "None",
+      "domains": "Allowed email domains",
+      "domainsHint": "Comma-separated, e.g. company.com. Empty: any account in the tenant."
+    },
+    "groups": {
+      "title": "Groups and roles",
+      "intro": "Each sign-in assigns the roles of the user's security groups. Roles assigned by hand are kept.",
+      "empty": "No groups mapped yet.",
+      "saveFirst": "Save the configuration first to map groups.",
+      "objectId": "Group object ID",
+      "name": "Group name",
+      "role": "Role",
+      "chooseRole": "Choose a role",
+      "add": "Add group",
+      "remove": "Remove",
+      "removeRow": "Remove group {{index}}",
+      "save": "Save groups",
+      "saving": "Saving…",
+      "saved": "Groups saved."
+    },
+    "report": {
+      "title": "Test result",
+      "ok": "Entra ID accepts the configuration",
+      "failed": "The test failed",
+      "testedAt": "Tested on {{date}}.",
+      "outdated": "The configuration changed since this test: test it again.",
+      "issuer": "Issuer: {{value}}",
+      "correlation": "Correlation ID: {{value}}",
+      "trace": "Trace ID: {{value}}",
+      "steps": {
+        "discovery": "Tenant",
+        "keys": "Signing keys",
+        "credential": "Client ID and credential"
+      },
+      "statuses": {
+        "ok": "Passed",
+        "warning": "Warning",
+        "failed": "Error",
+        "skipped": "Not tested"
+      }
+    },
+    "errors": {
+      "guid": "Must be a GUID: 00000000-0000-0000-0000-000000000000.",
+      "required": "Required field.",
+      "tooLong": "Too long."
+    },
+    "guide": {
+      "title": "App registration in Entra ID",
+      "description": "Steps for IT and for whoever runs the platform. Done once per environment (QA and PRD).",
+      "back": "Back to the configuration",
+      "register": {
+        "title": "Create the registration",
+        "intro": "In the Microsoft Entra portal, App registrations, New registration.",
+        "steps": [
+          "Name: SAPExtract QA or SAPExtract PRD, depending on the environment.",
+          "Supported account types: accounts in this organizational directory only.",
+          "Redirect URI: Web platform, with the URI shown on the configuration screen.",
+          "Under Authentication, leave the implicit flow tokens and «Allow public client flows» unchecked.",
+          "Copy the directory (tenant) ID and the application (client) ID from the overview page."
+        ]
+      },
+      "credential": {
+        "title": "Create the credential",
+        "intro": "Under Certificates & secrets. A certificate is the recommended option.",
+        "steps": [
+          "Certificate: generate it on a trusted machine with the command below and upload only the .crt file to the registration.",
+          "Paste the .crt and the .key into the platform, save, and delete the key from the machine.",
+          "Client secret, if there is no certificate: New client secret expiring in 12 months. Copy the value right away and note the expiry date.",
+          "Never send the key or the secret by email or chat: load them here directly."
+        ],
+        "commandIntro": "3072-bit RSA certificate valid for one year:",
+        "command": "openssl req -x509 -newkey rsa:3072 -sha256 -days 365 -nodes -keyout sapextract.key -out sapextract.crt -subj \"/CN=SAPExtract PRD\""
+      },
+      "groups": {
+        "title": "Send groups in the token",
+        "intro": "Under Token configuration, Add groups claim.",
+        "steps": [
+          "Type: security groups.",
+          "In the ID token, as group ID.",
+          "Copy each group's object ID (Groups, the group, Overview) into the groups and roles table.",
+          "If someone belongs to more than 200 groups, the token does not include them all: the GroupMember.Read.All permission will be needed."
+        ]
+      },
+      "permissions": {
+        "title": "API permissions",
+        "intro": "Under API permissions, Microsoft Graph, delegated permissions.",
+        "steps": [
+          "openid, profile, email and User.Read.",
+          "Only if users have more than 200 groups: GroupMember.Read.All, with admin consent."
+        ]
+      },
+      "activate": {
+        "title": "Test and enable",
+        "intro": "Back in the platform, on the configuration screen.",
+        "steps": [
+          "Save the IDs and the credential.",
+          "Select Test configuration: it checks the tenant, the signing keys and that Entra accepts the client ID and the credential.",
+          "The redirect URI and the groups are only checked on the first real sign-in.",
+          "Map groups to roles and enable Entra ID."
+        ]
+      }
+    }
   }
 }
