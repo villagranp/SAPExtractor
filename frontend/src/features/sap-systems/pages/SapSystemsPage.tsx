@@ -158,7 +158,8 @@ export function SapSystemsPage() {
       </FilterBar>
       {systems.error && <Alert tone="danger">{describeError(systems.error).message}</Alert>}
       {systems.data?.total === 0 && !filtered ? (
-        <EmptyState title={t('sapSystems.emptyFirstTitle')} action={newButton || undefined}>
+        // Sin acción propia: «Nuevo sistema SAP» ya está en la cabecera.
+        <EmptyState title={t('sapSystems.emptyFirstTitle')}>
           <p>{t('sapSystems.emptyFirst')}</p>
         </EmptyState>
       ) : (

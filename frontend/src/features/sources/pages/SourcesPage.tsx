@@ -159,7 +159,8 @@ export function SourcesPage() {
       </FilterBar>
       {sources.error && <Alert tone="danger">{describeError(sources.error).message}</Alert>}
       {sources.data?.total === 0 && !filtered ? (
-        <EmptyState title={t('sources.emptyFirstTitle')} action={newButton || undefined}>
+        // Sin acción propia: «Nuevo origen» ya está en la cabecera.
+        <EmptyState title={t('sources.emptyFirstTitle')}>
           <p>{t('sources.emptyFirst')}</p>
         </EmptyState>
       ) : (
