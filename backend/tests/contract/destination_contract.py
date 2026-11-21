@@ -14,10 +14,13 @@ from typing import Any, Protocol
 import pytest
 
 from sapextract.dataflow.domain.batch import LoadMode
+from sapextract.dataflow.domain.errors import DataflowError
 from sapextract.dataflow.domain.ports import (
     DeleteHandling,
     DestinationWriter,
     LoadOptions,
+    is_test_target,
+    target_name_for_test,
 )
 from tests.support.dataflow import GL_SCHEMA, gl_row, make_spool
 
@@ -140,3 +143,28 @@ class DestinationContract:
             pytest.skip("admite todos los modos")
         with pytest.raises(Exception, match="modo"):
             loader.harness.writer.prepare(GL_SCHEMA, _options(missing.pop()))
+
+    # -------------------------------------------------------------- destino de prueba
+    def test_test_target_is_dropped_and_real_targets_are_refused(self, loader: Loader) -> None:
+        writer = loader.harness.writer
+        options = LoadOptions(
+            load_mode=LoadMode.APPEND,
+            target_name=target_name_for_test("T_REAL", uuid.uuid4().hex[:8]),
+        )
+        assert is_test_target(options.target_name)
+        target, (sample, _) = loader.load([gl_row(1), gl_row(2)], options)
+        assert len(loader.harness.rows(target.target)) == 2
+
+        writer.drop_test_target(target)
+        writer.drop_test_target(target)  # idempotente
+        again = writer.prepare(target.schema, options)
+        assert writer.applied_batch(again, sample.info.batch_id) is None
+        assert loader.harness.rows(again.target) == []
+        writer.drop_test_target(again)
+
+        # Un destino real no se borra aunque se pida.
+        real, _ = loader.load([gl_row(1)], _options(LoadMode.APPEND))
+        with pytest.raises(DataflowError) as refused:
+            writer.drop_test_target(real)
+        assert refused.value.code == "SX-DST-NOT-TEST-TARGET"
+        assert len(loader.harness.rows(real.target)) == 1

@@ -42,6 +42,7 @@ from sapextract.identity.domain.model import Principal
 from sapextract.orchestration.application.lifecycle import live_run
 from sapextract.orchestration.application.schedule_service import reset_next_fire
 from sapextract.orchestration.application.toolkit import OrchestrationToolkit
+from sapextract.orchestration.application.trial import trial_outdated
 from sapextract.orchestration.domain.model import (
     DEFAULT_PRIORITY,
     DEFAULT_TIMEOUT_MINUTES,
@@ -624,6 +625,7 @@ class PipelineService:
             _source_check(source),
             _system_check(system),
             _destination_check(destination),
+            _trial_check(pipeline, source),
         ]
         origin = self._clone_origin_schema(pipeline)
         stored = self._schema(source)
@@ -1067,6 +1069,24 @@ def _destination_check(destination: Destination) -> Check:
         else f"El destino {destination.code} no está activo o su prueba no está vigente: "
         "pruébelo de nuevo.",
     )
+
+
+def _trial_check(pipeline: Pipeline, source: Source) -> Check:
+    """Ejecución de prueba correcta y de la configuración actual (plan 08 §5, punto 3)."""
+    code = "test_run"
+    if not source.preview_enabled:
+        # Sin lectura de muestra (H16) no hay forma de probar: no se exige.
+        msg = "El origen tiene desactivada la lectura de muestra: la prueba no se exige."
+        return Check(code, True, msg)
+    if pipeline.last_test_at is None:
+        return Check(code, False, "El pipeline aún no se ha probado: pruébelo antes de activar.")
+    if trial_outdated(pipeline, source):
+        msg = "La configuración cambió después de la última prueba: pruebe el pipeline de nuevo."
+        return Check(code, False, msg)
+    if not pipeline.last_test_ok:
+        msg = "La última prueba del pipeline falló: corrija el problema y pruébelo de nuevo."
+        return Check(code, False, msg)
+    return Check(code, True, "La prueba del pipeline fue correcta y sigue vigente.")
 
 
 def _describe(drift: SchemaDiff) -> str:

@@ -193,6 +193,7 @@ class SourceConnector(Protocol):
     def read_delta_init(self, filters: Filters, ctx: ReadContext) -> ReadResult: ...
     def read_delta(self, token: str, ctx: ReadContext) -> ReadResult: ...
     def read_window(self, window: Window, ctx: ReadContext) -> ReadResult: ...
+    def read_sample(self, filters: Filters, ctx: ReadContext, *, rows: int) -> ReadResult: ...
 
 
 class Spool(Protocol):
@@ -208,6 +209,7 @@ class DestinationWriter(Protocol):
     def stage(self, target: PreparedTarget, spool: Spool) -> StageInfo: ...
     def apply(self, stage: StageInfo, batch: BatchInfo) -> LoadResult: ...
     def cleanup(self, stage: StageInfo) -> None: ...
+    def drop_test_target(self, target: PreparedTarget) -> None: ...
 ```
 
 Reglas de cada método:
@@ -220,6 +222,8 @@ Reglas de cada método:
 | `stage` | Lleva el spool al destino sin tocar la tabla final (Snowflake: `PUT` de los Parquet tal cual + `COPY` a staging; CSV: escribe `*.tmp`). Puede repetirse |
 | `apply` | **Una transacción**: aplica `append` / `upsert` / `replace` (plan 06 §4, plan 07) y escribe la fila de la tabla de control. O todo o nada |
 | `cleanup` | Borra el staging. Idempotente; un fallo aquí no falla el run |
+| `SourceConnector.read_sample` | Solo para «Probar pipeline» (plan 08). Hasta `rows` filas con `$top`, sin `Prefer: odata.track-changes`: nunca abre suscripción ni devuelve token |
+| `drop_test_target` | Solo para «Probar pipeline». Borra un destino de prueba (`SXTEST_<8 hex>_<nombre>`) y sus filas de control. Idempotente. Con cualquier otro nombre lanza `SX-DST-NOT-TEST-TARGET` sin tocar nada |
 
 Los valores de `LoadOptions` son los del plan 07 §2 (`load_mode`, `target_name`, `schema_evolution`, `delete_handling`, `technical_columns`, `column_mapping`). `BatchInfo` lleva `pipeline_id`, `run_id`, `batch_id`, `mode`, `next_token`, `window_end` y `schema_hash`.
 
@@ -286,6 +290,10 @@ El motor se construyó contra el mock y sobre la orquestación de la It6 (detall
 - **Estado de delta**: se implementa el borrador del plan 06 §3.6 con opciones conservadoras; el ADR posterior al spike lo fijará. `delta_state.lease_epoch` copia el del run al empezar el intento.
 - **Puerto nuevo `EngineHooks`** entre orquestación y motor (`orchestration/domain/ports.py`), junto a `RunExecutor`: misma regla de revisión conjunta.
 - **`SourceConnector`**: implementado por `ODataSourceConnector`, que además expone `server_now()` (hora de SAP para la ventana de marca de agua). Los filtros llegan como `{"$filter": …}`.
+
+## Notas de implementación (cierre de la It6, 21.11.2026)
+
+- Los puertos ganan `SourceConnector.read_sample` y `DestinationWriter.drop_test_target` para la ejecución de prueba de un pipeline (plan 08, «Probar pipeline»). El resto del contrato no cambia; la batería de contrato de destinos comprueba que un destino de prueba se borra y que uno real se rechaza.
 
 ## Fuera de este ADR (pendiente del spike)
 

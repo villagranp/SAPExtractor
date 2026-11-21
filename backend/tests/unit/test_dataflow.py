@@ -12,6 +12,7 @@ import pytest
 
 from sapextract.dataflow.domain.batch import BatchInfo, RunMode, batch_id, is_batch_id
 from sapextract.dataflow.domain.errors import DataflowError, ErrorKind
+from sapextract.dataflow.domain.ports import is_test_target, target_name_for_test
 from sapextract.dataflow.domain.schema import (
     RECORD_SEQ,
     TECHNICAL_NAMES,
@@ -145,3 +146,16 @@ def test_manifest_hash_must_match_its_schema(tmp_path: Path) -> None:
 def test_spool_path_never_accepts_free_text(tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="batch_id"):
         spool_path(tmp_path, "../../etc")
+
+
+# ------------------------------------------------------------------ destino de prueba
+def test_test_target_names_are_recognisable_and_bounded() -> None:
+    name = target_name_for_test("GL_ITEMS", "0a1b2c3d")
+    assert name == "SXTEST_0a1b2c3d_GL_ITEMS"
+    assert is_test_target(name)
+    assert is_test_target(name.upper())  # Snowflake pasa los nombres a mayúsculas
+    assert not is_test_target("GL_ITEMS")
+    assert not is_test_target("SXTEST_GL_ITEMS")
+    assert len(target_name_for_test("T" * 128, "0a1b2c3d")) == 128
+    with pytest.raises(ValueError, match="no válido"):
+        target_name_for_test("GL_ITEMS", "no-hex")

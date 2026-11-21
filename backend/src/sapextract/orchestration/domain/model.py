@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import re
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from datetime import timedelta
 from enum import StrEnum
@@ -233,6 +236,33 @@ def check_manual_mode(
         )
         raise issue("mode", msg, "SX-RUN-BACKFILL-UNSAFE")
     return RunMode.FULL
+
+
+# ---------------------------------------------------------------------- ejecución de prueba
+def trial_fingerprint(
+    *,
+    source_id: str,
+    destination_id: str,
+    extraction_mode: str,
+    load_options: Mapping[str, Any],
+    column_mapping: Mapping[str, str | None],
+    filters: Sequence[Mapping[str, Any]],
+) -> str:
+    """Huella de lo que una ejecución de prueba comprueba (plan 08 §5).
+
+    Cambiar el origen, el destino, el modo, la carga, el mapeo o los filtros efectivos deja la
+    prueba sin vigencia; el nombre, la prioridad o la programación no.
+    """
+    payload = {
+        "source_id": source_id,
+        "destination_id": destination_id,
+        "extraction_mode": extraction_mode,
+        "load_options": dict(load_options),
+        "column_mapping": dict(column_mapping),
+        "filters": [dict(f) for f in filters],
+    }
+    canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str)
+    return hashlib.sha256(canonical.encode()).hexdigest()
 
 
 # ---------------------------------------------------------------------- avisos de configuración

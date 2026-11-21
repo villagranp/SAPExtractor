@@ -12,6 +12,7 @@ import pytest
 from sapextract.core.exceptions import ConflictError
 from sapextract.dataflow.domain.errors import DataflowError, ErrorKind
 from sapextract.dataflow.domain.schema import CHANGE_MODE, EXTRACTED_AT, Column, EntitySchema
+from sapextract.extraction.application.maintenance import _month_end
 from sapextract.extraction.domain.convert import ConversionError, PageConverter
 from sapextract.extraction.domain.model import (
     DeltaSnapshot,
@@ -175,3 +176,12 @@ def test_init_errors_are_not_retried() -> None:
     assert error.kind is ErrorKind.TRANSIENT  # la clase se conserva para el informe
     assert error.retryable is False
     assert DataflowError("x", kind=ErrorKind.TRANSIENT, code="X").retryable is True
+
+
+# ---------------------------------------------------------------------- retención del log
+def test_run_log_partition_month_end() -> None:
+    assert _month_end("run_log_202608") == datetime(2026, 9, 1, tzinfo=UTC)
+    assert _month_end("run_log_202612") == datetime(2027, 1, 1, tzinfo=UTC)
+    # Solo las particiones mensuales: nunca la DEFAULT ni un nombre ajeno.
+    for name in ("run_log_default", "run_log_202613", "run_log_2026", "audit_event_202608"):
+        assert _month_end(name) is None

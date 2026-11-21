@@ -7,6 +7,7 @@ se prueban en ``test_orchestration_queue.py``.
 from __future__ import annotations
 
 import uuid
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -14,6 +15,7 @@ from sqlalchemy import select
 
 from sapextract.sources.infrastructure.models import SourceSchemaVersion
 from tests.integration.conftest import ApiClient, activate_user, audit_actions, create_user
+from tests.support.certs import make_certificate
 from tests.support.orchestration import (
     MATERIAL_SERVICE,
     MATERIAL_SET,
@@ -22,12 +24,21 @@ from tests.support.orchestration import (
     OrchEnv,
     unique,
 )
+from tests.support.sap_gateway import start_gateway
 
 pytestmark = pytest.mark.integration
 
 
 def _checks(report: dict[str, Any]) -> dict[str, bool]:
     return {c["code"]: c["ok"] for c in report["checks"]}
+
+
+def _try_out(api: ApiClient, pipeline_id: str) -> dict[str, Any]:
+    """«Probar pipeline»: la comprobación previa exige una prueba correcta y vigente."""
+    response = api.post(f"/pipelines/{pipeline_id}/test-run")
+    assert response.status_code == 200, response.text
+    result: dict[str, Any] = response.json()
+    return result
 
 
 def _finding_codes(items: list[dict[str, Any]], severity: str) -> set[str]:
@@ -122,6 +133,7 @@ def test_pipeline_lifecycle(orch: OrchEnv, orch_admin: ApiClient) -> None:
     assert stale.status_code == 409
     assert stale.json()["code"] == "SX-GEN-STALE"
 
+    assert _try_out(api, pid)["ok"] is True
     report = api.post(f"/pipelines/{pid}/validate", {}).json()
     assert report["ok"] is True
     assert _checks(report) == {
@@ -129,6 +141,7 @@ def test_pipeline_lifecycle(orch: OrchEnv, orch_admin: ApiClient) -> None:
         "source_active": True,
         "sap_system_test": True,
         "destination_test": True,
+        "test_run": True,
         "service_published": True,
         "schema_current": True,
     }
@@ -147,7 +160,12 @@ def test_pipeline_lifecycle(orch: OrchEnv, orch_admin: ApiClient) -> None:
     assert blocked.json()["code"] == "SX-PIPE-REPLACE-INCREMENTAL"
 
     actions = {e["action"] for e in audit_actions(api, resource_id=pid)}
-    assert actions == {"pipeline.created", "pipeline.updated", "pipeline.activated"}
+    assert actions == {
+        "pipeline.created",
+        "pipeline.updated",
+        "pipeline.tested",
+        "pipeline.activated",
+    }
 
 
 def test_pause_resume_run_and_delete(orch: OrchEnv, orch_admin: ApiClient) -> None:
@@ -182,6 +200,7 @@ def test_pause_resume_run_and_delete(orch: OrchEnv, orch_admin: ApiClient) -> No
     actions = [e["action"] for e in audit_actions(api, resource_id=pid)]
     assert set(actions) == {
         "pipeline.created",
+        "pipeline.tested",
         "pipeline.activated",
         "pipeline.paused",
         "pipeline.resumed",
@@ -264,10 +283,11 @@ def test_findings_block_activation(orch: OrchEnv, orch_admin: ApiClient) -> None
     refused = api.post(f"/pipelines/{draft['id']}/activate", {})
     assert refused.status_code == 422
     assert refused.json()["code"] == "SX-PIPE-CHECK-FAILED"
-    assert [e["field"] for e in refused.json()["errors"]] == ["configuration"]
+    assert [e["field"] for e in refused.json()["errors"]] == ["configuration", "test_run"]
 
     fixed = api.patch(f"/pipelines/{draft['id']}", {"load": {"load_mode": "append"}})
     assert fixed.json()["findings"] == []
+    assert _try_out(api, draft["id"])["ok"] is True
     assert api.post(f"/pipelines/{draft['id']}/activate", {}).status_code == 200
 
     # Segundo pipeline delta sobre el mismo origen: bloqueado hasta validarlo en SAP (H6, H18).
@@ -311,11 +331,25 @@ def test_activation_needs_current_tests_and_schema(orch: OrchEnv, orch_admin: Ap
     assert _checks(report)["destination_test"] is False
     assert _checks(report)["sap_system_test"] is True
     refused = api.post(f"/pipelines/{pid}/activate", {}).json()
-    assert {e["field"] for e in refused["errors"]} == {"source_active", "destination_test"}
+    assert {e["field"] for e in refused["errors"]} == {
+        "source_active",
+        "destination_test",
+        "test_run",
+    }
+    # Con el destino sin activar, la prueba del pipeline falla en el primer paso.
+    blocked = _try_out(api, pid)
+    assert blocked["ok"] is False
+    assert [(s["step"], s["status"]) for s in blocked["steps"]] == [
+        ("configuration", "failed"),
+        ("read", "skipped"),
+        ("load", "skipped"),
+        ("cleanup", "skipped"),
+    ]
 
     assert api.post(f"/sources/{source['id']}/activate").status_code == 200
     assert api.post(f"/destinations/{destination['id']}/test").status_code == 200
     assert api.post(f"/destinations/{destination['id']}/activate").status_code == 200
+    assert _try_out(api, pid)["ok"] is True
 
     # Cambiar la conexión deja la prueba del sistema SAP sin vigencia.
     api.patch(f"/sap-systems/{system['id']}", {"timeout_seconds": 6, "language": "EN"})
@@ -350,6 +384,7 @@ def test_cross_environment_needs_a_reason(orch: OrchEnv, orch_admin: ApiClient) 
     pid = pipeline["id"]
     assert pipeline["cross_environment"] is True
     assert _finding_codes(pipeline["findings"], "warning") == {"SX-PIPE-CROSS-ENVIRONMENT"}
+    assert _try_out(api, pid)["ok"] is True
 
     refused = api.post(f"/pipelines/{pid}/activate", {})
     assert refused.status_code == 422
@@ -374,6 +409,64 @@ def test_cross_environment_needs_a_reason(orch: OrchEnv, orch_admin: ApiClient) 
 
 
 # ====================================================================== clonado entre entornos
+def test_clone_from_dev_to_prd_is_tested_and_activated_there(
+    orch: OrchEnv, orch_admin: ApiClient, tmp_path: Path
+) -> None:
+    """Criterio de aceptación: un pipeline validado en DEV pasa a PRD con la misma comprobación.
+
+    PRD exige HTTPS verificado: el sistema PRD es otro Gateway simulado, con TLS.
+    """
+    api = orch_admin
+    cert = make_certificate(tmp_path)
+    prd_gateway = start_gateway(tls=cert)
+    try:
+        dev = orch.system(api, "DEV")
+        original = orch.pipeline(
+            api,
+            source=orch.source(api, dev["id"]),
+            destination=orch.destination(api, "DEV"),
+            mode="DELTA",
+            load_mode="append",
+        )
+        assert original["status"] == "active"
+
+        prd = orch.system(api, "PRD", base_url=prd_gateway.base_url, ca_bundle_pem=cert.cert_pem)
+        response = api.post(
+            f"/pipelines/{original['id']}/clone",
+            {
+                "code": unique("PRD_"),
+                "sap_system_id": prd["id"],
+                "destination_id": orch.destination(api, "PRD")["id"],
+            },
+        )
+        assert response.status_code == 201, response.text
+        clone = response.json()["pipeline"]
+        pid = clone["id"]
+        assert clone["status"] == "draft"
+        assert clone["sap_system"]["environment"] == "PRD"
+        assert clone["destination"]["environment"] == "PRD"
+        assert clone["cross_environment"] is False
+        # El clon no hereda la prueba del pipeline de DEV: hay que probarlo en PRD.
+        assert (clone["last_test_at"], clone["last_test_ok"]) == (None, None)
+
+        assert api.post(f"/sources/{clone['source']['id']}/activate").status_code == 200
+        pending = api.post(f"/pipelines/{pid}/validate", {}).json()
+        assert [c["code"] for c in pending["checks"] if not c["ok"]] == ["test_run"]
+        assert api.post(f"/pipelines/{pid}/activate", {}).status_code == 422
+
+        assert _try_out(api, pid)["ok"] is True
+        report = api.post(f"/pipelines/{pid}/validate", {}).json()
+        assert report["ok"] is True
+        assert _checks(report)["clone_schema"] is True
+        active = api.post(f"/pipelines/{pid}/activate", {})
+        assert active.status_code == 200, active.text
+        assert active.json()["status"] == "active"
+        # El de DEV sigue como estaba.
+        assert api.get(f"/pipelines/{original['id']}").json()["status"] == "active"
+    finally:
+        prd_gateway.stop()
+
+
 def test_clone_to_another_system_and_destination(orch: OrchEnv, orch_admin: ApiClient) -> None:
     api = orch_admin
     dev = orch.system(api, "DEV")

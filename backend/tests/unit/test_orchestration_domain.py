@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime, time, timedelta
+from typing import Any
 
 import pytest
 
@@ -24,6 +25,7 @@ from sapextract.orchestration.domain.model import (
     normalize_pool,
     review,
     run_mode_for,
+    trial_fingerprint,
 )
 from sapextract.orchestration.domain.ports import RunContext, RunStoppedError, StopReason
 from sapextract.orchestration.domain.schedule import (
@@ -393,3 +395,34 @@ def test_blackout_validation() -> None:
             ),
         )
     assert _code(exc) == "SX-SCHED-BLACKOUT-INVALID"
+
+
+# ---------------------------------------------------------------------- ejecución de prueba
+def test_fingerprint_follows_what_a_trial_checks() -> None:
+    base: dict[str, Any] = {
+        "source_id": "s1",
+        "destination_id": "d1",
+        "extraction_mode": "DELTA",
+        "load_options": {"load_mode": "append", "target_name": "GL_ITEMS"},
+        "column_mapping": {"BUKRS": "SOCIEDAD", "WAERS": None},
+        "filters": [{"field": "BUKRS", "operator": "eq", "value": "1000"}],
+    }
+    fingerprint = trial_fingerprint(**base)
+    assert len(fingerprint) == 64
+    # El orden de las claves no cambia la huella.
+    reordered = {
+        **base,
+        "load_options": {"target_name": "GL_ITEMS", "load_mode": "append"},
+        "column_mapping": {"WAERS": None, "BUKRS": "SOCIEDAD"},
+    }
+    assert trial_fingerprint(**reordered) == fingerprint
+    changes: dict[str, Any] = {
+        "source_id": "s2",
+        "destination_id": "d2",
+        "extraction_mode": "FULL",
+        "load_options": {"load_mode": "append", "target_name": "OTRA"},
+        "column_mapping": {"BUKRS": "SOCIEDAD"},
+        "filters": [],
+    }
+    for name, value in changes.items():
+        assert trial_fingerprint(**{**base, name: value}) != fingerprint, name

@@ -262,9 +262,17 @@ test.describe('con administrador', () => {
 
     await expect(page.getByRole('heading', { name: new RegExp(code) })).toBeVisible();
     await expect(page.getByText(/^Este pipeline es un borrador/)).toBeVisible();
-    // La comprobación previa arranca al abrir el diálogo; «Activar» se habilita si pasa.
+    // La comprobación previa arranca al abrir el diálogo y pide la prueba del pipeline: una
+    // muestra de SAP hacia un destino de prueba. Con la prueba correcta, «Activar» se habilita.
     await page.getByRole('button', { name: 'Comprobar y activar' }).click();
-    await page.getByRole('dialog').getByRole('button', { name: 'Activar pipeline' }).click();
+    const activation = page.getByRole('dialog');
+    await expect(activation.getByText(/aún no se ha probado/)).toBeVisible();
+    await activation.getByRole('button', { name: 'Probar pipeline' }).click();
+    await expect(activation.getByText(/^Prueba correcta\. Filas leídas de SAP: 100\./)).toBeVisible(
+      { timeout: 60_000 },
+    );
+    await expect(activation.getByText(/No se abrió ninguna suscripción de delta/)).toBeVisible();
+    await activation.getByRole('button', { name: 'Activar pipeline' }).click();
     await page.getByRole('button', { name: 'Ejecutar ahora' }).click();
     await page.getByRole('dialog').getByRole('button', { name: 'Ejecutar ahora' }).click();
     await expect(

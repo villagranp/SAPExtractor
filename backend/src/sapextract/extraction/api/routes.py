@@ -14,6 +14,7 @@ from sapextract.audit.api.openapi import audited
 from sapextract.core.dependencies import SessionDep
 from sapextract.extraction.api.schemas import (
     DeltaStateResponse,
+    PipelineTestResponse,
     ReasonRequest,
     RunLogLine,
     RunLogPage,
@@ -22,6 +23,7 @@ from sapextract.extraction.api.schemas import (
 )
 from sapextract.extraction.application.delta_service import DeltaService
 from sapextract.extraction.application.resolve import ExtractionToolkit
+from sapextract.extraction.application.trial import PipelineTrialService
 from sapextract.identity.api.deps import RequestInfoDep, require_permission
 from sapextract.identity.domain.model import Principal
 from sapextract.orchestration.domain.model import RunStatus
@@ -38,6 +40,7 @@ def get_extraction_toolkit(request: Request) -> ExtractionToolkit:
 ToolkitDep = Annotated[ExtractionToolkit, Depends(get_extraction_toolkit)]
 Reader = Annotated[Principal, Depends(require_permission("pipeline:read"))]
 Resetter = Annotated[Principal, Depends(require_permission("pipeline:reset_delta"))]
+Manager = Annotated[Principal, Depends(require_permission("pipeline:manage"))]
 
 
 @router.get(
@@ -128,3 +131,22 @@ def resolve_subscription(
     service = DeltaService(session, toolkit)
     state = service.resolve_subscription(pipeline_id, body.action, body.reason, actor, info)
     return DeltaStateResponse.of(state, service.history(pipeline_id), requires_reinit=False)
+
+
+@router.post(
+    "/pipelines/{pipeline_id}/test-run",
+    response_model=PipelineTestResponse,
+    tags=["Pipelines"],
+    summary="Prueba el pipeline con una muestra: lee de SAP sin abrir suscripción de delta, "
+    "carga en un destino de prueba y lo borra",
+    openapi_extra=audited("pipeline.tested"),
+)
+def test_run(
+    pipeline_id: uuid.UUID,
+    actor: Manager,
+    session: SessionDep,
+    toolkit: ToolkitDep,
+    info: RequestInfoDep,
+) -> PipelineTestResponse:
+    result = PipelineTrialService(session, toolkit).run(pipeline_id, actor, info)
+    return PipelineTestResponse.of(result)

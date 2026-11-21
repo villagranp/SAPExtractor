@@ -136,7 +136,9 @@ GET  /api/v1/settings/retention    PUT /api/v1/settings/retention
 - [x] Logs en vivo por sondeo con cursor: `GET /runs/{id}/logs?after=` y la pantalla consulta cada segundo hasta que el run termina (sin SSE por ahora). Los tokens de delta no se escriben en el log.
 - [x] Acciones del estado de delta en el catálogo: `pipeline.delta_reset`, `pipeline.delta_broken`, `pipeline.sap_subscription_closed`, `pipeline.sap_subscription_left_open` (las de run y pipeline son de la It6).
 - [ ] Catálogo de códigos de error.
-- [ ] Retención (borrado de particiones) y archivado.
+- [x] Retención del log de ejecución (21.11.2026): tarea diaria del scheduler que borra las particiones mensuales de `run_log` vencidas (`SX_RUN_LOG_RETENTION_DAYS`, 90 por defecto) y deja `system.retention_applied`. Una partición solo se borra cuando todo su mes ha vencido, así que el log se conserva entre 90 días y 90 días más un mes.
+- [x] Verificación periódica de la cadena de auditoría (21.11.2026): tarea diaria del scheduler; el resultado se ve en la pantalla de auditoría como el de la verificación manual. Detalle de las tareas en el plan 08, «Tareas de sistema del scheduler».
+- [ ] Retención de la auditoría con archivado firmado, retención de métricas y la API `/settings/retention`.
 
 **Iteración 9**
 - [ ] Ancla externa de la cadena de auditoría y verificación por tramos.

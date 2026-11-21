@@ -21,6 +21,7 @@ from sapextract.orchestration.application.pipeline_service import (
 )
 from sapextract.orchestration.application.run_service import GroupView, RunView
 from sapextract.orchestration.application.schedule_service import ScheduleInput
+from sapextract.orchestration.application.trial import trial_outdated
 from sapextract.orchestration.domain.model import (
     DEFAULT_PRIORITY,
     DEFAULT_TIMEOUT_MINUTES,
@@ -396,6 +397,11 @@ class PipelineDetail(PipelineSummary):
     created_by: str | None
     updated_by: str | None
     version: int
+    last_test_at: datetime | None = Field(description="Última ejecución de prueba")
+    last_test_ok: bool | None
+    test_outdated: bool = Field(
+        description="La configuración cambió desde la última ejecución de prueba"
+    )
     findings: list[FindingResponse] = Field(description="Avisos y bloqueos de la configuración")
 
     @classmethod
@@ -420,6 +426,9 @@ class PipelineDetail(PipelineSummary):
             created_by=p.created_by,
             updated_by=p.updated_by,
             version=p.version,
+            last_test_at=p.last_test_at,
+            last_test_ok=p.last_test_ok,
+            test_outdated=trial_outdated(p, v.source),
             findings=FindingResponse.list_of(v.findings),
         )
 

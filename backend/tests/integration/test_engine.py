@@ -130,6 +130,9 @@ class FaultyWriter:
     def cleanup(self, stage: StageInfo) -> None:
         self.inner.cleanup(stage)
 
+    def drop_test_target(self, target: PreparedTarget) -> None:
+        self.inner.drop_test_target(target)
+
 
 class FaultyCsvPlugin(CsvPlugin):
     def __init__(self, faults: Faults) -> None:
@@ -345,7 +348,9 @@ def _csv(env: Env) -> str:
     return str(response.json()["destination"]["id"])
 
 
-def _pipeline(env: Env, source_id: str, destination_id: str, **extra: Any) -> dict[str, Any]:
+def _pipeline(
+    env: Env, source_id: str, destination_id: str, *, activate: bool = True, **extra: Any
+) -> dict[str, Any]:
     body: dict[str, Any] = {
         "code": unique("PPL_").upper(),
         "name": "GL hacia CSV",
@@ -359,11 +364,37 @@ def _pipeline(env: Env, source_id: str, destination_id: str, **extra: Any) -> di
     body.update(extra)
     response = env.client.post("/pipelines", body)
     assert response.status_code == 201, response.text
-    activated = env.client.post(f"/pipelines/{response.json()['id']}/activate", {})
-    assert activated.status_code == 200, activated.text
-    pipeline: dict[str, Any] = activated.json()
+    pipeline: dict[str, Any] = response.json()
+    if activate:
+        assert _try_out(env, pipeline["id"])["ok"] is True
+        activated = env.client.post(f"/pipelines/{pipeline['id']}/activate", {})
+        assert activated.status_code == 200, activated.text
+        pipeline = activated.json()
     pipeline["_target"] = body["load"]["target_name"]
     return pipeline
+
+
+def _try_out(env: Env, pipeline_id: str) -> dict[str, Any]:
+    """«Probar pipeline» (plan 08 §6)."""
+    response = env.client.post(f"/pipelines/{pipeline_id}/test-run")
+    assert response.status_code == 200, response.text
+    result: dict[str, Any] = response.json()
+    return result
+
+
+def _tested_event(env: Env, pipeline_id: str) -> dict[str, Any]:
+    events = audit_actions(env.client, resource_id=pipeline_id)
+    event: dict[str, Any] = next(e for e in events if e["action"] == "pipeline.tested")
+    return event
+
+
+def _steps(result: dict[str, Any]) -> list[tuple[str, str]]:
+    return [(s["step"], s["status"]) for s in result["steps"]]
+
+
+def _leftovers(env: Env, pipeline: dict[str, Any]) -> list[str]:
+    """Carpetas de prueba que quedaron en el destino."""
+    return sorted(p.name for p in _target(env, pipeline).parent.glob("SXTEST_*"))
 
 
 def _gl_pipeline(env: Env, **extra: Any) -> dict[str, Any]:
@@ -372,6 +403,10 @@ def _gl_pipeline(env: Env, **extra: Any) -> dict[str, Any]:
         env, system, GL_SERVICE, GL_SET, delta={"method": "ODQ", "semantics": "after_image"}
     )
     return _pipeline(env, source, _csv(env), **extra)
+
+
+def _gl_draft(env: Env, **extra: Any) -> dict[str, Any]:
+    return _gl_pipeline(env, activate=False, **extra)
 
 
 def _run_now(env: Env, pipeline_id: str) -> dict[str, Any]:
@@ -851,3 +886,120 @@ def test_viewer_reads_delta_but_cannot_reset(env: Env) -> None:
     assert viewer.get(f"/runs/{_run_now(env, pipeline['id'])['id']}/logs").status_code == 200
     reset = viewer.post(f"/pipelines/{pipeline['id']}/delta/reset", {"reason": "Sin permiso"})
     assert reset.status_code == 403
+    assert viewer.post(f"/pipelines/{pipeline['id']}/test-run").status_code == 403
+
+
+# ====================================================================== probar pipeline
+def test_trial_loads_a_sample_without_touching_sap_state_or_the_target(env: Env) -> None:
+    pipeline = _gl_draft(env)
+    pid = pipeline["id"]
+
+    result = _try_out(env, pid)
+    assert result["ok"] is True
+    assert _steps(result) == [
+        ("configuration", "succeeded"),
+        ("read", "succeeded"),
+        ("load", "succeeded"),
+        ("cleanup", "succeeded"),
+    ]
+    # La muestra es de 100 filas aunque el servicio tenga 250.
+    assert (result["rows_read"], result["rows_loaded"]) == (100, 100)
+    assert result["target"].startswith("SXTEST_")
+    assert result["target"].endswith("_GL_ITEMS")
+
+    # Ni suscripción en SAP, ni estado de delta, ni run, ni datos en el destino real.
+    assert _mock_tokens(env) == []
+    assert _delta(env, pid)["status"] == "NOT_INITIALIZED"
+    assert env.client.get("/runs", params={"pipeline": pid}).json()["total"] == 0
+    assert not _target(env, pipeline).exists()
+    assert _leftovers(env, pipeline) == []
+
+    detail = env.client.get(f"/pipelines/{pid}").json()
+    assert detail["last_test_ok"] is True
+    assert detail["test_outdated"] is False
+    assert detail["version"] == pipeline["version"]  # probar no invalida una edición abierta
+    event = _tested_event(env, pid)
+    assert event["outcome"] == "success"
+    assert event["context"]["rows_read"] == 100
+
+    # Cambiar lo que la prueba comprueba la deja sin vigencia; el nombre no.
+    renamed = env.client.patch(f"/pipelines/{pid}", {"name": "GL hacia CSV, revisado"})
+    assert renamed.json()["test_outdated"] is False
+    changed = env.client.patch(
+        f"/pipelines/{pid}", {"load": {"load_mode": "append", "target_name": "GL_ITEMS_V2"}}
+    )
+    assert changed.status_code == 200, changed.text
+    assert changed.json()["test_outdated"] is True
+    refused = env.client.post(f"/pipelines/{pid}/activate", {})
+    assert refused.status_code == 422
+    assert [e["field"] for e in refused.json()["errors"]] == ["test_run"]
+    assert _try_out(env, pid)["ok"] is True
+    assert env.client.post(f"/pipelines/{pid}/activate", {}).status_code == 200
+
+
+def test_trial_reports_the_step_that_failed(env: Env) -> None:
+    pipeline = _gl_draft(env)
+    pid = pipeline["id"]
+
+    # SAP caído: falla la lectura y no se llega al destino.
+    env.gateway.scenario(status=503, times=5)
+    down = _try_out(env, pid)
+    env.mock("/_mock/reset")
+    assert down["ok"] is False
+    assert _steps(down) == [
+        ("configuration", "succeeded"),
+        ("read", "failed"),
+        ("load", "skipped"),
+        ("cleanup", "skipped"),
+    ]
+    failed = next(s for s in down["steps"] if s["step"] == "read")
+    assert failed["error_code"].startswith("SX-SAP-")
+    assert env.client.get(f"/pipelines/{pid}").json()["last_test_ok"] is False
+    report = env.client.post(f"/pipelines/{pid}/validate", {}).json()
+    assert {c["code"]: c["ok"] for c in report["checks"]}["test_run"] is False
+    event = _tested_event(env, pid)
+    assert (event["outcome"], event["context"]["failed_step"]) == ("failure", "read")
+    assert _leftovers(env, pipeline) == []
+
+
+def test_trial_drops_the_test_target_when_the_load_fails(env: Env) -> None:
+    pipeline = _gl_draft(env)
+    env.faults.plan["before_apply"] = [
+        DataflowError("Disco lleno", kind=ErrorKind.TRANSIENT, code="SX-DST-IO")
+    ]
+    original = env.app.state.extraction
+    env.app.state.extraction = env.extraction()  # destino con el fallo inyectado
+    try:
+        result = _try_out(env, pipeline["id"])
+    finally:
+        env.app.state.extraction = original
+    assert result["ok"] is False
+    assert _steps(result) == [
+        ("configuration", "succeeded"),
+        ("read", "succeeded"),
+        ("load", "failed"),
+        ("cleanup", "succeeded"),
+    ]
+    assert next(s for s in result["steps"] if s["step"] == "load")["error_code"] == "SX-DST-IO"
+    assert _leftovers(env, pipeline) == []
+    assert not _target(env, pipeline).exists()
+
+
+def test_trial_is_not_required_when_the_source_forbids_sampling(env: Env) -> None:
+    system = _system(env)
+    source = _source(
+        env,
+        system,
+        GL_SERVICE,
+        GL_SET,
+        delta={"method": "ODQ", "semantics": "after_image"},
+        preview_enabled=False,
+    )
+    pipeline = _pipeline(env, source, _csv(env), activate=False)
+    refused = env.client.post(f"/pipelines/{pipeline['id']}/test-run")
+    assert refused.status_code == 422
+    assert refused.json()["code"] == "SX-PIPE-TEST-DISABLED"
+    report = env.client.post(f"/pipelines/{pipeline['id']}/validate", {}).json()
+    assert report["ok"] is True
+    assert {c["code"]: c["ok"] for c in report["checks"]}["test_run"] is True
+    assert _mock_tokens(env) == []

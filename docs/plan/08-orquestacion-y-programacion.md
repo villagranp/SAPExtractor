@@ -134,12 +134,12 @@ GET    /api/v1/concurrency-groups   PUT …
 ## Tareas
 
 - [x] Modelos `pipeline`, `schedule`, `worker`, `concurrency_group`; tablas `run` y `run_attempt` (migración `0008_orchestration`; `run_step` y `delta_state` quedan para la It5).
-- [x] Scheduler con liderazgo, blackout, misfire y detección de intentos sin latido. De las tareas de sistema solo corre la que ya existía (particiones de auditoría); la retención de logs, la verificación periódica de la auditoría y el refresco de catálogos siguen pendientes.
+- [x] Scheduler con liderazgo, blackout, misfire y detección de intentos sin latido. Las tareas diarias de sistema (particiones, retención del log de ejecución, verificación de la cadena de auditoría y refresco de catálogos SAP) corren desde el 21.11.2026; ver [Tareas de sistema](#tareas-de-sistema-del-scheduler-21112026).
 - [x] Cola `SKIP LOCKED` sobre `run` + LISTEN/NOTIFY + límites por pipeline, grupo y sistema en la consulta de toma.
 - [x] Workers con pools, heartbeat y apagado ordenado.
 - [x] Reintentos con backoff y clasificación de errores.
-- [x] Acciones de pipeline con permisos y auditoría, incluido el clonado hacia otro entorno. Pendientes del motor (It5): `test-run`, reinicializar delta, `delta-state` y el cierre de la suscripción al eliminar.
-- [x] Comprobación antes de activar y aviso de entornos cruzados (sin la ejecución de prueba, que necesita el motor).
+- [x] Acciones de pipeline con permisos y auditoría, incluido el clonado hacia otro entorno. Reinicializar delta, el estado de delta y el cierre de la suscripción al eliminar llegaron con el motor (It5); `test-run`, el 21.11.2026 (ver [Probar pipeline](#probar-pipeline-21112026)).
+- [x] Comprobación antes de activar y aviso de entornos cruzados, con la ejecución de prueba como punto obligatorio desde el 21.11.2026.
 - [x] API de vista previa de cron.
 - [x] Asistente de pipeline, constructor de programación y validaciones en vivo (con plan 10). Ver [Pantallas](#pantallas-it6-21112026).
 - [x] Pruebas: concurrencia (dos workers no toman el mismo run ni superan el límite por sistema), caída del líder, cambio de horario, blackout.
@@ -202,7 +202,7 @@ class RunExecutor(Protocol):
 
 ### Acciones y validación
 
-- **Comprobación previa** (`POST /pipelines/{id}/validate` y al activar): configuración sin bloqueos, origen activo, prueba vigente del sistema SAP y del destino, servicio publicado (lee el `$metadata`), esquema guardado compatible con el de SAP, esquema compatible con el del pipeline de partida si es un clon en otro sistema, y motivo de al menos 10 caracteres si los entornos no coinciden. **Falta la ejecución de prueba** (necesita el motor).
+- **Comprobación previa** (`POST /pipelines/{id}/validate` y al activar): configuración sin bloqueos, origen activo, prueba vigente del sistema SAP y del destino, servicio publicado (lee el `$metadata`), esquema guardado compatible con el de SAP, esquema compatible con el del pipeline de partida si es un clon en otro sistema, y motivo de al menos 10 caracteres si los entornos no coinciden. Desde el 21.11.2026 incluye la ejecución de prueba (`test_run`), entre la prueba del destino y el servicio publicado: tiene que haber una prueba correcta de la configuración actual.
 - **Bloqueos de configuración**: modo de carga que el destino no admite, `DELTA` o `WATERMARK` sin soporte en el origen, `replace` en un pipeline incremental, `upsert` sobre un delta que no trae imágenes posteriores y segundo pipeline delta sobre el mismo origen (hasta H6 y H18). Un borrador se guarda con bloqueos; no se activa. Un pipeline activo o en pausa no admite un cambio que añada un bloqueo.
 - `POST /pipelines/review` da los avisos de una combinación aún sin guardar, para la validación en vivo del asistente. No llama a SAP.
 - **Clonado** a otro sistema SAP: reutiliza el origen equivalente de ese sistema (mismo servicio y entity set) o lo crea leyendo el `$metadata`; crearlo exige además `source:manage`. Devuelve el diff de esquema. La programación se copia.
@@ -224,7 +224,7 @@ GET    /api/v1/runs?pipeline=&status=&trigger=&from=&to=
 PUT    /api/v1/concurrency-groups/{code}           DELETE …
 ```
 
-No existen todavía `test-run`, `delta/reset` ni `delta-state`: llegan con el motor.
+`delta/reset` y el estado de delta (`GET /pipelines/{id}/delta`) son del motor (plan 06). `POST /pipelines/{id}/test-run` se añadió el 21.11.2026.
 
 ### Pruebas
 
@@ -254,7 +254,7 @@ El criterio del asistente («cada 30 min en días laborables» con sus próximas
 - Los modos se proponen según lo elegido: el incremental que admita el origen, y el modo de carga que admita el destino (un delta con imágenes posteriores propone fusionar por clave; una carga completa, reemplazar).
 - Carga: tabla o archivo de destino, qué hacer si SAP añade columnas o borra filas, columnas técnicas, mapeo de columnas (excluir y renombrar; las claves no se pueden excluir) y filtros propios o los del origen.
 - Se guarda como borrador (`POST /pipelines` y, si hay programación, `PUT /pipelines/{id}/schedules`). Si la programación falla, el pipeline ya está guardado y la ficha lo explica.
-- No hay botón «Probar»: el motor aún no expone `test-run`.
+- Botón «Probar» (desde el 21.11.2026): ver [Probar pipeline](#probar-pipeline-21112026).
 
 ### Constructor de programación
 
@@ -278,7 +278,60 @@ La It5 llegó a `main` con unas pantallas mínimas de pipelines y ejecuciones (a
 
 `/admin/settings` (`features/settings/`, permiso `pipeline:read`; crear, cambiar y eliminar piden `pipeline:manage`). Lista cada grupo con su límite, cuántos pipelines lo usan y cuántas ejecuciones tiene en curso; el alta y la edición van en un diálogo y un grupo con pipelines no se puede eliminar (la API lo explica). Los workers se ven en el panel de monitoreo (plan 09), así que aquí solo hay un enlace.
 
+### Probar pipeline (21.11.2026)
+
+`POST /api/v1/pipelines/{id}/test-run` (permiso `pipeline:manage`, auditado como `pipeline.tested`). Es síncrono y no crea ningún run: lo ejecuta el motor (`extraction/application/trial.py`) en el proceso de la API.
+
+| Paso | Qué hace | Qué no toca |
+|---|---|---|
+| `configuration` | Resuelve el pipeline igual que un run: sistema SAP y destino activos, esquema, filtros y opciones de carga | — |
+| `read` | Lee de SAP las primeras filas (`SX_TEST_RUN_ROWS`, 100 por defecto) con `$top` y los filtros del pipeline, **sin** `Prefer: odata.track-changes`, y las pasa por el conversor y el spool | No abre suscripción en la ODQ ni mueve el estado de delta |
+| `load` | Carga la muestra en un destino de prueba `SXTEST_<8 hex>_<nombre>` con el modo de carga y el mapeo del pipeline (`prepare`, `stage`, `apply`) | La tabla o carpeta real |
+| `cleanup` | Borra el destino de prueba y sus filas de control (`DestinationWriter.drop_test_target`), también si la carga falló | Solo acepta nombres `SXTEST_…`: con cualquier otro se niega |
+
+- La respuesta trae cada paso con su estado, su texto y, si falló, el código de error. Un fallo al borrar el destino de prueba se avisa pero no invalida la prueba.
+- La lectura tiene un tope de `SX_TEST_RUN_TIMEOUT_SECONDS` (60 s) y usa un conector con ese timeout.
+- El resultado queda en el pipeline (`last_test_at`, `last_test_ok`, `last_test_result`) junto con la **huella** de lo probado: origen, destino, modo, opciones de carga, mapeo y filtros efectivos (migración `0011_pipeline_test`). Si algo de eso cambia, la prueba deja de estar vigente (`test_outdated`); cambiar el nombre, la prioridad o la programación no la invalida. Guardar la prueba no sube la versión del pipeline.
+- **Comprobación previa**: el punto `test_run` exige una prueba correcta y vigente. Un clon no hereda la prueba: hay que probarlo en su entorno.
+- Excepción: si el origen tiene desactivada la lectura de muestra (`preview_enabled = false`, hipótesis H16: `$top` podría lanzar la extracción completa), la prueba se rechaza con `SX-PIPE-TEST-DISABLED` y la comprobación previa no la exige.
+- Pantallas: botón «Probar» en el detalle (con `pipeline:manage`, en cualquier estado) y, en «Comprobar y activar», el botón «Probar pipeline» cuando falta la prueba; al terminar bien, la comprobación se repite sola.
+
+### Tareas de sistema del scheduler (21.11.2026)
+
+El líder lanza las tareas diarias en un hilo aparte (`MaintenanceThread`): una llamada lenta a SAP no retrasa la programación. Cada tarea guarda en `system_setting` (`maintenance.last_run`) cuándo terminó bien por última vez: un reinicio no la repite antes de 24 h y una que falla se reintenta en la siguiente pasada (cada hora). Una tarea que falla no impide las demás.
+
+| Tarea | Qué hace |
+|---|---|
+| `partitions` | Crea las particiones mensuales de auditoría y del log de ejecución (3 meses por delante) |
+| `run_log_retention` | Borra las particiones de `run_log` cuyo mes entero es anterior a `SX_RUN_LOG_RETENTION_DAYS` (90). Si borra algo, queda auditado como `system.retention_applied` (plan 03 §4) |
+| `audit_verification` | Verifica la cadena de hash completa y guarda el resultado; deja `audit.verified` o `audit.verification_failed` con actor `scheduler` |
+| `sap_catalogs` | Relee de SAP el catálogo de servicios de cada sistema activo; un sistema que no responde conserva su caché |
+
+Código: `core/maintenance.py` (ejecutor), `extraction/application/maintenance.py` (retención), `SapExplorerService.refresh_all` y `main_scheduler.system_tasks`.
+
+### Decisiones aceptadas (21.11.2026)
+
+Estas cuatro diferencias con el diseño inicial se dan por buenas para seguir avanzando (decisión de Dev A); si más adelante hace falta cambiarlas, se revisan:
+
+- **Un solo run vivo por pipeline** (en cola o en curso), no solo «nunca dos en curso».
+- **Un único bloqueo de toma** de la cola, en lugar de uno por sistema SAP.
+- **La pausa retiene también lo que está en cola**; el run en curso termina.
+- **Paso «Nombre y ejecución» en el asistente**, además de los cinco del §6.
+
+Los 18 textos de interfaz que coincidían en las dos versiones de las pantallas se quedan con la redacción de las pantallas de orquestación.
+
+### Cierre de la iteración (21.11.2026)
+
+Criterios de aceptación comprobados:
+
+- Asistente, «cada 30 minutos en días laborables» y próximas ejecuciones: pruebas de pantalla y E2E.
+- Sin dos runs simultáneos del mismo pipeline ni por encima del límite del sistema, y relevo del líder sin duplicar: `tests/integration/test_orchestration_queue.py`.
+- **Clon de DEV a PRD**: `test_clone_from_dev_to_prd_is_tested_and_activated_there` usa un segundo Gateway simulado con TLS como sistema PRD (PRD exige HTTPS verificado). El clon queda en borrador, no hereda la prueba, no se activa sin pasar la comprobación y se activa tras probarlo en PRD.
+- **E2E** (`frontend/tests/e2e/`) contra `docker compose` con el mock SAP: asistente → «Probar pipeline» → activar → «Ejecutar ahora» → worker → inicialización confirmada → pestaña Delta. 9 pruebas correctas, axe incluido.
+
 ### Pendiente
 
-- «Probar pipeline» (`test-run`): el motor aún no lo expone.
-- El E2E del motor (`tests/e2e/smoke.spec.ts`) recorre el asistente, la comprobación previa, «Ejecutar ahora» y la pestaña Delta contra `sap-mock`.
+- Dependencias entre pipelines (`trigger = dependency`): v1.1.
+- Hito H3 «Autónoma»: falta validar el motor contra el SAP real (spike, ADR 0002).
+- Prueba de usabilidad del asistente con 2 o 3 usuarios (plan 10).
+- Retención: la API `/settings/retention` y el archivado firmado de la auditoría siguen en el plan 03; hoy la retención del log se fija con `SX_RUN_LOG_RETENTION_DAYS`.

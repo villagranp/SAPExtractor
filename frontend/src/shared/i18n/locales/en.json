@@ -619,7 +619,8 @@
         "pause": "Pause",
         "resume": "Resume",
         "edit": "Edit",
-        "clone": "Clone"
+        "clone": "Clone",
+        "test": "Test"
       },
       "draftBanner": "This pipeline is a draft: it does not run until you activate it.",
       "alreadyLive": "There is already a run queued or in progress.",
@@ -964,7 +965,7 @@
     },
     "activate": {
       "title": "Check and activate {{code}}",
-      "intro": "Before activating, the source, the SAP system and the destination are checked.",
+      "intro": "Before activating, the source, the SAP system and the destination are checked, and the pipeline test must have passed.",
       "checking": "Checking…",
       "checksLabel": "Check result",
       "passed": "Passed",
@@ -982,7 +983,8 @@
       "service_published": "Service in SAP",
       "schema_current": "Schema",
       "clone_schema": "Schema against the original pipeline",
-      "cross_environment": "Environments"
+      "cross_environment": "Environments",
+      "test_run": "Pipeline test"
     },
     "runNow": {
       "title": "Run {{code}} now",
@@ -1022,6 +1024,32 @@
       "excluded_other": "{{count}} excluded",
       "renamed_one": "{{count}} renamed",
       "renamed_other": "{{count}} renamed"
+    },
+    "trial": {
+      "title": "Test {{code}}",
+      "intro": "Reads a sample from SAP with the pipeline filters, without opening a delta subscription, and loads it into a test target with the same load mode and mapping. The test target is deleted at the end; the real table or folder is not touched.",
+      "run": "Test pipeline",
+      "again": "Test again",
+      "running": "Testing: reading from SAP and loading into the test target…",
+      "passed": "Test passed. Rows read from SAP: {{read}}. Rows loaded into the test target: {{loaded}}.",
+      "failed": "The test failed. Fix the marked step and test again.",
+      "stepsLabel": "Test steps",
+      "steps": {
+        "configuration": "Configuration",
+        "read": "Read from SAP",
+        "load": "Test load",
+        "cleanup": "Test target removal"
+      },
+      "status": {
+        "running": "Running",
+        "succeeded": "Passed",
+        "failed": "Failed",
+        "skipped": "Not run"
+      },
+      "lastPassed": "The last test passed ({{when}}).",
+      "lastFailed": "The last test failed ({{when}}).",
+      "lastOutdated": "The configuration changed after the last test ({{when}}): test again before activating.",
+      "resultLabel": "Test result"
     }
   },
   "runs": {

@@ -150,6 +150,15 @@ class Settings(BaseSettings):
         default=False, description="Conservar el spool tras una carga correcta (diagnóstico)"
     )
     page_timeout_seconds: int = Field(300, ge=10, le=3600, description="Timeout por página SAP")
+    test_run_rows: int = Field(
+        100, ge=1, le=1000, description="Filas que lee de SAP una ejecución de prueba (plan 08 §6)"
+    )
+    test_run_timeout_seconds: int = Field(
+        60, ge=5, le=600, description="Tiempo máximo de la lectura de una ejecución de prueba"
+    )
+    run_log_retention_days: int = Field(
+        90, ge=7, description="Días que se conserva el log de ejecución (plan 03 §4)"
+    )
     watermark_safety_lag_seconds: int = Field(
         120, ge=0, le=3600, description="Margen para no leer transacciones en curso (plan 06 §5)"
     )

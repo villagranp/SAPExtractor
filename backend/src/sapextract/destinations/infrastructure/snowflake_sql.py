@@ -257,6 +257,14 @@ def insert_control(database: str, schema: str) -> str:
     )
 
 
+def delete_control(database: str, schema: str) -> str:
+    """Filas de control de una tabla (solo se usa con las tablas de una ejecución de prueba)."""
+    return (
+        f"DELETE FROM {qualified(database, schema, CONTROL_TABLE)} "  # nosec B608
+        "WHERE TARGET_TABLE = %(target)s"
+    )
+
+
 def select_control(database: str, schema: str) -> str:
     return (
         "SELECT PIPELINE_ID, BATCH_ID, RUN_ID, NEXT_TOKEN, WINDOW_END, APPLIED_AT "  # nosec B608

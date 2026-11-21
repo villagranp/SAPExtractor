@@ -1424,7 +1424,8 @@
         "pause": "Pausar",
         "resume": "Reanudar",
         "edit": "Editar",
-        "clone": "Clonar"
+        "clone": "Clonar",
+        "test": "Probar"
       },
       "draftBanner": "Este pipeline es un borrador: no se ejecuta hasta que lo active.",
       "alreadyLive": "Ya hay una ejecución en cola o en curso.",
@@ -1769,7 +1770,7 @@
     },
     "activate": {
       "title": "Comprobar y activar {{code}}",
-      "intro": "Antes de activar se comprueba que el origen, el sistema SAP y el destino están listos.",
+      "intro": "Antes de activar se comprueba que el origen, el sistema SAP y el destino están listos y que la prueba del pipeline fue correcta.",
       "checking": "Comprobando…",
       "checksLabel": "Resultado de la comprobación",
       "passed": "Correcto",
@@ -1787,7 +1788,8 @@
       "service_published": "Servicio en SAP",
       "schema_current": "Esquema",
       "clone_schema": "Esquema respecto al pipeline de partida",
-      "cross_environment": "Entornos"
+      "cross_environment": "Entornos",
+      "test_run": "Prueba del pipeline"
     },
     "runNow": {
       "title": "Ejecutar {{code}} ahora",
@@ -1827,6 +1829,32 @@
       "excluded_other": "{{count}} excluidas",
       "renamed_one": "{{count}} renombrada",
       "renamed_other": "{{count}} renombradas"
+    },
+    "trial": {
+      "title": "Probar {{code}}",
+      "intro": "Lee una muestra de SAP con los filtros del pipeline, sin abrir suscripción de delta, y la carga en un destino de prueba con el mismo modo de carga y mapeo. El destino de prueba se borra al terminar; la tabla o carpeta real no se toca.",
+      "run": "Probar pipeline",
+      "again": "Probar de nuevo",
+      "running": "Probando: lectura de SAP y carga en el destino de prueba…",
+      "passed": "Prueba correcta. Filas leídas de SAP: {{read}}. Filas cargadas en el destino de prueba: {{loaded}}.",
+      "failed": "La prueba falló. Corrija el paso marcado y pruebe de nuevo.",
+      "stepsLabel": "Pasos de la prueba",
+      "steps": {
+        "configuration": "Configuración",
+        "read": "Lectura de SAP",
+        "load": "Carga de prueba",
+        "cleanup": "Borrado del destino de prueba"
+      },
+      "status": {
+        "running": "En curso",
+        "succeeded": "Correcto",
+        "failed": "Falla",
+        "skipped": "Sin ejecutar"
+      },
+      "lastPassed": "La última prueba fue correcta ({{when}}).",
+      "lastFailed": "La última prueba falló ({{when}}).",
+      "lastOutdated": "La configuración cambió después de la última prueba ({{when}}): hay que probar de nuevo antes de activar.",
+      "resultLabel": "Resultado de la prueba"
     }
   },
   "runs": {

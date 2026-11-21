@@ -1590,6 +1590,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/pipelines/{pipeline_id}/test-run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Prueba el pipeline con una muestra: lee de SAP sin abrir suscripción de delta, carga en un destino de prueba y lo borra */
+        post: operations["test_run_api_v1_pipelines__pipeline_id__test_run_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/dashboard/summary": {
         parameters: {
             query?: never;
@@ -3976,6 +3993,18 @@ export interface components {
             /** Version */
             version: number;
             /**
+             * Last Test At
+             * @description Última ejecución de prueba
+             */
+            last_test_at: string | null;
+            /** Last Test Ok */
+            last_test_ok: boolean | null;
+            /**
+             * Test Outdated
+             * @description La configuración cambió desde la última ejecución de prueba
+             */
+            test_outdated: boolean;
+            /**
              * Findings
              * @description Avisos y bloqueos de la configuración
              */
@@ -4061,6 +4090,46 @@ export interface components {
              * Format: date-time
              */
             updated_at: string;
+        };
+        /**
+         * PipelineTestResponse
+         * @description Resultado de «Probar pipeline»: una muestra de SAP cargada en un destino de prueba.
+         */
+        PipelineTestResponse: {
+            /**
+             * Ok
+             * @description La configuración, la lectura y la carga de prueba funcionaron
+             */
+            ok: boolean;
+            /**
+             * Tested At
+             * Format: date-time
+             */
+            tested_at: string;
+            /** Rows Read */
+            rows_read: number;
+            /** Rows Loaded */
+            rows_loaded: number;
+            /**
+             * Target
+             * @description Destino de prueba usado (se borra al terminar)
+             */
+            target: string | null;
+            /** Duration Ms */
+            duration_ms: number;
+            /** Steps */
+            steps: components["schemas"]["PipelineTestStep"][];
+        };
+        /** PipelineTestStep */
+        PipelineTestStep: {
+            step: components["schemas"]["TrialStep"];
+            status: components["schemas"]["sapextract__extraction__domain__model__StepStatus"];
+            /** Message */
+            message: string;
+            /** Duration Ms */
+            duration_ms: number | null;
+            /** Error Code */
+            error_code: string | null;
         };
         /** PipelineUpdateRequest */
         PipelineUpdateRequest: {
@@ -5550,6 +5619,11 @@ export interface components {
             /** Finished At */
             finished_at: string | null;
         };
+        /**
+         * TrialStep
+         * @enum {string}
+         */
+        TrialStep: "configuration" | "read" | "load" | "cleanup";
         /** UserCreateRequest */
         UserCreateRequest: {
             /**
@@ -9555,6 +9629,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DeltaStateResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    test_run_api_v1_pipelines__pipeline_id__test_run_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pipeline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PipelineTestResponse"];
                 };
             };
             /** @description Error */

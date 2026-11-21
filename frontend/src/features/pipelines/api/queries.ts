@@ -14,6 +14,7 @@ export type DeleteHandling = S['DeleteHandling'];
 export type LogLevel = S['LogLevel'];
 export type Finding = S['FindingResponse'];
 export type ActivationReport = S['ActivationReportResponse'];
+export type PipelineTest = S['PipelineTestResponse'];
 export type CloneResult = S['CloneResponse'];
 export type CloneSchemaDiff = S['CloneSchemaDiff'];
 export type PipelineCreateRequest = S['PipelineCreateRequest'];
@@ -136,6 +137,21 @@ export function useCheckPipeline(id: string) {
           body: { cross_environment_reason: crossEnvironmentReason || null },
         }),
       ),
+  });
+}
+
+/** «Probar pipeline»: lee una muestra de SAP y la carga en un destino de prueba (plan 08 §6). */
+export function useTestPipeline(id: string) {
+  const invalidate = useInvalidatePipelines();
+  return useMutation({
+    mutationFn: async () =>
+      unwrap(
+        await api.POST('/api/v1/pipelines/{pipeline_id}/test-run', {
+          params: { path: { pipeline_id: id } },
+        }),
+      ),
+    // También si falla: el pipeline guarda el resultado de la última prueba.
+    onSettled: invalidate,
   });
 }
 

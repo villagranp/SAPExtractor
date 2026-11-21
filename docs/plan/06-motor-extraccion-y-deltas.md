@@ -316,6 +316,8 @@ class DestinationWriter(Protocol):          # módulo 07
 
 Registro de plugins por tipo (`ODP_EXTRACTOR`, `CDS_ODP`, `CDS_ODATA` / `csv`, `snowflake`, `sqlserver`). El motor (`ExtractionEngine`) solo conoce las interfaces.
 
+Desde el 21.11.2026 los puertos tienen además `read_sample` y `drop_test_target`, que solo usa la ejecución de prueba de un pipeline (`extraction/application/trial.py`; plan 08, «Probar pipeline»): lee una muestra sin abrir suscripción y la carga en un destino de prueba que se borra al terminar.
+
 ## 8. Errores y reintentos
 
 | Clase | Ejemplos | ¿Reintento automático? |

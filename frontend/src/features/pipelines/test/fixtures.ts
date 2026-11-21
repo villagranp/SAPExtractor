@@ -70,6 +70,9 @@ export const activePipeline: S['PipelineDetail'] = {
   created_by: 'root',
   updated_by: 'root',
   version: 3,
+  last_test_at: '2026-11-19T15:00:00Z',
+  last_test_ok: true,
+  test_outdated: false,
   findings: [
     {
       severity: 'warning',
@@ -101,6 +104,8 @@ export const draftPipeline: S['PipelineDetail'] = {
   last_run: null,
   activated_at: null,
   load: { ...activePipeline.load, load_mode: 'replace', column_mapping: {} },
+  last_test_at: null,
+  last_test_ok: null,
   findings: [],
 };
 
@@ -150,10 +155,92 @@ export const okActivation: S['ActivationReportResponse'] = {
       ok: true,
       message: 'El destino está activo y su prueba sigue vigente.',
     },
+    {
+      code: 'test_run',
+      ok: true,
+      message: 'La prueba del pipeline fue correcta y sigue vigente.',
+    },
     { code: 'service_published', ok: true, message: 'El servicio responde en este sistema.' },
     { code: 'schema_current', ok: true, message: 'El esquema guardado coincide con el de SAP.' },
   ],
   findings: [],
+};
+
+export const okTrial: S['PipelineTestResponse'] = {
+  ok: true,
+  tested_at: '2026-11-21T10:00:00Z',
+  rows_read: 100,
+  rows_loaded: 100,
+  target: 'SXTEST_0a1b2c3d_MAT',
+  duration_ms: 840,
+  steps: [
+    {
+      step: 'configuration',
+      status: 'succeeded',
+      message: 'El pipeline, su origen y su destino se pueden usar.',
+      duration_ms: 12,
+      error_code: null,
+    },
+    {
+      step: 'read',
+      status: 'succeeded',
+      message: 'SAP devolvió 100 filas en 320 ms. No se abrió ninguna suscripción de delta.',
+      duration_ms: 350,
+      error_code: null,
+    },
+    {
+      step: 'load',
+      status: 'succeeded',
+      message: '100 filas en el destino de prueba SXTEST_0a1b2c3d_MAT de CSV_INTERCAMBIO.',
+      duration_ms: 400,
+      error_code: null,
+    },
+    {
+      step: 'cleanup',
+      status: 'succeeded',
+      message: 'El destino de prueba SXTEST_0a1b2c3d_MAT se borró.',
+      duration_ms: 20,
+      error_code: null,
+    },
+  ],
+};
+
+export const failedTrial: S['PipelineTestResponse'] = {
+  ...okTrial,
+  ok: false,
+  rows_read: 0,
+  rows_loaded: 0,
+  target: null,
+  steps: [
+    {
+      step: 'configuration',
+      status: 'succeeded',
+      message: 'El pipeline, su origen y su destino se pueden usar.',
+      duration_ms: 12,
+      error_code: null,
+    },
+    {
+      step: 'read',
+      status: 'failed',
+      message: 'SAP respondió 503: el servicio no está disponible.',
+      duration_ms: 90,
+      error_code: 'SX-SAP-503',
+    },
+    {
+      step: 'load',
+      status: 'skipped',
+      message: 'No se ejecutó: un paso anterior falló.',
+      duration_ms: null,
+      error_code: null,
+    },
+    {
+      step: 'cleanup',
+      status: 'skipped',
+      message: 'No se ejecutó: un paso anterior falló.',
+      duration_ms: null,
+      error_code: null,
+    },
+  ],
 };
 
 export const failedRun: S['RunDetail'] = {

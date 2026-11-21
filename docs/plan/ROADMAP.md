@@ -59,7 +59,7 @@ Dev A lleva el flujo SAP y Dev B los destinos y la plataforma. Los dos construye
 | **0 · Preparación** | 1 semana | Spike ampliado con el equipo SAP; respuestas reales al mock; diseño del estado de delta | ✅ Seguridad de conectores (hosts permitidos, proxies de confianza); ✅ E2E y cobertura en CI; ✅ stack del frontend; pedir cuenta de Snowflake y *App registration* (borradores en [`docs/solicitudes/fase-0.md`](../solicitudes/fase-0.md)) | Juntos: ADR 0006 con los contratos del motor |
 | **1 · Origen y destino** | 2–3 semanas | **It3** Orígenes | ✅ **It4a** CSV y Snowflake (falta validar Snowflake con la cuenta de pruebas y su job de CI) | Origen y destino creados desde la UI |
 | **2 · Motor** | 3 semanas | **It5**, extracción: conectores, paginación, spool, máquina de delta | **It5**, carga: `load`, `commit_delta`, idempotencia, inyección de fallos, pantalla mínima de run | **H2 · Primer dato** |
-| **3 · Orquestación** | 3 semanas | ✅ **It6** backend (adelantada; se conecta al motor al cerrar la It5) | ✅ **It6** pantallas (hechas por Dev A); después **It4b** SQL Server | **H3 · Autónoma** |
+| **3 · Orquestación** | 3 semanas | ✅ **It6** backend (conectada al motor; cerrada el 21.11.2026 con «Probar pipeline» y las tareas de sistema del scheduler) | ✅ **It6** pantallas (hechas por Dev A); después **It4b** SQL Server | **H3 · Autónoma** |
 | **4 · Operación** | 2–3 semanas | **It8** backend; prueba de volumen de 10 M de filas | **It7** Entra ID; dashboard y pantallas de alertas | SSO, alertas y dashboard |
 | **5 · Endurecimiento** | 2 semanas | **It9**, entre los dos | | **H4 · v1.0** |
 | Flotante | — | — | ✅ **It1b** hecha (estilo propio, paleta Mega Lucario); queda el logo definitivo | Layout definitivo y `/ui-kit` |

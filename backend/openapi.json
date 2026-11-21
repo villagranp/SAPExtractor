@@ -6279,6 +6279,53 @@
         ]
       }
     },
+    "/api/v1/pipelines/{pipeline_id}/test-run": {
+      "post": {
+        "tags": [
+          "Ejecuciones",
+          "Pipelines"
+        ],
+        "summary": "Prueba el pipeline con una muestra: lee de SAP sin abrir suscripción de delta, carga en un destino de prueba y lo borra",
+        "operationId": "test_run_api_v1_pipelines__pipeline_id__test_run_post",
+        "parameters": [
+          {
+            "name": "pipeline_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Pipeline Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PipelineTestResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "pipeline.tested"
+        ]
+      }
+    },
     "/api/v1/dashboard/summary": {
       "get": {
         "tags": [
@@ -13248,6 +13295,35 @@
             "type": "integer",
             "title": "Version"
           },
+          "last_test_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Test At",
+            "description": "Última ejecución de prueba"
+          },
+          "last_test_ok": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Test Ok"
+          },
+          "test_outdated": {
+            "type": "boolean",
+            "title": "Test Outdated",
+            "description": "La configuración cambió desde la última ejecución de prueba"
+          },
           "findings": {
             "items": {
               "$ref": "#/components/schemas/FindingResponse"
@@ -13292,6 +13368,9 @@
           "created_by",
           "updated_by",
           "version",
+          "last_test_at",
+          "last_test_ok",
+          "test_outdated",
           "findings"
         ],
         "title": "PipelineDetail"
@@ -13516,6 +13595,108 @@
           "updated_at"
         ],
         "title": "PipelineSummary"
+      },
+      "PipelineTestResponse": {
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "title": "Ok",
+            "description": "La configuración, la lectura y la carga de prueba funcionaron"
+          },
+          "tested_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Tested At"
+          },
+          "rows_read": {
+            "type": "integer",
+            "title": "Rows Read"
+          },
+          "rows_loaded": {
+            "type": "integer",
+            "title": "Rows Loaded"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target",
+            "description": "Destino de prueba usado (se borra al terminar)"
+          },
+          "duration_ms": {
+            "type": "integer",
+            "title": "Duration Ms"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/PipelineTestStep"
+            },
+            "type": "array",
+            "title": "Steps"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ok",
+          "tested_at",
+          "rows_read",
+          "rows_loaded",
+          "target",
+          "duration_ms",
+          "steps"
+        ],
+        "title": "PipelineTestResponse",
+        "description": "Resultado de «Probar pipeline»: una muestra de SAP cargada en un destino de prueba."
+      },
+      "PipelineTestStep": {
+        "properties": {
+          "step": {
+            "$ref": "#/components/schemas/TrialStep"
+          },
+          "status": {
+            "$ref": "#/components/schemas/sapextract__extraction__domain__model__StepStatus"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "duration_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Ms"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "step",
+          "status",
+          "message",
+          "duration_ms",
+          "error_code"
+        ],
+        "title": "PipelineTestStep"
       },
       "PipelineUpdateRequest": {
         "properties": {
@@ -18032,6 +18213,16 @@
           "finished_at"
         ],
         "title": "TimelineRun"
+      },
+      "TrialStep": {
+        "type": "string",
+        "enum": [
+          "configuration",
+          "read",
+          "load",
+          "cleanup"
+        ],
+        "title": "TrialStep"
       },
       "UserCreateRequest": {
         "properties": {

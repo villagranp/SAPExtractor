@@ -3,14 +3,17 @@
 from __future__ import annotations
 
 import uuid
+from collections.abc import Callable, Collection
 from dataclasses import asdict, dataclass, replace
 from datetime import datetime
 from typing import Any
 
+import structlog
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from sapextract.core.clock import utcnow
-from sapextract.core.exceptions import NotFoundError
+from sapextract.core.exceptions import DomainError, NotFoundError
 from sapextract.core.pagination import PageParams
 from sapextract.sap_connections.application.system_service import SapSystemService
 from sapextract.sap_connections.application.toolkit import SapToolkit
@@ -29,9 +32,11 @@ from sapextract.sap_connections.domain.metadata import (
     ServiceMetadata,
     odp_name,
 )
-from sapextract.sap_connections.domain.model import ConnectionSpec
+from sapextract.sap_connections.domain.model import ConnectionSpec, SystemStatus
 from sapextract.sap_connections.infrastructure.metadata_parser import parse_metadata
-from sapextract.sap_connections.infrastructure.models import SapCatalogCache
+from sapextract.sap_connections.infrastructure.models import SapCatalogCache, SapSystem
+
+log = structlog.get_logger(__name__)
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -41,6 +46,14 @@ class CatalogPage:
     fetched_at: datetime
     from_cache: bool
     counts: dict[str, int]
+
+
+@dataclass(frozen=True, kw_only=True)
+class CatalogRefresh:
+    """Resultado del refresco diario de catálogos (códigos de sistema, nunca credenciales)."""
+
+    refreshed: tuple[str, ...]
+    failed: tuple[str, ...]
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -113,6 +126,40 @@ class SapExplorerService:
             from_cache=from_cache,
             counts=counts,
         )
+
+    def refresh_all(
+        self,
+        *,
+        should_stop: Callable[[], bool] = lambda: False,
+        only: Collection[uuid.UUID] | None = None,
+    ) -> CatalogRefresh:
+        """Relee de SAP el catálogo de cada sistema activo (tarea diaria del scheduler).
+
+        Un sistema que no responde no impide refrescar los demás: conserva su caché anterior.
+        ``only`` limita el refresco a esos sistemas.
+        """
+        stmt = (
+            select(SapSystem.id, SapSystem.code)
+            .where(SapSystem.deleted_at.is_(None), SapSystem.status == SystemStatus.ACTIVE.value)
+            .order_by(SapSystem.code)
+        )
+        if only is not None:
+            stmt = stmt.where(SapSystem.id.in_(only))
+        systems = [(row.id, row.code) for row in self.session.execute(stmt)]
+        self.session.commit()
+        refreshed: list[str] = []
+        failed: list[str] = []
+        for system_id, code in systems:
+            if should_stop():
+                break
+            try:
+                self._catalog(system_id, refresh=True)
+                refreshed.append(code)
+            except DomainError as exc:
+                self.session.rollback()
+                failed.append(code)
+                log.warning("sap_catalog_refresh_failed", system=code, error_code=exc.error_code)
+        return CatalogRefresh(refreshed=tuple(refreshed), failed=tuple(failed))
 
     # -------------------------------------------------------------- un servicio
     def service_detail(

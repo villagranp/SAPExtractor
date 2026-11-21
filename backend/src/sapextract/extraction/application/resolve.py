@@ -53,6 +53,8 @@ class ExtractionToolkit:
     sap: SapToolkit
     destinations: DestinationsToolkit
     connector_factory: ConnectorFactory
+    # Conector de las ejecuciones de prueba: el mismo con un timeout corto (plan 08 §6).
+    sample_connector_factory: ConnectorFactory
 
     @classmethod
     def build(
@@ -69,12 +71,18 @@ class ExtractionToolkit:
             page_spec = replace(spec, timeout_seconds=settings.page_timeout_seconds)
             return ODataSourceConnector(ref, lambda: sap.client_factory(page_spec, NO_RETRY))
 
+        def sample_factory(ref: ODataSourceRef, spec: ConnectionSpec) -> ODataSourceConnector:
+            timeout = min(spec.timeout_seconds, settings.test_run_timeout_seconds)
+            short = replace(spec, timeout_seconds=timeout)
+            return ODataSourceConnector(ref, lambda: sap.client_factory(short, NO_RETRY))
+
         return cls(
             settings=settings,
             audit=audit or sap.audit,
             sap=sap,
             destinations=destinations,
             connector_factory=connector_factory or default_factory,
+            sample_connector_factory=connector_factory or sample_factory,
         )
 
 
@@ -134,8 +142,13 @@ def pipeline_filter(session: Session, pipeline: Pipeline, sap: SapToolkit) -> tu
     return rendered, filters_hash(rendered)
 
 
-def resolve(session: Session, pipeline_id: uuid.UUID, tk: ExtractionToolkit) -> ResolvedPipeline:
-    """Carga el pipeline y prepara conector y destino. Errores de configuración, no transitorios."""
+def resolve(
+    session: Session, pipeline_id: uuid.UUID, tk: ExtractionToolkit, *, sample: bool = False
+) -> ResolvedPipeline:
+    """Carga el pipeline y prepara conector y destino. Errores de configuración, no transitorios.
+
+    Con ``sample`` el conector es el de las ejecuciones de prueba (timeout corto).
+    """
     pipeline = session.get(Pipeline, pipeline_id)
     if pipeline is None or pipeline.deleted_at is not None:
         msg = "El pipeline no existe."
@@ -181,7 +194,7 @@ def resolve(session: Session, pipeline_id: uuid.UUID, tk: ExtractionToolkit) -> 
         rendered_filter=rendered,
         page_size=source.page_size,
         semantics=DeltaSemantics(source.delta_semantics) if source.delta_semantics else None,
-        connector=tk.connector_factory(ref, spec),
+        connector=(tk.sample_connector_factory if sample else tk.connector_factory)(ref, spec),
         plugin=plugin,
         config=destinations.stored_config(destination),
         secret=destinations.stored_secret(destination),

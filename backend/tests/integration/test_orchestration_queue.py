@@ -24,6 +24,7 @@ import sapextract.main_scheduler as scheduler_main
 import sapextract.main_worker as worker_main
 import sapextract.orchestration.application.worker as worker_module
 from sapextract.core.config import Settings
+from sapextract.core.maintenance import SystemTask
 from sapextract.dataflow.domain.errors import DataflowError, ErrorKind
 from sapextract.extraction.application.engine import ExtractionEngine
 from sapextract.orchestration.application.lifecycle import Verdict, VerdictKind, settle
@@ -798,8 +799,18 @@ def test_scheduler_process_leads_ticks_and_stops(
         return service.tick()
 
     monkeypatch.setattr(scheduler_main, "tick", counting_tick)
+    # Las tareas diarias reales llaman a SAP: aquí solo importa que el líder las lance.
+    maintained = threading.Event()
+
+    def daily() -> dict[str, Any]:
+        maintained.set()
+        return {}
+
+    task = SystemTask(f"prueba_{uuid.uuid4().hex[:8]}", daily)
+    monkeypatch.setattr(scheduler_main, "system_tasks", lambda *_, **__: [task])
     failsafe = threading.Timer(20, shutdown.event.set)
     failsafe.start()
     scheduler_main.run(_process_settings(orch, "default"))
     failsafe.cancel()
     assert len(ticks) == 3
+    assert maintained.is_set()

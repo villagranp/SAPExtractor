@@ -6,6 +6,7 @@ SQL Server) es un plugin que las implementa.
 
 from __future__ import annotations
 
+import re
 import uuid
 from collections.abc import Callable, Iterator, Mapping
 from dataclasses import dataclass, field
@@ -16,6 +17,7 @@ from typing import Any, Protocol
 import pyarrow as pa
 
 from sapextract.dataflow.domain.batch import BatchInfo, LoadMode
+from sapextract.dataflow.domain.errors import DataflowError, ErrorKind
 from sapextract.dataflow.domain.schema import EntitySchema
 from sapextract.dataflow.domain.spool import Spool
 
@@ -70,6 +72,10 @@ class SourceConnector(Protocol):
 
     def read_window(self, window: Window, ctx: ReadContext) -> ReadResult: ...
 
+    def read_sample(self, filters: Filters, ctx: ReadContext, *, rows: int) -> ReadResult:
+        """Hasta ``rows`` filas para una ejecución de prueba: nunca abre suscripción de delta."""
+        ...
+
 
 # ------------------------------------------------------------------ destino
 
@@ -97,6 +103,25 @@ class LoadOptions:
     delete_handling: DeleteHandling = DeleteHandling.SOFT
     technical_columns: bool = True
     column_mapping: Mapping[str, str | None] = field(default_factory=dict)  # None = excluir
+
+
+# Destino de una ejecución de prueba (plan 08 §6): ``SXTEST_<8 hex>_<nombre>``. Lo crea y lo
+# borra la propia prueba; ``drop_test_target`` se niega a borrar cualquier otro nombre.
+TEST_TARGET_PATTERN = re.compile(r"^SXTEST_[0-9a-f]{8}_", re.IGNORECASE)
+MAX_TARGET_NAME = 128
+
+
+def target_name_for_test(target_name: str, token: str) -> str:
+    """Nombre del destino de prueba de ``target_name``; ``token`` son 8 dígitos hexadecimales."""
+    name = f"SXTEST_{token}_{target_name}"[:MAX_TARGET_NAME]
+    if not TEST_TARGET_PATTERN.match(name):
+        msg = f"Identificador de prueba no válido: {token!r}"
+        raise ValueError(msg)
+    return name
+
+
+def is_test_target(target_name: str) -> bool:
+    return TEST_TARGET_PATTERN.match(target_name) is not None
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -135,6 +160,13 @@ class LoadResult:
     details: Mapping[str, Any] = field(default_factory=dict)
 
 
+def require_test_target(target: PreparedTarget) -> None:
+    """Guarda de ``drop_test_target``: solo se borra lo que creó una ejecución de prueba."""
+    if not is_test_target(target.options.target_name):
+        msg = f"«{target.options.target_name}» no es un destino de prueba: no se borra."
+        raise DataflowError(msg, kind=ErrorKind.CONFIGURATION, code="SX-DST-NOT-TEST-TARGET")
+
+
 class DestinationWriter(Protocol):
     def prepare(self, schema: EntitySchema, options: LoadOptions) -> PreparedTarget:
         """Todo el DDL (tabla, columnas nuevas, tabla de control). Idempotente."""
@@ -154,4 +186,12 @@ class DestinationWriter(Protocol):
 
     def cleanup(self, stage: StageInfo) -> None:
         """Borra el staging. Idempotente."""
+        ...
+
+    def drop_test_target(self, target: PreparedTarget) -> None:
+        """Borra un destino de prueba y sus filas de control. Idempotente.
+
+        Solo acepta nombres ``is_test_target``: con cualquier otro lanza ``DataflowError`` sin
+        tocar nada, para que un error de programación no borre una tabla real.
+        """
         ...

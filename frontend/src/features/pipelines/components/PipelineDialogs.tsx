@@ -19,10 +19,12 @@ import {
   useCheckPipeline,
   useClonePipeline,
   useRunPipeline,
+  useTestPipeline,
   type PipelineDetail,
   type RunMode,
 } from '../api/queries';
 import { FindingsList } from './PipelinePills';
+import { TrialResult } from './TrialDialog';
 
 const MIN_REASON = 10;
 const CHOICES = 100;
@@ -38,6 +40,7 @@ export function ActivateDialog({ pipeline, onClose }: DialogBaseProps) {
   const { t } = useTranslation();
   const check = useCheckPipeline(pipeline.id);
   const activate = useActivatePipeline(pipeline.id);
+  const trial = useTestPipeline(pipeline.id);
   const [reason, setReason] = useState(pipeline.cross_environment_reason ?? '');
   const { mutate: runCheck } = check;
   const initialReason = pipeline.cross_environment_reason ?? '';
@@ -49,15 +52,14 @@ export function ActivateDialog({ pipeline, onClose }: DialogBaseProps) {
   const report = check.data;
   const failing = report?.checks.filter((c) => !c.ok) ?? [];
   const needsReason = pipeline.cross_environment;
+  const needsTrial = failing.some((c) => c.code === 'test_run');
+  const busy = check.isPending || activate.isPending || trial.isPending;
   const reasonOk = reason.trim().length >= MIN_REASON;
   // Solo falta el motivo de los entornos cruzados: se puede activar en cuanto se escriba.
   const onlyReasonMissing =
     failing.length > 0 && failing.every((c) => c.code === 'cross_environment');
   const canActivate =
-    !check.isPending &&
-    !activate.isPending &&
-    report !== undefined &&
-    (report.ok || (onlyReasonMissing && reasonOk));
+    !busy && report !== undefined && (report.ok || (onlyReasonMissing && reasonOk));
 
   return (
     <Dialog
@@ -71,15 +73,32 @@ export function ActivateDialog({ pipeline, onClose }: DialogBaseProps) {
           <Button variant="secondary" onClick={onClose} disabled={activate.isPending}>
             {t('common.cancel')}
           </Button>
-          <Button
-            variant="secondary"
-            disabled={check.isPending || activate.isPending}
-            onClick={() => {
-              check.mutate(reason.trim());
-            }}
-          >
-            {t('pipelines.activate.recheck')}
-          </Button>
+          {needsTrial ? (
+            // Falta la prueba: se lanza desde aquí y, si sale bien, la comprobación se repite sola.
+            <Button
+              variant="secondary"
+              disabled={busy}
+              onClick={() => {
+                trial.mutate(undefined, {
+                  onSuccess: () => {
+                    check.mutate(reason.trim());
+                  },
+                });
+              }}
+            >
+              {trial.data ? t('pipelines.trial.again') : t('pipelines.trial.run')}
+            </Button>
+          ) : (
+            <Button
+              variant="secondary"
+              disabled={busy}
+              onClick={() => {
+                check.mutate(reason.trim());
+              }}
+            >
+              {t('pipelines.activate.recheck')}
+            </Button>
+          )}
           <Button
             disabled={!canActivate}
             onClick={() => {
@@ -112,6 +131,9 @@ export function ActivateDialog({ pipeline, onClose }: DialogBaseProps) {
             <FindingsList findings={report.findings.filter((f) => f.severity === 'warning')} />
           </div>
         )}
+        {trial.error && <Alert tone="danger">{describeError(trial.error).message}</Alert>}
+        {trial.isPending && <Spinner label={t('pipelines.trial.running')} />}
+        {trial.data && <TrialResult result={trial.data} />}
         {needsReason && (
           <TextAreaField
             label={t('pipelines.activate.reason')}

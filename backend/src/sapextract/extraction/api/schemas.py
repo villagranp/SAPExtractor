@@ -12,6 +12,7 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 from sapextract.extraction.application.delta_service import SubscriptionAction
+from sapextract.extraction.application.trial import TrialResult, TrialStep
 from sapextract.extraction.domain.model import DeltaStatus, StepName, StepStatus
 from sapextract.extraction.infrastructure.models import (
     DeltaState,
@@ -147,3 +148,44 @@ class ReasonRequest(BaseModel):
 class SubscriptionRequest(BaseModel):
     action: SubscriptionAction
     reason: str | None = Field(None, max_length=500)
+
+
+class PipelineTestStep(BaseModel):
+    step: TrialStep
+    status: StepStatus
+    message: str
+    duration_ms: int | None
+    error_code: str | None
+
+
+class PipelineTestResponse(BaseModel):
+    """Resultado de «Probar pipeline»: una muestra de SAP cargada en un destino de prueba."""
+
+    ok: bool = Field(description="La configuración, la lectura y la carga de prueba funcionaron")
+    tested_at: datetime
+    rows_read: int
+    rows_loaded: int
+    target: str | None = Field(description="Destino de prueba usado (se borra al terminar)")
+    duration_ms: int
+    steps: list[PipelineTestStep]
+
+    @classmethod
+    def of(cls, r: TrialResult) -> PipelineTestResponse:
+        return cls(
+            ok=r.ok,
+            tested_at=r.tested_at,
+            rows_read=r.rows_read,
+            rows_loaded=r.rows_loaded,
+            target=r.target,
+            duration_ms=r.duration_ms,
+            steps=[
+                PipelineTestStep(
+                    step=s.step,
+                    status=s.status,
+                    message=s.message,
+                    duration_ms=s.duration_ms,
+                    error_code=s.error_code,
+                )
+                for s in r.steps
+            ],
+        )

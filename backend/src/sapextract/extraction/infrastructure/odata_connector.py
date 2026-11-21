@@ -144,6 +144,7 @@ class _PagedRead:
         change_mode: str | None,
         expects_token: bool,
         is_delta: bool = False,
+        max_rows: int | None = None,
     ) -> None:
         self._connector = connector
         self._ctx = ctx
@@ -152,6 +153,7 @@ class _PagedRead:
         self._converter = PageConverter(connector.ref.schema, change_mode=change_mode)
         self._expects_token = expects_token
         self._is_delta = is_delta
+        self._max_rows = max_rows  # solo en lecturas de muestra
         self._token: str | None = None
         self._finished = False
 
@@ -162,6 +164,7 @@ class _PagedRead:
         url: str | None = ref.path
         params: dict[str, str] | None = self._params
         headers = {"Prefer": first_prefer}
+        read = 0
         with self._connector.client_factory() as client:
             while url is not None:
                 if ctx.is_cancelled():
@@ -190,8 +193,13 @@ class _PagedRead:
                         latency_ms=int((time.perf_counter() - started) * 1000),
                     )
                 )
+                if self._max_rows is not None:
+                    rows = rows[: self._max_rows - read]
+                read += len(rows)
                 if rows:
                     yield self._converter.convert(rows, extracted_at=utcnow())
+                if self._max_rows is not None and read >= self._max_rows:
+                    break
                 if delta:
                     self._token = token_of(delta)
                 params = None  # __next ya trae la consulta completa
@@ -281,6 +289,22 @@ class ODataSourceConnector:
             tracking=False,
             change_mode=None,
             expects_token=False,
+        )
+
+    def read_sample(self, filters: Filters, ctx: ReadContext, *, rows: int) -> _PagedRead:
+        """Primeras ``rows`` filas con ``$top``, sin ``Prefer: odata.track-changes``.
+
+        No abre suscripción en la ODQ. Gateway puede repartirlas en varias páginas; la lectura
+        se corta al llegar a ``rows`` aunque SAP ofrezca más.
+        """
+        return _PagedRead(
+            self,
+            ctx,
+            params={**_filter_params(filters), "$top": str(rows)},
+            tracking=False,
+            change_mode=None,
+            expects_token=False,
+            max_rows=rows,
         )
 
     def server_now(self) -> datetime:

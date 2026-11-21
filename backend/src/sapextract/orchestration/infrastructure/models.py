@@ -66,6 +66,11 @@ class Pipeline(IdMixin, TimestampMixin, AuthorMixin, Base):
         ForeignKey("pipeline.id", ondelete="SET NULL")
     )
     cross_environment_reason: Mapped[str | None] = mapped_column(Text)
+    # Ejecución de prueba (plan 08 §5). La huella dice qué configuración se probó.
+    last_test_at: Mapped[datetime | None] = _ts()
+    last_test_ok: Mapped[bool | None] = mapped_column(Boolean)
+    last_test_result: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    last_test_fingerprint: Mapped[str | None] = mapped_column(String(64))
     activated_at: Mapped[datetime | None] = _ts()
     deleted_at: Mapped[datetime | None] = _ts()
     version: Mapped[int] = mapped_column(Integer, nullable=False)

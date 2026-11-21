@@ -97,6 +97,7 @@ ACTIONS: dict[str, Category] = {
     "pipeline.deleted": Category.CONFIG,
     "pipeline.cloned": Category.CONFIG,
     "pipeline.activated": Category.CONFIG,
+    "pipeline.tested": Category.EXECUTION,
     "schedule.updated": Category.CONFIG,
     "concurrency_group.updated": Category.CONFIG,
     "concurrency_group.deleted": Category.CONFIG,
@@ -127,6 +128,8 @@ ACTIONS: dict[str, Category] = {
     "audit.exported": Category.SECURITY,
     "audit.verified": Category.SECURITY,
     "audit.verification_failed": Category.SECURITY,
+    # system: tareas diarias del scheduler (plan 03 §4)
+    "system.retention_applied": Category.SYSTEM,
 }
 
 

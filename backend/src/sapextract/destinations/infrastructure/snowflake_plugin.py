@@ -36,6 +36,7 @@ from sapextract.dataflow.domain.ports import (
     PreparedTarget,
     SchemaEvolution,
     StageInfo,
+    require_test_target,
 )
 from sapextract.dataflow.domain.schema import EntitySchema
 from sapextract.dataflow.domain.spool import Spool
@@ -351,6 +352,17 @@ class SnowflakeWriter:
                 self._execute(statement)
             except Exception:
                 log.warning("snowflake_cleanup_failed", statement=statement.split(" ", 3)[:3])
+
+    def drop_test_target(self, target: PreparedTarget) -> None:
+        require_test_target(target)
+        try:
+            self._execute(f"DROP TABLE IF EXISTS {target.target}")
+            self._execute(
+                sql.delete_control(self.config.database, self.config.schema_name),
+                {"target": target.details["table"]},
+            )
+        except Exception as exc:
+            raise map_error(exc, "el borrado de la tabla de prueba") from exc
 
 
 def _merge_counts(cursor: Any) -> dict[str, int]:

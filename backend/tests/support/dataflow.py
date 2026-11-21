@@ -20,6 +20,7 @@ from sapextract.dataflow.domain.ports import (
     LoadResult,
     PreparedTarget,
     StageInfo,
+    require_test_target,
 )
 from sapextract.dataflow.domain.schema import (
     CHANGE_MODE,
@@ -183,6 +184,10 @@ class InMemoryWriter:
 
     def cleanup(self, stage: StageInfo) -> None:
         return
+
+    def drop_test_target(self, target: PreparedTarget) -> None:
+        require_test_target(target)
+        self.target = InMemoryTarget()
 
     # -------------------------------------------------------------- lógica de carga
     def _apply(

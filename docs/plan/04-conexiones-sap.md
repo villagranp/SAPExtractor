@@ -52,7 +52,7 @@ Resultado guardado en `last_test_result` y auditado (`sap_connection.tested`).
   - Servicios de **CDS** publicados (`@OData.publish` / *service binding*).
 - Para un servicio: lista sus *entity sets*, propiedades y si soporta *change tracking* (delta).
 - Desde aquí se lanza el asistente de **alta de origen** (módulo 05) con el servicio ya seleccionado.
-- Caché de catálogo por sistema (TTL configurable, botón "Refrescar").
+- Caché de catálogo por sistema (TTL configurable, botón "Refrescar"). Desde el 21.11.2026 el scheduler la refresca a diario para cada sistema activo (plan 08, «Tareas de sistema del scheduler»); un sistema que no responde conserva la caché anterior.
 
 ### 2.4 Otras acciones
 

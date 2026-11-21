@@ -32,6 +32,7 @@ import {
 } from '../api/queries';
 import { DeltaTab } from '../components/DeltaTab';
 import { ActivateDialog, CloneDialog, RunNowDialog } from '../components/PipelineDialogs';
+import { TrialDialog } from '../components/TrialDialog';
 import { FindingsList, PipelineStatusPill } from '../components/PipelinePills';
 import { RouteStrip } from '../components/RouteStrip';
 import { SchedulesEditor } from '../components/ScheduleBuilder';
@@ -45,7 +46,7 @@ import {
 import '../pipelines.css';
 
 type Tab = 'summary' | 'runs' | 'delta' | 'schedule' | 'activity';
-type Opened = 'run' | 'activate' | 'clone' | null;
+type Opened = 'run' | 'activate' | 'clone' | 'trial' | null;
 const RUNS_PAGE_SIZE = 10;
 /** Con el motivo confirmado, el cruce de entornos ya se explica en su propio aviso. */
 const CROSS_ENVIRONMENT = 'SX-PIPE-CROSS-ENVIRONMENT';
@@ -426,6 +427,16 @@ export function PipelineDetailPage() {
                 {t('pipelines.detail.actions.run')}
               </Button>
             )}
+            {canManage && (
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setOpened('trial');
+                }}
+              >
+                {t('pipelines.detail.actions.test')}
+              </Button>
+            )}
             {canManage && p.status === 'draft' && (
               <Button
                 disabled={blocked}
@@ -555,6 +566,7 @@ export function PipelineDetailPage() {
       {opened === 'run' && <RunNowDialog pipeline={p} canManage={canManage} onClose={close} />}
       {opened === 'activate' && <ActivateDialog pipeline={p} onClose={close} />}
       {opened === 'clone' && <CloneDialog pipeline={p} onClose={close} />}
+      {opened === 'trial' && <TrialDialog pipeline={p} onClose={close} />}
       <ConfirmDialog
         key={pending?.action ?? 'none'}
         open={pending !== null}

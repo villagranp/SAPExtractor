@@ -42,6 +42,7 @@ from sapextract.dataflow.domain.ports import (
     LoadResult,
     PreparedTarget,
     StageInfo,
+    require_test_target,
 )
 from sapextract.dataflow.domain.schema import (
     BATCH_ID,
@@ -221,6 +222,18 @@ class CsvWriter:
 
     def cleanup(self, stage: StageInfo) -> None:
         shutil.rmtree(stage.details.get("tmp", ""), ignore_errors=True)
+
+    def drop_test_target(self, target: PreparedTarget) -> None:
+        require_test_target(target)
+        folder = Path(target.target)
+        if folder.parent != self.base:  # la carpeta de prueba cuelga de la del destino
+            msg = "La carpeta de prueba no está en la carpeta del destino: no se borra."
+            raise DataflowError(msg, kind=ErrorKind.CONFIGURATION, code="SX-DST-NOT-TEST-TARGET")
+        try:
+            if folder.exists():
+                shutil.rmtree(folder)
+        except OSError as exc:
+            raise _io_error(exc, f"borrar la carpeta de prueba {folder}") from exc
 
     # -------------------------------------------------------------- internos
     @staticmethod

@@ -8,7 +8,9 @@ import { server } from '@/test/setup';
 import {
   activePipeline,
   draftPipeline,
+  failedTrial,
   okActivation,
+  okTrial,
   pipelineHandlers,
   queuedRun,
 } from '../test/fixtures';
@@ -102,6 +104,79 @@ describe('PipelineDetailPage', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Activar pipeline' }));
     await screen.findByRole('button', { name: 'Editar' });
     expect(activated).toBe(true);
+  });
+
+  it('prueba el pipeline desde la comprobación y entonces deja activar', async () => {
+    let tested = false;
+    const untested = {
+      ...okActivation,
+      ok: false,
+      checks: okActivation.checks.map((c) =>
+        c.code === 'test_run'
+          ? { ...c, ok: false, message: 'El pipeline aún no se ha probado: pruébelo antes.' }
+          : c,
+      ),
+    };
+    server.use(
+      http.post('*/api/v1/pipelines/:id/validate', () =>
+        HttpResponse.json(tested ? okActivation : untested),
+      ),
+      http.post('*/api/v1/pipelines/:id/test-run', () => {
+        tested = true;
+        return HttpResponse.json(okTrial);
+      }),
+      ...pipelineHandlers,
+    );
+    const user = userEvent.setup();
+    renderDetail(draftPipeline.id);
+    await user.click(await screen.findByRole('button', { name: 'Comprobar y activar' }));
+    const dialog = await screen.findByRole('dialog');
+    expect(
+      await within(dialog).findByText('El pipeline aún no se ha probado: pruébelo antes.'),
+    ).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: 'Activar pipeline' })).toBeDisabled();
+
+    await user.click(within(dialog).getByRole('button', { name: 'Probar pipeline' }));
+    expect(
+      await within(dialog).findByText(
+        'Prueba correcta. Filas leídas de SAP: 100. Filas cargadas en el destino de prueba: 100.',
+      ),
+    ).toBeInTheDocument();
+    // La comprobación se repite sola y ya no pide la prueba.
+    expect(
+      await within(dialog).findByText('La prueba del pipeline fue correcta y sigue vigente.'),
+    ).toBeInTheDocument();
+    expect(
+      within(dialog).queryByRole('button', { name: 'Probar de nuevo' }),
+    ).not.toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: 'Activar pipeline' })).toBeEnabled();
+  });
+
+  it('prueba un pipeline y enseña el paso que falló', async () => {
+    server.use(
+      http.post('*/api/v1/pipelines/:id/test-run', () => HttpResponse.json(failedTrial)),
+      ...pipelineHandlers,
+    );
+    const user = userEvent.setup();
+    renderDetail(activePipeline.id);
+    await user.click(await screen.findByRole('button', { name: 'Probar' }));
+    const dialog = await screen.findByRole('dialog', { name: `Probar ${activePipeline.code}` });
+    expect(within(dialog).getByText(/La última prueba fue correcta/)).toBeInTheDocument();
+
+    await user.click(within(dialog).getByRole('button', { name: 'Probar pipeline' }));
+    expect(
+      await within(dialog).findByText(
+        'La prueba falló. Corrija el paso marcado y pruebe de nuevo.',
+      ),
+    ).toBeInTheDocument();
+    const steps = within(dialog).getByRole('list', { name: 'Pasos de la prueba' });
+    expect(within(steps).getByText('Lectura de SAP')).toBeInTheDocument();
+    expect(
+      within(steps).getByText('SAP respondió 503: el servicio no está disponible.'),
+    ).toBeInTheDocument();
+    expect(within(steps).getByText('SX-SAP-503')).toBeInTheDocument();
+    expect(within(steps).getAllByText('Sin ejecutar')).toHaveLength(2);
+    expect(within(dialog).getByRole('button', { name: 'Probar de nuevo' })).toBeEnabled();
   });
 
   it('no deja activar si la comprobación falla', async () => {

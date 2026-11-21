@@ -179,6 +179,9 @@ class OrchEnv:
         assert response.status_code == 201, response.text
         pipeline: dict[str, Any] = response.json()
         if activate:
+            tested = api.post(f"/pipelines/{pipeline['id']}/test-run")
+            assert tested.status_code == 200, tested.text
+            assert tested.json()["ok"] is True, tested.text
             activated = api.post(f"/pipelines/{pipeline['id']}/activate", {})
             assert activated.status_code == 200, activated.text
             pipeline = activated.json()
