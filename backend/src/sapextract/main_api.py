@@ -25,9 +25,9 @@ from sapextract.destinations.application.toolkit import DestinationsToolkit
 from sapextract.identity.api import admin_routes, auth_routes
 from sapextract.identity.application.toolkit import IdentityToolkit
 from sapextract.sap_connections.api import routes as sap_routes
+from sapextract.sap_connections.application.toolkit import SapToolkit
 from sapextract.sources.api import routes as source_routes
 from sapextract.sources.application.source_service import sap_system_dependents
-from sapextract.sap_connections.application.toolkit import SapToolkit
 
 log = structlog.get_logger(__name__)
 
