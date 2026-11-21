@@ -32,6 +32,7 @@ describe('AppShell', () => {
     expect(within(menu).getByRole('link', { name: 'Usuarios' })).toBeInTheDocument();
     // Las iteraciones futuras se ven deshabilitadas, no como enlaces.
     expect(within(menu).getByRole('link', { name: 'Pipelines' })).toBeInTheDocument();
+    expect(within(menu).getByRole('link', { name: 'Ejecuciones' })).toBeInTheDocument();
     expect(within(menu).getByRole('link', { name: 'Alertas' })).toBeInTheDocument();
     const crumbs = screen.getByRole('navigation', { name: 'Ruta' });
     expect(crumbs).toHaveTextContent('SAPExtractDatosSistemas SAP'); // los separadores › son CSS

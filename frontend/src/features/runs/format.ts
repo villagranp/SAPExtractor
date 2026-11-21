@@ -18,3 +18,19 @@ export function useNumbers() {
     seconds: (ms: unknown) => (typeof ms === 'number' ? `${seconds.format(ms / 1000)} s` : '—'),
   };
 }
+
+/** Duración entre dos instantes: «45 s», «3 min 05 s» o «2 h 10 min»; '—' si aún no empezó. */
+export function formatDuration(
+  start: string | null | undefined,
+  end: string | null | undefined,
+  now: number = Date.now(),
+): string {
+  if (!start) return '—';
+  const from = new Date(start).getTime();
+  const to = end ? new Date(end).getTime() : now;
+  const seconds = Math.max(0, Math.round((to - from) / 1000));
+  if (seconds < 60) return `${String(seconds)} s`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${String(minutes)} min ${String(seconds % 60).padStart(2, '0')} s`;
+  return `${String(Math.floor(minutes / 60))} h ${String(minutes % 60).padStart(2, '0')} min`;
+}

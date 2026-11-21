@@ -98,7 +98,7 @@
     "seeAudit": "Ver auditoría",
     "roadmap": "Hoja de ruta",
     "roadmapUnit": "de {{total}} etapas",
-    "roadmapNext": "En curso: spike SAP de la Fase 0 y validación de Snowflake (It4a). Sigue el motor de extracción y deltas (It5).",
+    "roadmapNext": "En curso: spike SAP de la Fase 0, validación de Snowflake (It4a) y orquestación (It6), que espera al motor de extracción y deltas (It5) para ejecutar.",
     "iterations": {
       "it0": "It0 · Fundaciones",
       "it1": "It1 · Identidad y auditoría",
@@ -424,7 +424,8 @@
       "authType": "Autenticación",
       "credentials": "Credencial",
       "status": "Estado",
-      "lastTest": "Última prueba"
+      "lastTest": "Última prueba",
+      "runs": "Ejecuciones simultáneas"
     },
     "hints": {
       "code": "Identificador único, p. ej. S4P_300 (sistema + mandante). No se puede cambiar.",
@@ -432,7 +433,8 @@
       "baseUrl": "Solo protocolo, host y puerto: la plataforma añade /sap/opu/odata/…",
       "tlsVerify": "Desactívelo solo en desarrollo; en producción es obligatorio.",
       "caBundle": "Si Gateway usa un certificado de una CA interna, pegue aquí su certificado.",
-      "concurrency": "Máximo de peticiones a la vez contra este sistema."
+      "concurrency": "Máximo de peticiones a la vez contra este sistema.",
+      "runs": "Pipelines que pueden extraer a la vez de este sistema."
     },
     "validation": {
       "required": "Obligatorio.",
@@ -441,7 +443,8 @@
       "client": "El mandante tiene 3 dígitos.",
       "language": "Código SAP de 1 o 2 letras (ES, EN…).",
       "timeout": "Entre 5 y 600 segundos.",
-      "concurrency": "Entre 1 y 32."
+      "concurrency": "Entre 1 y 32.",
+      "runs": "Entre 1 y 16."
     },
     "environments": {
       "DEV": "Desarrollo (DEV)",
@@ -558,7 +561,7 @@
       "connectionTitle": "Conexión",
       "lastTestTitle": "Última prueba de conexión",
       "noTest": "Todavía no se ha probado la conexión.",
-      "limits": "{{timeout}} s de timeout · {{parallel}} peticiones simultáneas",
+      "limits": "{{timeout}} s de timeout, {{parallel}} peticiones y {{runs}} ejecuciones simultáneas",
       "updated": "Última modificación",
       "draftBanner": "Borrador: pruebe la conexión con éxito y actívelo para poder usarlo en orígenes y pipelines.",
       "inactiveBanner": "Sistema desactivado: no se lanzarán nuevas ejecuciones.",
@@ -842,7 +845,8 @@
       "draftBanner": "Borrador: pruebe el destino y actívelo para usarlo en pipelines.",
       "inactiveBanner": "Destino inactivo: no recibe cargas.",
       "pipelinesTitle": "Pipelines que usan este destino",
-      "pipelinesSoon": "Los pipelines llegan en la iteración 6; aquí aparecerán los que carguen en este destino."
+      "pipelinesSoon": "Los pipelines que cargan en este destino están en la lista de pipelines.",
+      "seePipelines": "Ver los pipelines de este destino"
     },
     "confirm": {
       "activate": {
@@ -1316,12 +1320,12 @@
   },
   "pipelines": {
     "title": "Pipelines",
-    "description": "Cada pipeline lleva un origen SAP hacia un destino. Desde aquí se dan de alta, se activan y se ejecutan a mano.",
+    "description": "Cada pipeline lleva un origen SAP a un destino, a mano o con una programación.",
     "new": "Nuevo pipeline",
-    "searchPlaceholder": "Código, nombre u origen",
+    "searchPlaceholder": "Código o nombre",
     "empty": "Ningún pipeline coincide con los filtros.",
     "emptyFirstTitle": "Aún no hay pipelines",
-    "emptyFirst": "Cree el primero con un origen SAP y un destino activos.",
+    "emptyFirst": "Un pipeline une un origen con un destino. Necesita al menos un origen y un destino registrados.",
     "modes": {
       "DELTA": "Delta ODQ",
       "WATERMARK": "Marca de agua",
@@ -1334,7 +1338,7 @@
       "description": "Descripción",
       "source": "Origen",
       "destination": "Destino",
-      "mode": "Modo de extracción",
+      "mode": "Extracción y carga",
       "loadMode": "Modo de carga",
       "target": "Tabla o carpeta de destino",
       "updated": "Actualizado",
@@ -1344,7 +1348,28 @@
       "watermark": "Marca de agua confirmada",
       "initializedAt": "Fecha de inicialización",
       "lastDelta": "Último delta",
-      "status": "Estado"
+      "status": "Estado",
+      "route": "Recorrido",
+      "nextFire": "Próxima ejecución",
+      "lastRun": "Última ejecución",
+      "sapEnvironment": "Entorno SAP",
+      "extractionMode": "Modo de extracción",
+      "targetName": "Tabla o archivo de destino",
+      "schemaEvolution": "Si SAP añade columnas",
+      "deleteHandling": "Si SAP borra una fila",
+      "createIfMissing": "Crear la tabla si no existe",
+      "technicalColumns": "Añadir columnas técnicas",
+      "tags": "Etiquetas",
+      "priority": "Prioridad",
+      "timeout": "Plazo por intento (minutos)",
+      "maxAttempts": "Máximo de intentos",
+      "logLevel": "Detalle del log",
+      "workerPool": "Grupo de workers",
+      "concurrencyGroup": "Grupo de concurrencia",
+      "columns": "Columnas",
+      "filters": "Filtros",
+      "schedule": "Programación",
+      "retries": "Reintentos y plazo"
     },
     "form": {
       "title": "Nuevo pipeline",
@@ -1376,9 +1401,11 @@
       "tabs": {
         "runs": "Ejecuciones",
         "delta": "Delta",
-        "activity": "Actividad"
+        "activity": "Actividad",
+        "summary": "Resumen",
+        "schedule": "Programación"
       },
-      "noRuns": "Todavía no hay ejecuciones. Use «Ejecutar ahora» para lanzar la primera.",
+      "noRuns": "Este pipeline aún no se ha ejecutado.",
       "deltaTitle": "Estado del delta",
       "historyTitle": "Historial del delta",
       "noHistory": "Sin cambios de estado todavía.",
@@ -1391,9 +1418,34 @@
         "closed": "Confirmar cierre en SAP",
         "leftOpen": "Dejarla abierta",
         "delete": "Eliminar",
-        "activate": "Activar"
+        "activate": "Comprobar y activar",
+        "run": "Ejecutar ahora",
+        "pause": "Pausar",
+        "resume": "Reanudar",
+        "edit": "Editar",
+        "clone": "Clonar"
       },
-      "draftBanner": "Borrador: actívelo para poder ejecutarlo. La activación comprueba el sistema SAP, el destino y la configuración de carga."
+      "draftBanner": "Este pipeline es un borrador: no se ejecuta hasta que lo active.",
+      "alreadyLive": "Ya hay una ejecución en cola o en curso.",
+      "activateBlocked": "Resuelva los bloqueos de la configuración antes de activar.",
+      "saved": "Pipeline guardado.",
+      "scheduleNotSaved": "El pipeline se guardó, pero la programación no",
+      "pausedBanner": "Pipeline en pausa: no se lanzan ejecuciones y las que están en cola esperan",
+      "crossEnvironment": "Entornos distintos: el sistema SAP es {{source}} y el destino es {{destination}}",
+      "loadTitle": "Extracción y carga",
+      "executionTitle": "Ejecución",
+      "noFilters": "Ninguno",
+      "activated": "Activado",
+      "updated": "Última modificación",
+      "updatedBy": "{{date}}, por {{user}}",
+      "editSchedule": "Editar programación",
+      "saveSchedule": "Guardar programación",
+      "scheduleIdle": {
+        "draft": "La programación empieza a contar cuando active el pipeline.",
+        "paused": "La programación está detenida mientras el pipeline siga en pausa."
+      },
+      "manualOnly": "Sin programación: este pipeline solo se ejecuta a mano.",
+      "crossEnvironmentReason": "Motivo: {{reason}}"
     },
     "deltaEvents": {
       "init_started": "Inicialización iniciada",
@@ -1423,21 +1475,363 @@
         "confirm": "Dejarla abierta"
       },
       "delete": {
-        "title": "Eliminar {{code}}",
-        "message": "El pipeline deja de ejecutarse. Si tenía delta, su suscripción queda pendiente de cerrar en SAP.",
+        "title": "¿Eliminar {{code}}?",
+        "message": "Se da de baja el pipeline y su programación. Los datos ya cargados y el historial de ejecuciones se conservan. Si tenía delta, su suscripción queda pendiente de cerrar en SAP.",
         "confirm": "Eliminar"
+      },
+      "pause": {
+        "title": "¿Pausar {{code}}?",
+        "message": "No se lanzarán más ejecuciones hasta que lo reanude. La que esté en curso termina.",
+        "delta": "Mientras dure la pausa, la cola de delta sigue creciendo en SAP. Una pausa larga puede obligar a reinicializar el delta."
       }
     },
     "statuses": {
       "draft": "Borrador",
       "active": "Activo",
       "paused": "En pausa"
+    },
+    "crossEnvironment": "Entornos distintos",
+    "neverRun": "Sin ejecuciones",
+    "onlyDestination": "Solo los pipelines que cargan en el destino elegido.",
+    "onlySource": "Solo los pipelines que leen del origen elegido.",
+    "seeAll": "Ver todos",
+    "extractionModes": {
+      "FULL": "Carga completa",
+      "DELTA": "Delta",
+      "WATERMARK": "Marca de agua"
+    },
+    "extractionHints": {
+      "FULL": "Lee todas las filas del origen en cada ejecución.",
+      "DELTA": "Lee solo los cambios que SAP guarda en la cola de delta desde la última ejecución.",
+      "WATERMARK": "Lee las filas cuyo campo de marca de agua es posterior al de la última ejecución."
+    },
+    "loadModes": {
+      "append": "Añadir filas",
+      "upsert": "Fusionar por clave",
+      "replace": "Reemplazar todo"
+    },
+    "loadHints": {
+      "append": "Inserta las filas leídas sin tocar las que ya están.",
+      "upsert": "Actualiza las filas que ya existen según su clave e inserta las nuevas.",
+      "replace": "Vacía el destino y lo vuelve a cargar entero."
+    },
+    "schemaEvolutions": {
+      "add_columns": "Añadir las columnas nuevas",
+      "ignore": "Ignorar las columnas nuevas",
+      "fail": "Detener la ejecución"
+    },
+    "deleteHandlings": {
+      "auto": "Automático según el modo de carga",
+      "soft": "Marcar la fila como borrada",
+      "hard": "Borrar la fila",
+      "ignore": "No hacer nada"
+    },
+    "logLevels": {
+      "DEBUG": "Depuración",
+      "INFO": "Normal",
+      "WARNING": "Solo avisos",
+      "ERROR": "Solo errores"
+    },
+    "priorities": {
+      "1": "1, la más urgente",
+      "2": "2, alta",
+      "3": "3, normal",
+      "4": "4, baja",
+      "5": "5, la menos urgente"
+    },
+    "findings": {
+      "errors_one": "Un bloqueo impide activar el pipeline",
+      "errors_other": "{{count}} bloqueos impiden activar el pipeline",
+      "warnings_one": "Un aviso",
+      "warnings_other": "{{count}} avisos"
+    },
+    "route": {
+      "label": "Recorrido del pipeline",
+      "source": "Origen",
+      "destination": "Destino",
+      "noSource": "Sin origen elegido",
+      "noDestination": "Sin destino elegido"
+    },
+    "errors": {
+      "source": "Elija un origen para continuar.",
+      "destination": "Elija un destino para continuar.",
+      "required": "Rellene este campo.",
+      "tooLong": "El texto es demasiado largo.",
+      "tooMany": "Como máximo 20 condiciones.",
+      "code": "Use de 3 a 40 letras, números o guion bajo, empezando por una letra.",
+      "timeout": "Escriba un número entre 1 y 2880.",
+      "attempts": "Escriba un número entre 1 y 10.",
+      "pool": "Use hasta 30 letras minúsculas, números, guion o guion bajo, empezando por una letra."
+    },
+    "wizard": {
+      "title": "Nuevo pipeline",
+      "editTitle": "Editar {{code}}",
+      "description": "Elija de dónde salen los datos, a dónde van, cómo se cargan y cuándo.",
+      "progress": "Pasos del asistente",
+      "steps": {
+        "source": "Origen",
+        "destination": "Destino",
+        "load": "Carga",
+        "schedule": "Programación",
+        "general": "Nombre y ejecución",
+        "summary": "Resumen"
+      },
+      "stepTitles": {
+        "source": "¿De qué origen se extrae?",
+        "destination": "¿A qué destino se carga?",
+        "load": "¿Cómo se extrae y se carga?",
+        "schedule": "¿Cuándo se ejecuta?",
+        "general": "Nombre y ejecución",
+        "summary": "Resumen"
+      },
+      "noSourcesTitle": "Aún no hay orígenes",
+      "noSources": "Un pipeline extrae de un origen SAP. Cree uno y vuelva a este asistente.",
+      "createSource": "Crear un origen",
+      "sourceIntro": "Un pipeline extrae de un solo origen. El modo de extracción depende de si el origen admite delta.",
+      "searchSource": "Buscar origen",
+      "searchSourcePlaceholder": "Código, nombre o servicio",
+      "sources": "Orígenes disponibles",
+      "noMatches": "Nada coincide con la búsqueda.",
+      "noDestinationsTitle": "Aún no hay destinos",
+      "noDestinations": "Un pipeline carga en un destino. Cree uno y vuelva a este asistente.",
+      "createDestination": "Crear un destino",
+      "destinationIntro": "Un pipeline carga en un solo destino. Para otro destino se crea otro pipeline.",
+      "searchDestination": "Buscar destino",
+      "searchDestinationPlaceholder": "Código o nombre",
+      "destinations": "Destinos disponibles",
+      "readingSource": "Leyendo el esquema del origen…",
+      "modeLocked": "El modo de extracción solo se cambia mientras el pipeline es un borrador.",
+      "targetNameHint": "Si lo deja vacío se usa {{name}}.",
+      "schemaEvolutionHint": "Qué hace la carga cuando el origen trae una columna que el destino no tiene.",
+      "deleteHandlingHint": "Solo se aplica cuando el origen informa de filas borradas.",
+      "createIfMissingHint": "La primera ejecución crea la tabla con el esquema del origen.",
+      "technicalColumnsHint": "Fecha de carga, lote y operación, para seguir el rastro de cada fila.",
+      "mappingTitle": "Columnas",
+      "mappingHint": "Desmarque las columnas que no quiere cargar y escriba otro nombre para las que quiera renombrar. Las columnas clave se cargan siempre.",
+      "include": "Cargar",
+      "keyColumn": "Clave",
+      "includeColumn": "Cargar la columna {{column}}",
+      "sapColumn": "Columna en SAP",
+      "sapType": "Tipo en SAP",
+      "targetColumn": "Nombre en destino",
+      "targetColumnOf": "Nombre en destino de {{column}}",
+      "filtersTitle": "Filtros",
+      "sourceFilters": "Filtros por defecto del origen: {{filters}}.",
+      "noSourceFilters": "El origen no tiene filtros por defecto: se extraen todas las filas.",
+      "ownFilters": "Usar filtros propios en este pipeline",
+      "ownFiltersHint": "Sustituyen a los filtros por defecto del origen.",
+      "noOwnFilters": "Sin condiciones: este pipeline extraerá todas las filas.",
+      "codeFixed": "El código no se puede cambiar.",
+      "codeHint": "Identifica el pipeline en logs y alertas. No se puede cambiar después.",
+      "tagsHint": "Separadas por comas.",
+      "priorityHint": "Decide quién pasa antes cuando hay cola.",
+      "timeoutHint": "Pasado este tiempo el intento se detiene y cuenta como error transitorio.",
+      "maxAttemptsHint": "Solo se reintentan los errores transitorios, con esperas de 1, 5 y 15 minutos.",
+      "workerPoolHint": "Si lo deja vacío se usa el grupo «default».",
+      "noGroup": "Sin grupo",
+      "groupHint": "Limita cuántos pipelines del grupo se ejecutan a la vez.",
+      "groupOption_one": "{{code}}, 1 a la vez",
+      "groupOption_other": "{{code}}, {{count}} a la vez",
+      "scheduleInvalid": "Corrija la programación marcada antes de continuar.",
+      "suggestedName": "{{source}} hacia {{destination}}",
+      "saving": "Guardando…",
+      "saveChanges": "Guardar cambios",
+      "saveDraft": "Guardar borrador",
+      "ownFiltersCount_one": "Una condición propia",
+      "ownFiltersCount_other": "{{count}} condiciones propias",
+      "sourceFiltersShort": "Los del origen",
+      "retriesSummary_one": "Un intento, {{timeout}} minutos de plazo",
+      "retriesSummary_other": "Hasta {{count}} intentos, {{timeout}} minutos de plazo cada uno",
+      "savesDraft": "El pipeline se guarda como borrador. Para que empiece a ejecutarse, actívelo desde su ficha: antes se comprueba la configuración."
+    },
+    "schedule": {
+      "launch": "Lanzamiento",
+      "launches": {
+        "scheduled": "Con programación",
+        "manual": "Solo a mano"
+      },
+      "launchHints": {
+        "scheduled": "La plataforma lanza el pipeline cuando toca. También se puede lanzar a mano.",
+        "manual": "El pipeline solo se ejecuta cuando alguien pulsa «Ejecutar ahora»."
+      },
+      "manualOnly": "Solo a mano",
+      "mode": "Cómo se define",
+      "modes": {
+        "simple": "Con frases",
+        "cron": "Expresión cron",
+        "interval": "Intervalo fijo"
+      },
+      "modeHints": {
+        "simple": "Elija cada cuánto y qué días.",
+        "cron": "Para casos que las frases no cubren.",
+        "interval": "Cuenta los minutos desde la activación, no desde la hora en punto."
+      },
+      "repeat": "Repetir",
+      "repeats": {
+        "minutes": "Cada pocos minutos",
+        "hours": "Cada cierto número de horas",
+        "daily": "Una vez al día",
+        "monthly": "Una vez al mes"
+      },
+      "every": "Cada",
+      "minutes_one": "{{count}} minuto",
+      "minutes_other": "{{count}} minutos",
+      "hours_one": "{{count}} hora",
+      "hours_other": "{{count}} horas",
+      "monthDay": "Día del mes",
+      "monthDayHint": "Los meses que no tienen ese día se saltan.",
+      "time": "Hora",
+      "daysLegend": "Días",
+      "presetWorkdays": "De lunes a viernes",
+      "presetAllDays": "Todos los días",
+      "cron": "Expresión cron",
+      "cronHint": "Cinco campos: minuto, hora, día del mes, mes y día de la semana. Por ejemplo, */30 8-18 * * 1-5.",
+      "interval": "Minutos entre ejecuciones",
+      "intervalHint": "Entre 1 y 44640.",
+      "timezone": "Zona horaria",
+      "platformZone": "La de la plataforma",
+      "timezoneHint": "Las horas de la programación se leen en esta zona.",
+      "misfire": "Si una ejecución no se lanza a su hora",
+      "misfires": {
+        "skip": "Omitirla",
+        "run_once": "Lanzar una de recuperación"
+      },
+      "misfireHints": {
+        "skip": "Se espera a la siguiente hora programada.",
+        "run_once": "Al volver, se lanza una sola ejecución aunque se hayan perdido varias."
+      },
+      "enabled": "Programación en marcha",
+      "enabledHint": "Desmárquela para conservarla sin que lance ejecuciones.",
+      "scheduleN": "Programación {{n}}",
+      "add": "Añadir otra programación",
+      "remove": "Quitar programación",
+      "blackouts": "Ventanas de exclusión",
+      "blackoutsHint": "Horas en las que no se lanza ninguna ejecución, por ejemplo el cierre contable o la copia de seguridad de SAP.",
+      "blackoutN": "Ventana de exclusión {{n}}",
+      "blackoutLabel": "Motivo",
+      "blackoutPlaceholder": {
+        "weekly": "Copia de seguridad de SAP",
+        "range": "Cierre contable"
+      },
+      "blackoutDays": "Días en los que empieza",
+      "from": "Desde",
+      "to": "Hasta",
+      "nextDay": "Del día siguiente.",
+      "browserZone": "En la hora de este equipo.",
+      "addWeekly": "Añadir ventana semanal",
+      "addRange": "Añadir ventana entre fechas",
+      "removeBlackout": "Quitar ventana",
+      "blackoutCount_one": "Una ventana de exclusión",
+      "blackoutCount_other": "{{count}} ventanas de exclusión",
+      "previewTitle": "Próximas ejecuciones",
+      "asCron": "En cron:",
+      "previewZone": "Horas de {{zone}}",
+      "previewEmpty": "Con estas ventanas de exclusión no queda ninguna ejecución próxima.",
+      "previewLoading": "Calculando…",
+      "issues": {
+        "days": "Marque al menos un día.",
+        "time": "Escriba la hora como HH:MM.",
+        "cron": "La expresión cron lleva cinco campos separados por espacios.",
+        "interval": "Escriba un número de minutos entre 1 y 44640.",
+        "monthDay": "El día del mes va de 1 a 31.",
+        "blackoutDays": "Marque al menos un día en cada ventana semanal.",
+        "blackoutHours": "En cada ventana semanal, la hora de inicio y la de fin deben ser distintas.",
+        "blackoutRange": "En cada ventana entre fechas, el fin debe ser posterior al inicio."
+      },
+      "days": {
+        "all": "todos los días",
+        "workdays": "de lunes a viernes",
+        "some": "en {{list}}"
+      },
+      "text": {
+        "minutes_one": "Cada minuto, {{days}}",
+        "minutes_other": "Cada {{count}} minutos, {{days}}",
+        "hours_one": "Cada hora, {{days}}",
+        "hours_other": "Cada {{count}} horas, {{days}}",
+        "daily": "A las {{time}}, {{days}}",
+        "monthly": "El día {{day}} de cada mes a las {{time}}",
+        "cron": "Según la expresión cron {{expression}}",
+        "interval_one": "Cada minuto desde la activación",
+        "interval_other": "Cada {{count}} minutos desde la activación"
+      },
+      "on": "En marcha",
+      "off": "Detenida",
+      "lastFire": "Último lanzamiento",
+      "lastSkip": "Última omisión",
+      "skipReasons": {
+        "blackout": "{{date}}, por caer en una ventana de exclusión",
+        "misfire": "{{date}}, por no lanzarse a su hora",
+        "already_live": "{{date}}, porque la ejecución anterior no había terminado"
+      },
+      "bandCaption": "Horas sin lanzamientos, de lunes a domingo.",
+      "platformZoneShort": "Zona horaria de la plataforma"
+    },
+    "activate": {
+      "title": "Comprobar y activar {{code}}",
+      "intro": "Antes de activar se comprueba que el origen, el sistema SAP y el destino están listos.",
+      "checking": "Comprobando…",
+      "checksLabel": "Resultado de la comprobación",
+      "passed": "Correcto",
+      "failed": "Falla",
+      "recheck": "Comprobar de nuevo",
+      "confirm": "Activar pipeline",
+      "reason": "Motivo para cargar en un entorno distinto",
+      "reasonHint": "El sistema SAP es {{source}} y el destino es {{destination}}. Escriba al menos 10 caracteres; queda en la auditoría."
+    },
+    "checks": {
+      "configuration": "Configuración",
+      "source_active": "Origen",
+      "sap_system_test": "Sistema SAP",
+      "destination_test": "Destino",
+      "service_published": "Servicio en SAP",
+      "schema_current": "Esquema",
+      "clone_schema": "Esquema respecto al pipeline de partida",
+      "cross_environment": "Entornos"
+    },
+    "runNow": {
+      "title": "Ejecutar {{code}} ahora",
+      "intro": "La ejecución entra en la cola con la prioridad más alta.",
+      "mode": "Qué se extrae",
+      "usual": "Lo habitual del pipeline ({{mode}})",
+      "full": "Recarga completa",
+      "fullHint": "Vuelve a leer todo el origen y reemplaza el destino. No toca la suscripción de delta.",
+      "reason": "Motivo (opcional)",
+      "confirm": "Ejecutar ahora"
+    },
+    "clone": {
+      "title": "Clonar {{code}}",
+      "intro": "La copia queda como borrador y sin estado de delta. Puede llevarla a otro sistema SAP y a otro destino, por ejemplo de DEV a QAS.",
+      "code": "Código de la copia",
+      "name": "Nombre de la copia",
+      "nameHint": "Vacío conserva el nombre del original.",
+      "system": "Sistema SAP",
+      "sameSystem": "El mismo ({{code}})",
+      "systemHint": "En otro sistema se vuelve a leer el esquema y se comparan las columnas.",
+      "sourceCode": "Código del origen en ese sistema",
+      "sourceCodeHint": "Solo si aún no existe un origen equivalente y hay que crearlo.",
+      "destination": "Destino",
+      "sameDestination": "El mismo ({{code}})",
+      "confirm": "Clonar pipeline",
+      "doneTitle": "Pipeline clonado",
+      "done": "La copia está en borrador. Revísela y actívela cuando esté lista.",
+      "sourceCreated": "Se creó un origen nuevo en el sistema elegido. La copia está en borrador.",
+      "sameSchema": "El esquema coincide con el del pipeline de partida.",
+      "added": "Columnas nuevas: {{columns}}.",
+      "removed": "Columnas que ya no están: {{columns}}.",
+      "changed": "Columnas con cambios: {{columns}}."
+    },
+    "mapping": {
+      "all": "Todas, con el nombre de SAP",
+      "excluded_one": "{{count}} excluida",
+      "excluded_other": "{{count}} excluidas",
+      "renamed_one": "{{count}} renombrada",
+      "renamed_other": "{{count}} renombradas"
     }
   },
   "runs": {
     "title": "Ejecuciones",
-    "description": "Historial de ejecuciones de todos los pipelines, con su estado y sus filas.",
-    "empty": "Todavía no hay ejecuciones.",
+    "description": "Historial de todas las ejecuciones, con su estado y sus intentos.",
+    "empty": "Ninguna ejecución coincide con los filtros.",
     "emptyFiltered": "Ninguna ejecución con ese estado.",
     "attemptsOf": "{{used}} de {{max}}",
     "statuses": {
@@ -1457,13 +1851,14 @@
       "succeeded": "Correcto",
       "failed_transient": "Fallo transitorio",
       "failed": "Fallido",
-      "stale": "Sin latido",
-      "fenced": "Relevado",
-      "interrupted": "Interrumpido",
-      "cancelled": "Cancelado"
+      "stale": "Sin respuesta del worker",
+      "fenced": "Relevado por otro worker",
+      "interrupted": "Interrumpido por apagado",
+      "cancelled": "Cancelado",
+      "running": "En curso"
     },
     "modes": {
-      "DELTA_INIT": "Inicialización del delta",
+      "DELTA_INIT": "Inicialización de delta",
       "DELTA": "Delta",
       "WATERMARK": "Marca de agua",
       "FULL": "Carga completa"
@@ -1488,7 +1883,7 @@
       "rows": "Filas leídas",
       "attempts": "Intentos",
       "requested": "Pedida",
-      "finished": "Terminada",
+      "finished": "Fin",
       "started": "Inicio",
       "attempt": "Intento",
       "step": "Paso",
@@ -1504,7 +1899,16 @@
       "generation": "Generación",
       "startToken": "Token de partida",
       "nextToken": "Token confirmado",
-      "window": "Ventana"
+      "window": "Ventana",
+      "created": "Lanzada",
+      "trigger": "Lanzada por",
+      "from": "Desde el día",
+      "to": "Hasta el día",
+      "reason": "Motivo",
+      "priority": "Prioridad",
+      "availableAt": "Disponible para los workers",
+      "heartbeat": "Última señal del worker",
+      "failedAttempts": "Intentos fallidos"
     },
     "detail": {
       "requestedBy": "Pedida por {{user}} el {{when}}",
@@ -1523,7 +1927,56 @@
       "stepsTitle": "Pasos",
       "noSteps": "Ningún paso todavía: la ejecución está en cola.",
       "attemptsTitle": "Intentos",
-      "noAttempts": "Ningún worker la ha tomado todavía."
+      "noAttempts": "Ningún worker ha tomado todavía esta ejecución.",
+      "title": "Ejecución de {{code}}",
+      "back": "Volver a ejecuciones",
+      "retry": "Reintentar",
+      "cancelRequested": "Cancelación solicitada",
+      "cancelRequestedHint": "El worker se detiene al terminar la página que está leyendo.",
+      "errorTitle": "Error {{code}}",
+      "timesTitle": "Tiempos",
+      "attemptsBudget": "{{used}} de {{budget}} permitidos",
+      "failedTitle_one": "La ejecución falló en su único intento ({{code}})",
+      "failedTitle_other": "La ejecución falló tras {{count}} intentos ({{code}})",
+      "dataTitle": "Datos"
+    },
+    "onlyPipeline": "Solo las ejecuciones de {{code}}.",
+    "onlyOnePipeline": "Solo las ejecuciones de un pipeline.",
+    "seeAll": "Ver todas",
+    "emptyFirstTitle": "Aún no hay ejecuciones",
+    "emptyFirst": "Las ejecuciones aparecen aquí cuando un pipeline activo se lanza, a mano o por su programación.",
+    "goToPipelines": "Ir a pipelines",
+    "triggers": {
+      "schedule": "Programación",
+      "manual": "A mano",
+      "api": "API",
+      "dependency": "Otro pipeline"
+    },
+    "triggeredBy": {
+      "schedule": "Programación",
+      "manual": "A mano, por {{user}}",
+      "api": "API, por {{user}}",
+      "dependency": "Otro pipeline"
+    },
+    "workers": {
+      "noneTitle": "Ningún worker puede tomar ejecuciones",
+      "noneOnline": "No hay workers en línea, así que la cola no avanza. Arranque el proceso worker.",
+      "noExecutor": "Los workers en línea no tienen instalado el motor de extracción, así que las ejecuciones se quedan en cola. Avise a quien administra la plataforma."
+    },
+    "cancel": {
+      "title": "¿Cancelar la ejecución de {{code}}?",
+      "message": {
+        "running": "El worker se detiene al terminar la página que está leyendo. Lo ya confirmado en el destino no se deshace.",
+        "queued": "La ejecución sale de la cola sin llegar a empezar."
+      },
+      "keep": "Seguir ejecutando",
+      "reason": "Motivo (opcional)"
+    },
+    "errorNext": {
+      "transient": "Es un error transitorio: compruebe que el sistema SAP y el destino responden y pulse «Reintentar».",
+      "configuration": "Es un error de configuración: corrija el pipeline, el origen o el destino antes de reintentar.",
+      "data": "Es un error de datos: revise las filas que rechaza el destino antes de reintentar.",
+      "delta": "Es un error de delta: el estado del delta en SAP no coincide con el guardado. Avise a quien administra la plataforma antes de reintentar."
     }
   },
   "monitoring": {

@@ -1,0 +1,459 @@
+/*
+ * Pipelines: recorrido origen → destino, listas de elección del asistente y constructor de
+ * programación. Solo usa tokens; el material (relieve, pozo) es el de shared/ui.
+ */
+
+/* ---------- Recorrido: dos placas en relieve dentro de un pozo, unidas por un conducto */
+.sx-pipelines__route {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(150px, auto) minmax(0, 1fr);
+  align-items: stretch;
+  margin-bottom: var(--sx-space-5);
+  padding: var(--sx-space-2);
+  background: var(--sx-color-surface-alt);
+  /* Radio exterior = radio de la placa + margen: las curvas quedan concéntricas. */
+  border-radius: calc(var(--sx-radius-md) + var(--sx-space-2));
+  box-shadow: var(--sx-shadow-well);
+}
+.sx-pipelines__stop {
+  display: grid;
+  align-content: start;
+  gap: var(--sx-space-1);
+  min-width: 0;
+  padding: var(--sx-space-3) var(--sx-space-4);
+  background: linear-gradient(160deg, var(--sx-surface-top), var(--sx-surface-bottom));
+  border-radius: var(--sx-radius-md);
+  box-shadow: var(--sx-shadow-raised);
+}
+.sx-pipelines__stop--empty {
+  color: var(--sx-color-text-muted);
+  background: none;
+  box-shadow: none;
+}
+.sx-pipelines__stop-label {
+  font-size: var(--sx-text-xs);
+  font-weight: 600;
+  color: var(--sx-color-text-muted);
+}
+.sx-pipelines__stop-code {
+  overflow-wrap: anywhere;
+  font-size: var(--sx-text-lg);
+  line-height: 1.2;
+}
+.sx-pipelines__stop-name {
+  overflow-wrap: anywhere;
+  color: var(--sx-color-text-2);
+}
+.sx-pipelines__conduit {
+  position: relative;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  padding: var(--sx-space-2) var(--sx-space-4);
+}
+/* La ranura por la que pasan los datos; en azul de aura cuando el pipeline está activo. */
+.sx-pipelines__conduit::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  height: 6px;
+  translate: 0 -50%;
+  background: var(--sx-color-bg);
+  box-shadow: inset 1px 1px 2px var(--sx-shade);
+}
+.sx-pipelines__route[data-status='active'] .sx-pipelines__conduit::before {
+  background: var(--sx-color-primary);
+  box-shadow: none;
+}
+.sx-pipelines__conduit span {
+  position: relative;
+  padding: var(--sx-space-1) var(--sx-space-3);
+  font-size: var(--sx-text-xs);
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: center;
+  color: var(--sx-color-text-2);
+  background: linear-gradient(180deg, var(--sx-key-top), var(--sx-key-bottom));
+  border-radius: var(--sx-radius-sm);
+  box-shadow: var(--sx-shadow-sm);
+}
+@media (max-width: 720px) {
+  .sx-pipelines__route {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sx-pipelines__conduit {
+    padding: var(--sx-space-3) var(--sx-space-4);
+  }
+  .sx-pipelines__conduit::before {
+    top: 0;
+    right: auto;
+    bottom: 0;
+    left: 50%;
+    width: 6px;
+    height: auto;
+    translate: -50% 0;
+  }
+}
+@media (forced-colors: active) {
+  .sx-pipelines__stop:not(.sx-pipelines__stop--empty),
+  .sx-pipelines__conduit span {
+    outline: 1px solid CanvasText;
+    outline-offset: -1px;
+  }
+  .sx-pipelines__conduit::before {
+    forced-color-adjust: none;
+    background: CanvasText;
+  }
+  .sx-pipelines__route[data-status='active'] .sx-pipelines__conduit::before {
+    background: Highlight;
+  }
+}
+
+/* Recorrido resumido de la lista. */
+.sx-pipelines__mini-route {
+  display: grid;
+  gap: var(--sx-space-1);
+  margin: 0;
+}
+.sx-pipelines__mini-route div {
+  display: grid;
+  grid-template-columns: 4.5rem auto;
+  justify-content: start;
+  align-items: center;
+  gap: var(--sx-space-2);
+}
+.sx-pipelines__mini-route dt {
+  font-size: var(--sx-text-xs);
+  color: var(--sx-color-text-muted);
+}
+.sx-pipelines__mini-route dd {
+  display: flex;
+  align-items: center;
+  gap: var(--sx-space-2);
+  margin: 0;
+  white-space: nowrap; /* un código partido no se lee: la tabla se desplaza en horizontal */
+}
+/* Columnas de la lista con un ancho mínimo legible; por debajo, la tabla se desplaza. */
+.sx-pipelines__list .sx-table {
+  min-width: 860px;
+}
+
+/* ---------- Avisos y bloqueos */
+.sx-pipelines__findings ul,
+.sx-pipelines__notice-list {
+  display: grid;
+  gap: var(--sx-space-1);
+  margin: 0;
+  padding-left: var(--sx-space-4);
+}
+.sx-pipelines__plain-list {
+  display: grid;
+  gap: var(--sx-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sx-pipelines__subtitle {
+  margin: 0 0 var(--sx-space-1);
+  font-size: var(--sx-text-md);
+  font-weight: 700;
+}
+
+/* ---------- Elección de origen y destino: placas con un radio nativo */
+.sx-pipelines__choices {
+  display: grid;
+  gap: var(--sx-space-2);
+  min-width: 0;
+  margin: 0;
+  padding: 6px;
+  border: 0;
+  background: var(--sx-color-surface-alt);
+  border-radius: calc(var(--sx-radius-md) + 6px);
+  box-shadow: var(--sx-shadow-well);
+}
+.sx-pipelines__choice {
+  display: grid;
+  grid-template-columns: auto minmax(0, 2fr) minmax(0, 1.2fr) minmax(0, 1.2fr) auto;
+  align-items: center;
+  gap: var(--sx-space-3);
+  padding: var(--sx-space-3) var(--sx-space-4);
+  background: linear-gradient(180deg, var(--sx-key-top), var(--sx-key-bottom));
+  border-radius: var(--sx-radius-md);
+  box-shadow: var(--sx-shadow-sm);
+  cursor: pointer;
+}
+.sx-pipelines__choice input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--sx-color-primary);
+}
+.sx-pipelines__choice > .sx-pill {
+  justify-self: start;
+}
+.sx-pipelines__choice-main {
+  display: grid;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.sx-pipelines__choice:has(input:checked) {
+  box-shadow:
+    inset 0 0 0 2px var(--sx-color-primary),
+    var(--sx-shadow-sm);
+}
+.sx-pipelines__choice:has(input:focus-visible) {
+  outline: 2px solid var(--sx-color-focus);
+  outline-offset: 2px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .sx-pipelines__choice:hover {
+    background: var(--sx-color-surface);
+  }
+}
+@media (max-width: 900px) {
+  .sx-pipelines__choice {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .sx-pipelines__choice > :nth-child(n + 3) {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
+@media (forced-colors: active) {
+  .sx-pipelines__choice {
+    outline: 1px solid CanvasText;
+    outline-offset: -1px;
+  }
+  .sx-pipelines__choice:has(input:checked) {
+    outline: 2px solid Highlight;
+  }
+}
+
+/* Rejillas que contienen una tabla ancha: la columna cede el ancho en vez de crecer con ella. */
+.sx-pipelines__fit {
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+}
+
+/* ---------- Campos en pareja, mapeo y filtros */
+.sx-pipelines__pair {
+  display: grid;
+  gap: var(--sx-space-3) var(--sx-space-4);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+.sx-pipelines__pair .sx-field {
+  margin-bottom: 0;
+}
+.sx-pipelines__mapping .sx-table-wrap {
+  max-height: 420px;
+  overflow: auto;
+}
+.sx-pipelines__mapping .sx-input {
+  min-width: 140px;
+}
+.sx-pipelines__filter-row {
+  display: grid;
+  gap: var(--sx-space-3);
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 2fr) auto;
+  align-items: end;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.sx-pipelines__filter-row .sx-field {
+  margin-bottom: 0;
+}
+@media (max-width: 720px) {
+  .sx-pipelines__pair,
+  .sx-pipelines__filter-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ---------- Constructor de programación: controles a la izquierda, próximas ejecuciones al lado */
+.sx-pipelines__schedule {
+  display: grid;
+  gap: var(--sx-space-5);
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  grid-template-areas:
+    'controls preview'
+    'blackouts preview';
+  align-items: start;
+}
+.sx-pipelines__schedule-controls {
+  grid-area: controls;
+}
+.sx-pipelines__schedule-blackouts {
+  grid-area: blackouts;
+  padding-top: var(--sx-space-4);
+  border-top: 1px solid var(--sx-color-border);
+}
+/* Cada programación queda cerrada por una línea: lo que hay debajo ya no es suyo. */
+.sx-pipelines__schedule-card {
+  padding-bottom: var(--sx-space-5);
+  border-bottom: 1px solid var(--sx-color-border);
+}
+.sx-pipelines__schedule-head {
+  justify-content: space-between;
+  margin-bottom: var(--sx-space-3);
+}
+.sx-pipelines__days {
+  margin-bottom: 0;
+}
+.sx-pipelines__days-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sx-space-1) var(--sx-space-4);
+  margin-bottom: var(--sx-space-2);
+}
+.sx-pipelines__preview {
+  grid-area: preview;
+  position: sticky;
+  top: var(--sx-space-4);
+  display: grid;
+  gap: var(--sx-space-2);
+  padding: var(--sx-space-4);
+  background: var(--sx-color-surface-alt);
+  border-radius: var(--sx-radius-md);
+  box-shadow: var(--sx-shadow-well);
+}
+.sx-pipelines__preview p {
+  margin: 0;
+}
+.sx-pipelines__sentence {
+  font-size: var(--sx-text-lg);
+  font-weight: 700;
+  line-height: 1.3;
+}
+.sx-pipelines__fires {
+  display: grid;
+  gap: var(--sx-space-1);
+  margin: 0;
+  padding-left: var(--sx-space-5);
+  font-variant-numeric: tabular-nums;
+}
+.sx-pipelines__fires li::marker {
+  font-size: var(--sx-text-xs);
+  color: var(--sx-color-text-muted);
+}
+
+/* Ventanas de exclusión */
+.sx-pipelines__blackout {
+  display: grid;
+  gap: var(--sx-space-3);
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) auto;
+  align-items: start;
+  margin: 0;
+  padding: var(--sx-space-3);
+  border: 0;
+  background: var(--sx-color-surface-alt);
+  border-radius: var(--sx-radius-md);
+  box-shadow: var(--sx-shadow-well);
+}
+.sx-pipelines__blackout .sx-field {
+  margin-bottom: 0;
+}
+.sx-pipelines__blackout > .sx-btn {
+  margin-top: 1.6rem; /* a la altura de los campos, bajo su etiqueta */
+}
+.sx-pipelines__blackout-days {
+  grid-column: 1 / -1;
+}
+
+/* Semana con las horas excluidas */
+.sx-pipelines__band {
+  display: grid;
+  gap: var(--sx-space-1);
+}
+.sx-pipelines__band-row {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  align-items: center;
+  gap: var(--sx-space-2);
+}
+.sx-pipelines__band-day {
+  font-size: var(--sx-text-xs);
+  color: var(--sx-color-text-muted);
+}
+.sx-pipelines__band-track {
+  position: relative;
+  height: 10px;
+  overflow: hidden;
+  background: var(--sx-color-surface-alt);
+  border-radius: var(--sx-radius-pill);
+  box-shadow: inset 1px 1px 2px var(--sx-shade-soft);
+}
+.sx-pipelines__band-off {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--sx-color-text-muted); /* neutro: una exclusión no es un aviso */
+}
+.sx-pipelines__band-hours {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--sx-text-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--sx-color-text-muted);
+}
+@media (forced-colors: active) {
+  .sx-pipelines__band-track {
+    outline: 1px solid CanvasText;
+  }
+  .sx-pipelines__band-off {
+    forced-color-adjust: none;
+    background: CanvasText;
+  }
+}
+
+@media (max-width: 1100px) {
+  .sx-pipelines__schedule {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'controls'
+      'preview'
+      'blackouts';
+  }
+  .sx-pipelines__preview {
+    position: static;
+  }
+}
+@media (max-width: 720px) {
+  .sx-pipelines__blackout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sx-pipelines__blackout > .sx-btn {
+    margin-top: 0;
+    justify-self: start;
+  }
+}
+
+/* ---------- Programaciones guardadas (ficha) */
+.sx-pipelines__schedule-list {
+  display: grid;
+  gap: var(--sx-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sx-pipelines__schedule-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) auto minmax(0, 1fr);
+  align-items: start;
+  gap: var(--sx-space-4);
+  padding: var(--sx-space-3) var(--sx-space-4);
+  background: var(--sx-color-surface-alt);
+  border-radius: var(--sx-radius-md);
+  box-shadow: var(--sx-shadow-well);
+}
+@media (max-width: 720px) {
+  .sx-pipelines__schedule-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sx-pipelines__schedule-row > .sx-pill {
+    justify-self: start;
+  }
+}

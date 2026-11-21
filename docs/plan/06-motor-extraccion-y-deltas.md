@@ -349,7 +349,7 @@ Un pipeline `DELTA` encola runs `DELTA`; el motor los convierte en `DELTA_INIT` 
 | Almacén con *fencing* | `extraction/application/store.py` | Identidad del lote y toma del estado de delta (`begin`), ventana, token pendiente, `run_step`, `run_log` y `commit_delta` en una transacción con el run `succeeded` |
 | Motor | `extraction/application/engine.py` | `prepare → extract → load → commit_delta → cleanup`; salto de extracción y carga si la tabla de control del destino ya tiene el lote; reutilización del spool en el mismo worker; ventana de marca de agua con la hora de SAP (cabecera `Date`) |
 | API | `extraction/api/` | `GET /runs/{id}/steps`, `GET /runs/{id}/logs?after=`, `GET /pipelines/{id}/delta`, `POST …/delta/reset`, `POST …/delta/sap-subscription`. El detalle del run de la It6 añade filas, token confirmado y `has_spool` por intento |
-| Pantallas | `features/pipelines`, `features/runs` | Lista y alta de pipelines en una pantalla (borrador → activar → ejecutar), detalle con pestañas Ejecuciones, Delta y Actividad; historial y detalle de run con log en vivo, pasos, intentos y cancelación. El asistente completo y la programación siguen pendientes (pantallas de la It6) |
+| Pantallas | `features/pipelines`, `features/runs` | Integradas en las pantallas de la It6 (plan 08 «Pantallas»): el alta pasa por el asistente y la ficha añade la pestaña Delta (estado, token, historial, reinicialización y confirmación de la suscripción en SAP); el detalle de run muestra cifras, tokens, pasos del motor y log en vivo |
 
 **Opciones provisionales hasta el spike** (cada una en una constante o en un punto del código con la hipótesis que la cierra):
 

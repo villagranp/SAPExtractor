@@ -56,6 +56,7 @@ interface WizardForm {
   proxy_url: string;
   timeout_seconds: string;
   max_concurrent_requests: string;
+  max_concurrent_runs: string;
   credentials: CredentialsForm;
 }
 
@@ -75,6 +76,7 @@ const NEW_FORM: WizardForm = {
   proxy_url: '',
   timeout_seconds: '60',
   max_concurrent_requests: '4',
+  max_concurrent_runs: '2',
   credentials: emptyCredentials,
 };
 
@@ -89,6 +91,7 @@ const STEP_FIELDS: Record<StepId, string[]> = {
     'proxy_url',
     'timeout_seconds',
     'max_concurrent_requests',
+    'max_concurrent_runs',
   ],
   credentials: ['credentials'],
   test: [],
@@ -111,6 +114,7 @@ function fromSystem(s: SapSystemDetail): WizardForm {
     proxy_url: s.proxy_url ?? '',
     timeout_seconds: String(s.timeout_seconds),
     max_concurrent_requests: String(s.max_concurrent_requests),
+    max_concurrent_runs: String(s.max_concurrent_runs),
   };
 }
 
@@ -139,6 +143,8 @@ function validate(step: StepId, form: WizardForm, editing: boolean): Record<stri
     if (!Number.isInteger(parallel) || parallel < 1 || parallel > 32) {
       errors.max_concurrent_requests = 'concurrency';
     }
+    const runs = Number(form.max_concurrent_runs);
+    if (!Number.isInteger(runs) || runs < 1 || runs > 16) errors.max_concurrent_runs = 'runs';
   }
   if (step === 'credentials' && !editing) {
     for (const key of missingCredentialFields(form.credentials)) errors[key] = 'required';
@@ -156,6 +162,7 @@ function connectionPayload(form: WizardForm) {
     proxy_url: form.proxy_url.trim() || null,
     timeout_seconds: Number(form.timeout_seconds),
     max_concurrent_requests: Number(form.max_concurrent_requests),
+    max_concurrent_runs: Number(form.max_concurrent_runs),
   };
 }
 
@@ -176,6 +183,9 @@ function changes(form: WizardForm, s: SapSystemDetail): SapSystemUpdateRequest {
   if (conn.timeout_seconds !== s.timeout_seconds) body.timeout_seconds = conn.timeout_seconds;
   if (conn.max_concurrent_requests !== s.max_concurrent_requests) {
     body.max_concurrent_requests = conn.max_concurrent_requests;
+  }
+  if (conn.max_concurrent_runs !== s.max_concurrent_runs) {
+    body.max_concurrent_runs = conn.max_concurrent_runs;
   }
   if (form.remove_ca) body.ca_bundle_pem = '';
   else if (conn.ca_bundle_pem) body.ca_bundle_pem = conn.ca_bundle_pem;
@@ -439,6 +449,16 @@ function Wizard({ existing }: WizardProps) {
             onChange={text('max_concurrent_requests')}
             hint={t('sapSystems.hints.concurrency')}
             error={fieldError('max_concurrent_requests')}
+          />
+          <TextField
+            label={t('sapSystems.fields.runs')}
+            type="number"
+            min={1}
+            max={16}
+            value={form.max_concurrent_runs}
+            onChange={text('max_concurrent_runs')}
+            hint={t('sapSystems.hints.runs')}
+            error={fieldError('max_concurrent_runs')}
           />
         </div>
       </div>

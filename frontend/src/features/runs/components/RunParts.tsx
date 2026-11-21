@@ -1,16 +1,8 @@
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router';
 import { describeError } from '@/shared/api/errors';
 import { formatDateTime } from '@/shared/format';
-import { Alert, DataTable, StatusPill, type Column, type StatusTone } from '@/shared/ui';
-import {
-  useRunLogs,
-  type AttemptOutcome,
-  type DeltaStatus,
-  type RunStatus,
-  type RunSummary,
-} from '../api/queries';
-import { useModeLabel, useNumbers } from '../format';
+import { Alert, StatusPill, type StatusTone } from '@/shared/ui';
+import { useRunLogs, type AttemptOutcome, type DeltaStatus, type RunStatus } from '../api/queries';
 
 const RUN_TONES: Record<RunStatus, StatusTone> = {
   queued: 'neutral',
@@ -51,71 +43,6 @@ export function OutcomePill({ outcome }: { outcome: AttemptOutcome | null }) {
   const { t } = useTranslation();
   if (outcome === null) return <StatusPill tone="info">{t('runs.statuses.running')}</StatusPill>;
   return <StatusPill tone={OUTCOME_TONES[outcome]}>{t(`runs.outcomes.${outcome}`)}</StatusPill>;
-}
-
-export function RunsTable({
-  runs,
-  loading,
-  showPipeline,
-  empty,
-}: {
-  runs: RunSummary[];
-  loading: boolean;
-  showPipeline: boolean;
-  empty: string;
-}) {
-  const { t } = useTranslation();
-  const navigate = useNavigate();
-  const mode = useModeLabel();
-  const { rows } = useNumbers();
-  const columns: Column<RunSummary>[] = [
-    ...(showPipeline
-      ? [
-          {
-            key: 'pipeline',
-            header: t('runs.fields.pipeline'),
-            render: (r: RunSummary) => <strong>{r.pipeline.code}</strong>,
-          },
-        ]
-      : []),
-    { key: 'mode', header: t('runs.fields.mode'), render: (r) => mode(r.mode) },
-    {
-      key: 'status',
-      header: t('runs.fields.status'),
-      render: (r) => <RunStatusPill status={r.status} />,
-    },
-    {
-      key: 'rows',
-      header: t('runs.fields.rows'),
-      render: (r) => rows(r.rows_extracted),
-    },
-    {
-      key: 'created',
-      header: t('runs.fields.requested'),
-      render: (r) => (
-        <span className="sx-stack" style={{ gap: 'var(--sx-space-1)' }}>
-          <span>{formatDateTime(r.created_at)}</span>
-          <span className="sx-muted">{r.triggered_by ?? '—'}</span>
-        </span>
-      ),
-    },
-    {
-      key: 'finished',
-      header: t('runs.fields.finished'),
-      render: (r) => formatDateTime(r.finished_at),
-    },
-  ];
-  return (
-    <DataTable
-      caption={t('runs.title')}
-      columns={columns}
-      rows={runs}
-      rowKey={(r) => r.id}
-      loading={loading}
-      empty={empty}
-      onRowClick={(r) => void navigate(`/runs/${r.id}`)}
-    />
-  );
 }
 
 /** Log de la ejecución: se actualiza solo mientras el run sigue vivo. */

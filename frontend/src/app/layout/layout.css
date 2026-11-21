@@ -297,6 +297,7 @@
      desborda en horizontal (≈ 1060 px en un móvil de 360). El carril se desplaza por dentro. */
   .sx-shell {
     grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto 1fr; /* el carril mide lo suyo; el resto es del contenido */
     padding: var(--sx-space-2);
   }
   .sx-rail {

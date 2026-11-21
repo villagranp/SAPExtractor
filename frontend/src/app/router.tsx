@@ -9,8 +9,8 @@ import { LoginPage } from '@/features/auth/pages/LoginPage';
 import { AlertsPage } from '@/features/monitoring/pages/AlertsPage';
 import { DashboardPage } from '@/features/monitoring/pages/DashboardPage';
 import { PipelineDetailPage } from '@/features/pipelines/pages/PipelineDetailPage';
-import { PipelineNewPage } from '@/features/pipelines/pages/PipelineNewPage';
 import { PipelinesPage } from '@/features/pipelines/pages/PipelinesPage';
+import { PipelineWizardPage } from '@/features/pipelines/pages/PipelineWizardPage';
 import { RunDetailPage } from '@/features/runs/pages/RunDetailPage';
 import { RunsPage } from '@/features/runs/pages/RunsPage';
 import { ProfilePage } from '@/features/auth/pages/ProfilePage';
@@ -63,6 +63,12 @@ export const routes: RouteObject[] = [
     children: [
       { index: true, element: <HomePage /> },
       { path: 'profile', element: <ProfilePage /> },
+      guarded('pipelines', 'pipeline:read', <PipelinesPage />),
+      guarded('pipelines/new', 'pipeline:manage', <PipelineWizardPage />),
+      guarded('pipelines/:pipelineId', 'pipeline:read', <PipelineDetailPage />),
+      guarded('pipelines/:pipelineId/edit', 'pipeline:manage', <PipelineWizardPage />),
+      guarded('runs', 'pipeline:read', <RunsPage />),
+      guarded('runs/:runId', 'pipeline:read', <RunDetailPage />),
       guarded('sap-systems', 'sap_connection:read', <SapSystemsPage />),
       guarded('sap-systems/new', 'sap_connection:manage', <SapSystemWizardPage />),
       guarded('sap-systems/:systemId', 'sap_connection:read', <SapSystemDetailPage />),
@@ -78,11 +84,6 @@ export const routes: RouteObject[] = [
       guarded('destinations/:destinationId/edit', 'destination:manage', <DestinationWizardPage />),
       guarded('dashboard', 'dashboard:read', <DashboardPage />),
       guarded('alerts', 'dashboard:read', <AlertsPage />),
-      guarded('pipelines', 'pipeline:read', <PipelinesPage />),
-      guarded('pipelines/new', 'pipeline:manage', <PipelineNewPage />),
-      guarded('pipelines/:pipelineId', 'pipeline:read', <PipelineDetailPage />),
-      guarded('runs', 'pipeline:read', <RunsPage />),
-      guarded('runs/:runId', 'pipeline:read', <RunDetailPage />),
       guarded('admin/users', 'user:read', <UsersPage />),
       guarded('admin/users/:userId', 'user:read', <UserDetailPage />),
       guarded('admin/roles', 'role:read', <RolesPage />),

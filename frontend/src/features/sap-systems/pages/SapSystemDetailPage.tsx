@@ -86,6 +86,7 @@ function GeneralTab({ system, canTest }: { system: SapSystemDetail; canTest: boo
               value: t('sapSystems.detail.limits', {
                 timeout: system.timeout_seconds,
                 parallel: system.max_concurrent_requests,
+                runs: system.max_concurrent_runs,
               }),
             },
             { label: t('sapSystems.fields.tags'), value: system.tags.join(', ') || null },

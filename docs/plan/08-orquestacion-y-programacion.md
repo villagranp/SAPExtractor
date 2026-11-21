@@ -4,7 +4,7 @@
 
 > Actualizado el 19.11.2026 con los cambios C-06, C-14, C-16, C-17, C-19 y C-20 del [plan 13](13-revision-y-plan-de-cambios.md).
 >
-> **Estado (21.11.2026):** el backend de esta iteración está construido (Dev A), adelantado a la It5 como prevé el plan 13 §5.4 mientras el spike sigue pendiente. Faltan las pantallas (Dev B) y lo que depende del motor. El detalle está en [Lo construido](#lo-construido-it6-backend-21112026).
+> **Estado (21.11.2026):** el backend de esta iteración está construido (Dev A), adelantado a la It5 como prevé el plan 13 §5.4 mientras el spike sigue pendiente. Las pantallas también están construidas (21.11.2026, ver [Pantallas](#pantallas-it6-21112026)). Falta lo que depende del motor. El detalle del backend está en [Lo construido](#lo-construido-it6-backend-21112026).
 
 ## Objetivo
 
@@ -141,7 +141,7 @@ GET    /api/v1/concurrency-groups   PUT …
 - [x] Acciones de pipeline con permisos y auditoría, incluido el clonado hacia otro entorno. Pendientes del motor (It5): `test-run`, reinicializar delta, `delta-state` y el cierre de la suscripción al eliminar.
 - [x] Comprobación antes de activar y aviso de entornos cruzados (sin la ejecución de prueba, que necesita el motor).
 - [x] API de vista previa de cron.
-- [ ] Asistente de pipeline, constructor de programación y validaciones en vivo (con plan 10). El backend ya expone lo que necesitan; las pantallas son de Dev B.
+- [x] Asistente de pipeline, constructor de programación y validaciones en vivo (con plan 10). Ver [Pantallas](#pantallas-it6-21112026).
 - [x] Pruebas: concurrencia (dos workers no toman el mismo run ni superan el límite por sistema), caída del líder, cambio de horario, blackout.
 
 **Conexión con el motor (It5, 21.11.2026).** El worker ejecuta `ExtractionEngine` como `RunExecutor`. Se añadió un segundo puerto, `EngineHooks` (`orchestration/domain/ports.py`), que la orquestación llama en cuatro puntos: antes de encolar a mano (`check_run`: 409 si el delta está roto o tiene una suscripción sin cerrar), al terminar un run sin éxito en el worker, al recuperar runs caídos y al cancelar uno en cola (`run_finished`: suelta el estado de delta), y al borrar un pipeline (`pipeline_deleted`). `reap_stale` recibe el gancho como `on_final`. Sin motor registrado (`hooks=None`) la orquestación funciona igual. Detalle en el plan 06, «Lo construido en la iteración 5».
@@ -179,7 +179,7 @@ class RunExecutor(Protocol):
 - `schedule` añade `last_skip_at` y `last_skip_reason` (`blackout`, `misfire`, `already_live`): es el registro de "ejecución omitida".
 - `pipeline` añade `cloned_from_id`, `cross_environment_reason`, `activated_at` y `status_reason`. `column_mapping` va en su columna; el resto de opciones de carga, en `load_options`.
 - `worker.id` es un UUID nuevo en cada arranque; `has_executor` indica si puede tomar runs.
-- `sap_system.max_concurrent_runs`: por defecto 2, de 1 a 16. La API lo acepta en el alta y en la edición; **falta el campo en el formulario de sistemas SAP** (Dev B).
+- `sap_system.max_concurrent_runs`: por defecto 2, de 1 a 16. Se edita en el paso «Conexión» del asistente de sistemas SAP y se ve en su ficha.
 
 ### Cola y workers
 
@@ -189,6 +189,8 @@ class RunExecutor(Protocol):
 - Un intento `stale` gasta presupuesto de reintentos; uno `interrupted` (SIGTERM) no. Así un run que tumba al worker no se repite sin fin.
 - El plazo `timeout_minutes` se mide por intento y cuenta como error transitorio (`SX-RUN-TIMEOUT`).
 - Pools: `SX_WORKER_POOLS` (por defecto `["default"]`).
+- **Una pausa retiene también lo que está en cola**: la toma solo elige runs de pipelines activos, así que un run en cola (o en espera de reintento) aguarda a que el pipeline se reanude. El reintento manual exige pipeline activo (`SX-PIPE-NOT-ACTIVE`), igual que el run manual. El run en curso termina.
+- Un error inesperado del ejecutor se registra con su tipo y los marcos de la traza (archivo, línea, función), **sin el texto de la excepción**, que puede llevar datos o credenciales; tampoco se guarda en el run. Es la regla general de los logs (plan 03 §3): vale igual para el scheduler y el bucle del worker.
 
 ### Scheduler
 
@@ -230,4 +232,50 @@ No existen todavía `test-run`, `delta/reset` ni `delta-state`: llegan con el mo
 - `tests/integration/test_orchestration.py`: la API contra PostgreSQL, el Gateway simulado y un destino CSV.
 - `tests/integration/test_orchestration_queue.py`: scheduler, cola y workers con un ejecutor de pruebas (`tests/support/orchestration.py`). Incluye el criterio de 3 workers y 20 pipelines y el relevo del líder.
 
-De los criterios de aceptación quedan sin demostrar los que pasan por pantalla (asistente) y, de punta a punta, el del clon de DEV a PRD: en las pruebas el sistema SAP de PRD exige HTTPS, así que el clon se prueba de DEV a QAS.
+El criterio del asistente («cada 30 min en días laborables» con sus próximas ejecuciones) lo cubre `PipelineWizardPage.test.tsx`. De punta a punta queda sin demostrar el del clon de DEV a PRD: en las pruebas el sistema SAP de PRD exige HTTPS, así que el clon se prueba de DEV a QAS.
+
+## Pantallas (It6, 21.11.2026)
+
+`frontend/src/features/pipelines/` y `frontend/src/features/runs/`, solo con componentes de `shared/ui` y tokens. Rutas: `/pipelines`, `/pipelines/new`, `/pipelines/:id`, `/pipelines/:id/edit`, `/runs` y `/runs/:id`, todas con `pipeline:read` (alta y edición, `pipeline:manage`). «Pipelines» y «Ejecuciones» dejan de verse como iteración futura en el carril.
+
+### Lista y ficha de pipeline
+
+- La lista muestra el recorrido (origen y destino con su entorno), el modo de extracción y de carga, el estado, la próxima ejecución y la última. Filtra por texto, estado y entorno SAP; admite `?destination=` y `?source=` (desde la ficha de un destino).
+- La ficha abre con el **recorrido**: placa del origen, conducto con el modo de extracción y de carga, y placa del destino. Es el único elemento distintivo de estas pantallas; el conducto se ve en azul de aura cuando el pipeline está activo. Debajo, los avisos y bloqueos de la configuración.
+- Pestañas: resumen, ejecuciones, delta (solo en pipelines incrementales), programación y actividad. La pestaña «Delta» es la del motor (plan 06): estado, token vigente, historial, reinicialización y confirmación de la suscripción que queda abierta en SAP.
+- Acciones según permiso y estado: ejecutar ahora (con recarga completa si el pipeline es incremental y el usuario tiene `pipeline:manage`), comprobar y activar, pausar (con el aviso de la cola de delta), reanudar, editar, clonar y eliminar (escribiendo el código).
+- **Comprobar y activar** lanza la comprobación previa al abrir el diálogo y enseña cada punto con su resultado. Si los entornos no coinciden pide el motivo (10 caracteres como mínimo) y solo entonces deja activar.
+- **Clonar** pide el código y, si se quiere, otro sistema SAP y otro destino; al terminar abre la copia con el diff de esquema (columnas nuevas, eliminadas y cambiadas).
+
+### Asistente
+
+- Pasos: origen, destino, carga, programación, nombre y ejecución, y resumen. Es un paso más que en el §6: el código, el nombre, la prioridad, el plazo y los reintentos van en un paso propio, como en el asistente de orígenes. En un pipeline activo o en pausa no aparecen los pasos de origen y destino y el modo de extracción queda fijo.
+- El recorrido se va completando arriba mientras se elige. La **validación en vivo** llama a `POST /pipelines/review` con cada combinación y muestra bloqueos y avisos bajo el recorrido.
+- Los modos se proponen según lo elegido: el incremental que admita el origen, y el modo de carga que admita el destino (un delta con imágenes posteriores propone fusionar por clave; una carga completa, reemplazar).
+- Carga: tabla o archivo de destino, qué hacer si SAP añade columnas o borra filas, columnas técnicas, mapeo de columnas (excluir y renombrar; las claves no se pueden excluir) y filtros propios o los del origen.
+- Se guarda como borrador (`POST /pipelines` y, si hay programación, `PUT /pipelines/{id}/schedules`). Si la programación falla, el pipeline ya está guardado y la ficha lo explica.
+- No hay botón «Probar»: el motor aún no expone `test-run`.
+
+### Constructor de programación
+
+- «Con programación» o «Solo a mano» (sin programaciones). Hasta cinco programaciones por pipeline.
+- **Con frases**: cada 5, 10, 15, 20 o 30 minutos; cada 1, 2, 3, 4, 6, 8 o 12 horas; una vez al día a una hora; una vez al mes; con los días de la semana que se marquen. Siempre se traduce a cron (`*/30 * * * 1-5`), alineado con el reloj. **Expresión cron** para lo demás. Una programación de tipo `interval` creada por API se conserva como «Intervalo fijo».
+- Vista previa de las próximas 10 ejecuciones en la zona de la programación (`POST /schedules/preview`), con la frase que la describe y su cron.
+- Zona horaria (por defecto la de la plataforma), política si una ejecución no se lanza a su hora y casilla para detenerla sin borrarla.
+- Ventanas de exclusión semanales (pueden cruzar la medianoche) o entre dos fechas, con una banda de lunes a domingo que marca las horas excluidas. Las fechas de una ventana entre fechas se escriben en la hora del equipo.
+
+### Ejecuciones
+
+- Historial global con filtros de estado, quién la lanzó y fechas; `?pipeline=` lo acota a un pipeline. Se refresca solo mientras haya ejecuciones en cola o en curso.
+- Detalle: error con su código y cómo seguir según su clase, resumen, tiempos, cifras del motor (filas extraídas, insertadas, actualizadas y borradas), lote y tokens, log en vivo, pasos e intentos. Cancelar (con motivo) si está en cola o en curso; reintentar si falló.
+- **Aviso cuando ningún worker puede tomar ejecuciones** (`GET /workers`): sin workers en línea, o con workers sin el motor, la cola no avanza y la pantalla lo dice.
+
+### Fusión con las pantallas del motor (21.11.2026)
+
+La It5 llegó a `main` con unas pantallas mínimas de pipelines y ejecuciones (alta en un formulario, activar y ejecutar). Se unieron con estas: quedan el asistente, la programación, el clonado y las acciones de aquí, y de las del motor la pestaña Delta, los pasos, el log en vivo y las cifras de cada ejecución. El formulario de alta anterior se retiró. El historial de un pipeline filtra con `?pipeline=`: las pantallas del motor enviaban `pipeline_id`, que la API ignora, y mostraban las ejecuciones de todos.
+
+### Pendiente
+
+- Gestión de grupos de concurrencia y vista de workers (Ajustes, plan 10 §3). El asistente deja elegir un grupo si ya existe alguno.
+- «Probar pipeline» (`test-run`): el motor aún no lo expone.
+- El E2E del motor (`tests/e2e/smoke.spec.ts`) recorre el asistente, la comprobación previa, «Ejecutar ahora» y la pestaña Delta contra `sap-mock`.

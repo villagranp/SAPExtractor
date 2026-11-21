@@ -32,7 +32,7 @@ test.describe('pantallas con sesión', () => {
   test.skip(!ADMIN_USER || !ADMIN_PASSWORD, 'Defina E2E_ADMIN_USER y E2E_ADMIN_PASSWORD');
 
   test('pantallas principales en tema claro y grafito', async ({ page }) => {
-    test.setTimeout(240_000); // 13 pantallas × 2 temas con axe
+    test.setTimeout(300_000); // 16 pantallas × 2 temas con axe
     await page.goto('/login');
     await page.getByLabel('Usuario').fill(ADMIN_USER ?? '');
     await page.getByLabel('Contraseña', { exact: true }).fill(ADMIN_PASSWORD ?? '');

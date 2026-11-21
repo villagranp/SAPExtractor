@@ -43,7 +43,8 @@ function checkState(report: HealthReport | undefined, name: string, loading: boo
 
 /**
  * Estado de cada iteración del ROADMAP (docs/plan/ROADMAP.md); actualizarlo al cerrar una.
- * Fase 0 sigue en curso por el spike SAP; It4a está construida pero falta validar Snowflake.
+ * Fase 0 sigue en curso por el spike SAP; It4a está construida pero falta validar Snowflake;
+ * It6 está construida (orquestación y pantallas) y espera al motor de la It5 para ejecutar.
  */
 const ROADMAP: { key: string; state: MeterState }[] = [
   { key: 'it0', state: 'on' },

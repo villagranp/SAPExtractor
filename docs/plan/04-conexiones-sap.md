@@ -171,10 +171,12 @@ Guardar el resultado no cambia la versión del sistema (no invalida un formulari
 
 **Mock SAP:** el catálogo admite `$expand=EntitySets`, las respuestas llevan `sap-server`/`dataserviceversion` y el usuario no distingue mayúsculas (como SAP). Las pruebas de integración lo levantan en proceso (también con TLS autofirmado) desde `backend/tests/support/sap_gateway.py`.
 
-**Pendiente para iteraciones posteriores:** borrador del asistente guardado automáticamente (plan 10 §4.1), límite de runs simultáneos por sistema (`max_concurrent_runs`, It6; sustituye al semáforo entre procesos previsto), recuento de orígenes/pipelines en el listado (It3/It6), catálogo OData V4 y aviso proactivo de caducidad de certificados (It8, alertas).
+**Pendiente para iteraciones posteriores:** borrador del asistente guardado automáticamente (plan 10 §4.1), recuento de orígenes/pipelines en el listado (It3/It6), catálogo OData V4 y aviso proactivo de caducidad de certificados (It8, alertas).
 
 ## Criterios de aceptación
 
 - Un usuario registra un sistema, prueba la conexión y ve la lista de servicios ODP y CDS publicados.
 - La contraseña/certificado nunca vuelve al navegador ni aparece en logs.
 - Un error de credenciales muestra un mensaje claro y distinto de un error de red.
+
+**Límite de ejecuciones simultáneas (It6, 21.11.2026):** `max_concurrent_runs` (1 a 16, por defecto 2) se edita en el paso «Conexión» del asistente y se ve en la ficha del sistema. Sustituye al semáforo entre procesos previsto.

@@ -31,7 +31,13 @@ export function DataTable<T>({
   onRowClick,
 }: DataTableProps<T>) {
   return (
-    <div className="sx-table-wrap" aria-busy={loading}>
+    <div
+      className="sx-table-wrap"
+      aria-busy={loading}
+      // En pantallas estrechas la tabla se desplaza en horizontal: con nombre, la región se
+      // puede enfocar y mover con las flechas (WCAG 2.1.1).
+      {...(caption ? { role: 'region', 'aria-label': caption, tabIndex: 0 } : {})}
+    >
       <table className="sx-table">
         {caption && <caption className="sx-visually-hidden">{caption}</caption>}
         <thead>

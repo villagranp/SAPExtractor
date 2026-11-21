@@ -242,17 +242,15 @@ export function DestinationDetailPage() {
         <DdlPreviewPanel destination={d} supportedModes={typeInfo?.supported_modes ?? ['append']} />
       )}
       {tab === 'pipelines' && (
-        <EmptyState title={t('destinations.detail.pipelinesTitle')}>
+        <EmptyState
+          title={t('destinations.detail.pipelinesTitle')}
+          action={
+            <Link to={`/pipelines?destination=${d.id}`}>
+              {t('destinations.detail.seePipelines')}
+            </Link>
+          }
+        >
           <p>{t('destinations.detail.pipelinesSoon')}</p>
-          {(d.dependents ?? []).length > 0 && (
-            <ul>
-              {(d.dependents ?? []).map((x) => (
-                <li key={`${x.kind}-${x.id}`}>
-                  {x.kind}: {x.name}
-                </li>
-              ))}
-            </ul>
-          )}
         </EmptyState>
       )}
       {tab === 'activity' && <AuditTrail resourceId={d.id} />}

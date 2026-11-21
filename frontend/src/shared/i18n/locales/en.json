@@ -319,7 +319,8 @@
       "draftBanner": "Draft: test the destination and activate it to use it in pipelines.",
       "inactiveBanner": "Inactive destination: it receives no loads.",
       "pipelinesTitle": "Pipelines using this destination",
-      "pipelinesSoon": "Pipelines arrive in iteration 6; the ones loading into this destination will be listed here."
+      "pipelinesSoon": "The pipelines that load into this destination are in the pipeline list.",
+      "seePipelines": "See the pipelines of this destination"
     },
     "confirm": {
       "activate": {
@@ -514,12 +515,12 @@
   },
   "pipelines": {
     "title": "Pipelines",
-    "description": "Each pipeline moves one SAP source into one destination. Create, activate and run them manually here.",
+    "description": "Each pipeline takes one SAP source to one destination, by hand or on a schedule.",
     "new": "New pipeline",
-    "searchPlaceholder": "Code, name or source",
+    "searchPlaceholder": "Code or name",
     "empty": "No pipeline matches the filters.",
     "emptyFirstTitle": "No pipelines yet",
-    "emptyFirst": "Create the first one with an active SAP source and destination.",
+    "emptyFirst": "A pipeline joins a source with a destination. It needs at least one registered source and one destination.",
     "modes": {
       "DELTA": "ODQ delta",
       "WATERMARK": "Watermark",
@@ -532,7 +533,7 @@
       "description": "Description",
       "source": "Source",
       "destination": "Destination",
-      "mode": "Extraction mode",
+      "mode": "Extraction and load",
       "loadMode": "Load mode",
       "target": "Target table or folder",
       "updated": "Updated",
@@ -542,7 +543,28 @@
       "watermark": "Confirmed watermark",
       "initializedAt": "Initialization date",
       "lastDelta": "Last delta",
-      "status": "Status"
+      "status": "Status",
+      "route": "Route",
+      "nextFire": "Next run",
+      "lastRun": "Last run",
+      "sapEnvironment": "SAP environment",
+      "extractionMode": "Extraction mode",
+      "targetName": "Destination table or file",
+      "schemaEvolution": "If SAP adds columns",
+      "deleteHandling": "If SAP deletes a row",
+      "createIfMissing": "Create the table if it does not exist",
+      "technicalColumns": "Add technical columns",
+      "tags": "Tags",
+      "priority": "Priority",
+      "timeout": "Time limit per attempt (minutes)",
+      "maxAttempts": "Maximum attempts",
+      "logLevel": "Log detail",
+      "workerPool": "Worker pool",
+      "concurrencyGroup": "Concurrency group",
+      "columns": "Columns",
+      "filters": "Filters",
+      "schedule": "Schedule",
+      "retries": "Retries and time limit"
     },
     "form": {
       "title": "New pipeline",
@@ -574,9 +596,11 @@
       "tabs": {
         "runs": "Runs",
         "delta": "Delta",
-        "activity": "Activity"
+        "activity": "Activity",
+        "summary": "Summary",
+        "schedule": "Schedule"
       },
-      "noRuns": "No runs yet. Use “Run now” to start the first one.",
+      "noRuns": "This pipeline has not run yet.",
       "deltaTitle": "Delta status",
       "historyTitle": "Delta history",
       "noHistory": "No status changes yet.",
@@ -589,9 +613,34 @@
         "closed": "Confirm closure in SAP",
         "leftOpen": "Leave it open",
         "delete": "Delete",
-        "activate": "Activate"
+        "activate": "Check and activate",
+        "run": "Run now",
+        "pause": "Pause",
+        "resume": "Resume",
+        "edit": "Edit",
+        "clone": "Clone"
       },
-      "draftBanner": "Draft: activate it to run it. Activation checks the SAP system, the destination and the load settings."
+      "draftBanner": "This pipeline is a draft: it does not run until you activate it.",
+      "alreadyLive": "There is already a run queued or in progress.",
+      "activateBlocked": "Resolve the configuration blockers before activating.",
+      "saved": "Pipeline saved.",
+      "scheduleNotSaved": "The pipeline was saved, but the schedule was not",
+      "pausedBanner": "Pipeline paused: no runs are launched and the queued ones wait",
+      "crossEnvironment": "Different environments: the SAP system is {{source}} and the destination is {{destination}}",
+      "loadTitle": "Extraction and load",
+      "executionTitle": "Execution",
+      "noFilters": "None",
+      "activated": "Activated",
+      "updated": "Last change",
+      "updatedBy": "{{date}}, by {{user}}",
+      "editSchedule": "Edit schedule",
+      "saveSchedule": "Save schedule",
+      "scheduleIdle": {
+        "draft": "The schedule starts counting when you activate the pipeline.",
+        "paused": "The schedule is stopped while the pipeline stays paused."
+      },
+      "manualOnly": "No schedule: this pipeline only runs by hand.",
+      "crossEnvironmentReason": "Reason: {{reason}}"
     },
     "deltaEvents": {
       "init_started": "Initialization started",
@@ -621,21 +670,363 @@
         "confirm": "Leave it open"
       },
       "delete": {
-        "title": "Delete {{code}}",
-        "message": "The pipeline stops running. If it had a delta, its subscription stays pending closure in SAP.",
+        "title": "Delete {{code}}?",
+        "message": "The pipeline and its schedule are removed. Data already loaded and the run history are kept. If it had a delta, its subscription stays pending closure in SAP.",
         "confirm": "Delete"
+      },
+      "pause": {
+        "title": "Pause {{code}}?",
+        "message": "No more runs will be launched until you resume it. The one in progress finishes.",
+        "delta": "While paused, the delta queue keeps growing in SAP. A long pause may force a delta reinitialization."
       }
     },
     "statuses": {
       "draft": "Draft",
       "active": "Active",
       "paused": "Paused"
+    },
+    "crossEnvironment": "Different environments",
+    "neverRun": "No runs",
+    "onlyDestination": "Only the pipelines that load into the chosen destination.",
+    "onlySource": "Only the pipelines that read from the chosen source.",
+    "seeAll": "See all",
+    "extractionModes": {
+      "FULL": "Full load",
+      "DELTA": "Delta",
+      "WATERMARK": "Watermark"
+    },
+    "extractionHints": {
+      "FULL": "Reads every row of the source on each run.",
+      "DELTA": "Reads only the changes SAP keeps in the delta queue since the last run.",
+      "WATERMARK": "Reads the rows whose watermark field is later than the last run."
+    },
+    "loadModes": {
+      "append": "Append rows",
+      "upsert": "Merge by key",
+      "replace": "Replace everything"
+    },
+    "loadHints": {
+      "append": "Inserts the rows read without touching the existing ones.",
+      "upsert": "Updates the rows that already exist by key and inserts the new ones.",
+      "replace": "Empties the destination and loads it again in full."
+    },
+    "schemaEvolutions": {
+      "add_columns": "Add the new columns",
+      "ignore": "Ignore the new columns",
+      "fail": "Stop the run"
+    },
+    "deleteHandlings": {
+      "auto": "Automatic, by load mode",
+      "soft": "Mark the row as deleted",
+      "hard": "Delete the row",
+      "ignore": "Do nothing"
+    },
+    "logLevels": {
+      "DEBUG": "Debug",
+      "INFO": "Normal",
+      "WARNING": "Warnings only",
+      "ERROR": "Errors only"
+    },
+    "priorities": {
+      "1": "1, most urgent",
+      "2": "2, high",
+      "3": "3, normal",
+      "4": "4, low",
+      "5": "5, least urgent"
+    },
+    "findings": {
+      "errors_one": "One blocker prevents activating the pipeline",
+      "errors_other": "{{count}} blockers prevent activating the pipeline",
+      "warnings_one": "One warning",
+      "warnings_other": "{{count}} warnings"
+    },
+    "route": {
+      "label": "Pipeline route",
+      "source": "Source",
+      "destination": "Destination",
+      "noSource": "No source chosen",
+      "noDestination": "No destination chosen"
+    },
+    "errors": {
+      "source": "Choose a source to continue.",
+      "destination": "Choose a destination to continue.",
+      "required": "Fill in this field.",
+      "tooLong": "The text is too long.",
+      "tooMany": "At most 20 conditions.",
+      "code": "Use 3 to 40 letters, numbers or underscores, starting with a letter.",
+      "timeout": "Enter a number between 1 and 2880.",
+      "attempts": "Enter a number between 1 and 10.",
+      "pool": "Use up to 30 lowercase letters, numbers, hyphens or underscores, starting with a letter."
+    },
+    "wizard": {
+      "title": "New pipeline",
+      "editTitle": "Edit {{code}}",
+      "description": "Choose where the data comes from, where it goes, how it loads and when.",
+      "progress": "Wizard steps",
+      "steps": {
+        "source": "Source",
+        "destination": "Destination",
+        "load": "Load",
+        "schedule": "Schedule",
+        "general": "Name and execution",
+        "summary": "Summary"
+      },
+      "stepTitles": {
+        "source": "Which source is extracted?",
+        "destination": "Which destination is loaded?",
+        "load": "How is it extracted and loaded?",
+        "schedule": "When does it run?",
+        "general": "Name and execution",
+        "summary": "Summary"
+      },
+      "noSourcesTitle": "No sources yet",
+      "noSources": "A pipeline extracts from an SAP source. Create one and come back to this wizard.",
+      "createSource": "Create a source",
+      "sourceIntro": "A pipeline extracts from a single source. The extraction mode depends on whether the source supports delta.",
+      "searchSource": "Search source",
+      "searchSourcePlaceholder": "Code, name or service",
+      "sources": "Available sources",
+      "noMatches": "Nothing matches the search.",
+      "noDestinationsTitle": "No destinations yet",
+      "noDestinations": "A pipeline loads into a destination. Create one and come back to this wizard.",
+      "createDestination": "Create a destination",
+      "destinationIntro": "A pipeline loads into a single destination. Another destination needs another pipeline.",
+      "searchDestination": "Search destination",
+      "searchDestinationPlaceholder": "Code or name",
+      "destinations": "Available destinations",
+      "readingSource": "Reading the source schema…",
+      "modeLocked": "The extraction mode can only change while the pipeline is a draft.",
+      "targetNameHint": "Leave it empty to use {{name}}.",
+      "schemaEvolutionHint": "What the load does when the source brings a column the destination lacks.",
+      "deleteHandlingHint": "Only applies when the source reports deleted rows.",
+      "createIfMissingHint": "The first run creates the table with the source schema.",
+      "technicalColumnsHint": "Load date, batch and operation, to trace each row.",
+      "mappingTitle": "Columns",
+      "mappingHint": "Untick the columns you do not want to load and type another name for the ones you want to rename. Key columns are always loaded.",
+      "include": "Load",
+      "keyColumn": "Key",
+      "includeColumn": "Load column {{column}}",
+      "sapColumn": "Column in SAP",
+      "sapType": "Type in SAP",
+      "targetColumn": "Name in destination",
+      "targetColumnOf": "Name in destination of {{column}}",
+      "filtersTitle": "Filters",
+      "sourceFilters": "Default filters of the source: {{filters}}.",
+      "noSourceFilters": "The source has no default filters: every row is extracted.",
+      "ownFilters": "Use filters of its own in this pipeline",
+      "ownFiltersHint": "They replace the default filters of the source.",
+      "noOwnFilters": "No conditions: this pipeline will extract every row.",
+      "codeFixed": "The code cannot be changed.",
+      "codeHint": "It identifies the pipeline in logs and alerts. It cannot be changed later.",
+      "tagsHint": "Separated by commas.",
+      "priorityHint": "Decides who goes first when there is a queue.",
+      "timeoutHint": "After this time the attempt stops and counts as a transient error.",
+      "maxAttemptsHint": "Only transient errors are retried, waiting 1, 5 and 15 minutes.",
+      "workerPoolHint": "Leave it empty to use the “default” pool.",
+      "noGroup": "No group",
+      "groupHint": "Limits how many pipelines of the group run at the same time.",
+      "groupOption_one": "{{code}}, 1 at a time",
+      "groupOption_other": "{{code}}, {{count}} at a time",
+      "scheduleInvalid": "Fix the schedule marked before continuing.",
+      "suggestedName": "{{source}} to {{destination}}",
+      "saving": "Saving…",
+      "saveChanges": "Save changes",
+      "saveDraft": "Save draft",
+      "ownFiltersCount_one": "One condition of its own",
+      "ownFiltersCount_other": "{{count}} conditions of its own",
+      "sourceFiltersShort": "Those of the source",
+      "retriesSummary_one": "One attempt, {{timeout}} minutes limit",
+      "retriesSummary_other": "Up to {{count}} attempts, {{timeout}} minutes limit each",
+      "savesDraft": "The pipeline is saved as a draft. To start running, activate it from its page: the configuration is checked first."
+    },
+    "schedule": {
+      "launch": "Launch",
+      "launches": {
+        "scheduled": "On a schedule",
+        "manual": "By hand only"
+      },
+      "launchHints": {
+        "scheduled": "The platform launches the pipeline when due. It can also be launched by hand.",
+        "manual": "The pipeline only runs when someone presses “Run now”."
+      },
+      "manualOnly": "By hand only",
+      "mode": "How it is defined",
+      "modes": {
+        "simple": "With phrases",
+        "cron": "Cron expression",
+        "interval": "Fixed interval"
+      },
+      "modeHints": {
+        "simple": "Choose how often and on which days.",
+        "cron": "For cases the phrases do not cover.",
+        "interval": "Counts the minutes from activation, not from the top of the hour."
+      },
+      "repeat": "Repeat",
+      "repeats": {
+        "minutes": "Every few minutes",
+        "hours": "Every few hours",
+        "daily": "Once a day",
+        "monthly": "Once a month"
+      },
+      "every": "Every",
+      "minutes_one": "{{count}} minute",
+      "minutes_other": "{{count}} minutes",
+      "hours_one": "{{count}} hour",
+      "hours_other": "{{count}} hours",
+      "monthDay": "Day of the month",
+      "monthDayHint": "Months without that day are skipped.",
+      "time": "Time",
+      "daysLegend": "Days",
+      "presetWorkdays": "Monday to Friday",
+      "presetAllDays": "Every day",
+      "cron": "Cron expression",
+      "cronHint": "Five fields: minute, hour, day of month, month and day of week. For example, */30 8-18 * * 1-5.",
+      "interval": "Minutes between runs",
+      "intervalHint": "Between 1 and 44640.",
+      "timezone": "Time zone",
+      "platformZone": "The platform one",
+      "timezoneHint": "The schedule times are read in this zone.",
+      "misfire": "If a run does not launch on time",
+      "misfires": {
+        "skip": "Skip it",
+        "run_once": "Launch one recovery run"
+      },
+      "misfireHints": {
+        "skip": "It waits for the next scheduled time.",
+        "run_once": "On return, a single run is launched even if several were missed."
+      },
+      "enabled": "Schedule running",
+      "enabledHint": "Untick it to keep the schedule without launching runs.",
+      "scheduleN": "Schedule {{n}}",
+      "add": "Add another schedule",
+      "remove": "Remove schedule",
+      "blackouts": "Blackout windows",
+      "blackoutsHint": "Hours when no run is launched, for example the accounting close or the SAP backup.",
+      "blackoutN": "Blackout window {{n}}",
+      "blackoutLabel": "Reason",
+      "blackoutPlaceholder": {
+        "weekly": "SAP backup",
+        "range": "Accounting close"
+      },
+      "blackoutDays": "Days when it starts",
+      "from": "From",
+      "to": "To",
+      "nextDay": "Of the next day.",
+      "browserZone": "In the time of this computer.",
+      "addWeekly": "Add weekly window",
+      "addRange": "Add window between dates",
+      "removeBlackout": "Remove window",
+      "blackoutCount_one": "One blackout window",
+      "blackoutCount_other": "{{count}} blackout windows",
+      "previewTitle": "Next runs",
+      "asCron": "In cron:",
+      "previewZone": "{{zone}} time",
+      "previewEmpty": "With these blackout windows there is no upcoming run.",
+      "previewLoading": "Calculating…",
+      "issues": {
+        "days": "Tick at least one day.",
+        "time": "Enter the time as HH:MM.",
+        "cron": "The cron expression has five fields separated by spaces.",
+        "interval": "Enter a number of minutes between 1 and 44640.",
+        "monthDay": "The day of the month goes from 1 to 31.",
+        "blackoutDays": "Tick at least one day in each weekly window.",
+        "blackoutHours": "In each weekly window, the start and end times must differ.",
+        "blackoutRange": "In each window between dates, the end must be after the start."
+      },
+      "days": {
+        "all": "every day",
+        "workdays": "Monday to Friday",
+        "some": "on {{list}}"
+      },
+      "text": {
+        "minutes_one": "Every minute, {{days}}",
+        "minutes_other": "Every {{count}} minutes, {{days}}",
+        "hours_one": "Every hour, {{days}}",
+        "hours_other": "Every {{count}} hours, {{days}}",
+        "daily": "At {{time}}, {{days}}",
+        "monthly": "On day {{day}} of each month at {{time}}",
+        "cron": "By the cron expression {{expression}}",
+        "interval_one": "Every minute from activation",
+        "interval_other": "Every {{count}} minutes from activation"
+      },
+      "on": "Running",
+      "off": "Stopped",
+      "lastFire": "Last launch",
+      "lastSkip": "Last skip",
+      "skipReasons": {
+        "blackout": "{{date}}, because it fell in a blackout window",
+        "misfire": "{{date}}, because it did not launch on time",
+        "already_live": "{{date}}, because the previous run had not finished"
+      },
+      "bandCaption": "Hours with no launches, Monday to Sunday.",
+      "platformZoneShort": "Platform time zone"
+    },
+    "activate": {
+      "title": "Check and activate {{code}}",
+      "intro": "Before activating, the source, the SAP system and the destination are checked.",
+      "checking": "Checking…",
+      "checksLabel": "Check result",
+      "passed": "Passed",
+      "failed": "Fails",
+      "recheck": "Check again",
+      "confirm": "Activate pipeline",
+      "reason": "Reason to load into a different environment",
+      "reasonHint": "The SAP system is {{source}} and the destination is {{destination}}. Write at least 10 characters; it is kept in the audit trail."
+    },
+    "checks": {
+      "configuration": "Configuration",
+      "source_active": "Source",
+      "sap_system_test": "SAP system",
+      "destination_test": "Destination",
+      "service_published": "Service in SAP",
+      "schema_current": "Schema",
+      "clone_schema": "Schema against the original pipeline",
+      "cross_environment": "Environments"
+    },
+    "runNow": {
+      "title": "Run {{code}} now",
+      "intro": "The run enters the queue with the highest priority.",
+      "mode": "What is extracted",
+      "usual": "The usual for the pipeline ({{mode}})",
+      "full": "Full reload",
+      "fullHint": "Reads the whole source again and replaces the destination. It does not touch the delta subscription.",
+      "reason": "Reason (optional)",
+      "confirm": "Run now"
+    },
+    "clone": {
+      "title": "Clone {{code}}",
+      "intro": "The copy is a draft with no delta state. You can take it to another SAP system and another destination, for example from DEV to QAS.",
+      "code": "Code of the copy",
+      "name": "Name of the copy",
+      "nameHint": "Empty keeps the name of the original.",
+      "system": "SAP system",
+      "sameSystem": "The same ({{code}})",
+      "systemHint": "In another system the schema is read again and the columns are compared.",
+      "sourceCode": "Code of the source in that system",
+      "sourceCodeHint": "Only if no equivalent source exists yet and one must be created.",
+      "destination": "Destination",
+      "sameDestination": "The same ({{code}})",
+      "confirm": "Clone pipeline",
+      "doneTitle": "Pipeline cloned",
+      "done": "The copy is a draft. Review it and activate it when ready.",
+      "sourceCreated": "A new source was created in the chosen system. The copy is a draft.",
+      "sameSchema": "The schema matches the original pipeline.",
+      "added": "New columns: {{columns}}.",
+      "removed": "Columns no longer there: {{columns}}.",
+      "changed": "Columns with changes: {{columns}}."
+    },
+    "mapping": {
+      "all": "All, with the SAP name",
+      "excluded_one": "{{count}} excluded",
+      "excluded_other": "{{count}} excluded",
+      "renamed_one": "{{count}} renamed",
+      "renamed_other": "{{count}} renamed"
     }
   },
   "runs": {
     "title": "Runs",
-    "description": "Run history of every pipeline, with status and rows.",
-    "empty": "No runs yet.",
+    "description": "History of every run, with its status and attempts.",
+    "empty": "No run matches the filters.",
     "emptyFiltered": "No run with that status.",
     "attemptsOf": "{{used}} of {{max}}",
     "statuses": {
@@ -655,10 +1046,11 @@
       "succeeded": "Succeeded",
       "failed_transient": "Transient failure",
       "failed": "Failed",
-      "stale": "No heartbeat",
-      "fenced": "Superseded",
-      "interrupted": "Interrupted",
-      "cancelled": "Cancelled"
+      "stale": "No response from the worker",
+      "fenced": "Taken over by another worker",
+      "interrupted": "Interrupted by shutdown",
+      "cancelled": "Cancelled",
+      "running": "Running"
     },
     "modes": {
       "DELTA_INIT": "Delta initialization",
@@ -686,7 +1078,7 @@
       "rows": "Rows read",
       "attempts": "Attempts",
       "requested": "Requested",
-      "finished": "Finished",
+      "finished": "End",
       "started": "Start",
       "attempt": "Attempt",
       "step": "Step",
@@ -702,7 +1094,16 @@
       "generation": "Generation",
       "startToken": "Start token",
       "nextToken": "Confirmed token",
-      "window": "Window"
+      "window": "Window",
+      "created": "Launched",
+      "trigger": "Launched by",
+      "from": "From day",
+      "to": "To day",
+      "reason": "Reason",
+      "priority": "Priority",
+      "availableAt": "Available to workers",
+      "heartbeat": "Last worker signal",
+      "failedAttempts": "Failed attempts"
     },
     "detail": {
       "requestedBy": "Requested by {{user}} on {{when}}",
@@ -721,7 +1122,56 @@
       "stepsTitle": "Steps",
       "noSteps": "No steps yet: the run is queued.",
       "attemptsTitle": "Attempts",
-      "noAttempts": "No worker has taken it yet."
+      "noAttempts": "No worker has taken this run yet.",
+      "title": "Run of {{code}}",
+      "back": "Back to runs",
+      "retry": "Retry",
+      "cancelRequested": "Cancellation requested",
+      "cancelRequestedHint": "The worker stops when it finishes the page it is reading.",
+      "errorTitle": "Error {{code}}",
+      "timesTitle": "Times",
+      "attemptsBudget": "{{used}} of {{budget}} allowed",
+      "failedTitle_one": "The run failed on its only attempt ({{code}})",
+      "failedTitle_other": "The run failed after {{count}} attempts ({{code}})",
+      "dataTitle": "Data"
+    },
+    "onlyPipeline": "Only the runs of {{code}}.",
+    "onlyOnePipeline": "Only the runs of one pipeline.",
+    "seeAll": "See all",
+    "emptyFirstTitle": "No runs yet",
+    "emptyFirst": "Runs appear here when an active pipeline is launched, by hand or by its schedule.",
+    "goToPipelines": "Go to pipelines",
+    "triggers": {
+      "schedule": "Schedule",
+      "manual": "By hand",
+      "api": "API",
+      "dependency": "Another pipeline"
+    },
+    "triggeredBy": {
+      "schedule": "Schedule",
+      "manual": "By hand, by {{user}}",
+      "api": "API, by {{user}}",
+      "dependency": "Another pipeline"
+    },
+    "workers": {
+      "noneTitle": "No worker can take runs",
+      "noneOnline": "No workers are online, so the queue does not move. Start the worker process.",
+      "noExecutor": "The online workers do not have the extraction engine installed, so runs stay queued. Tell whoever administers the platform."
+    },
+    "cancel": {
+      "title": "Cancel the run of {{code}}?",
+      "message": {
+        "running": "The worker stops when it finishes the page it is reading. What is already committed to the destination is not undone.",
+        "queued": "The run leaves the queue without starting."
+      },
+      "keep": "Keep running",
+      "reason": "Reason (optional)"
+    },
+    "errorNext": {
+      "transient": "It is a transient error: check that the SAP system and the destination respond and press “Retry”.",
+      "configuration": "It is a configuration error: fix the pipeline, the source or the destination before retrying.",
+      "data": "It is a data error: review the rows the destination rejects before retrying.",
+      "delta": "It is a delta error: the delta state in SAP does not match the stored one. Tell whoever administers the platform before retrying."
     }
   },
   "monitoring": {

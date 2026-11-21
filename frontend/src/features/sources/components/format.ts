@@ -6,7 +6,7 @@ export function columnType(c: SchemaColumn): string {
   if (c.precision !== null) {
     return `${c.edm_type}(${String(c.precision)}${c.scale !== null ? `,${String(c.scale)}` : ''})`;
   }
-  return c.display_format ? `${c.edm_type} · ${c.display_format}` : c.edm_type;
+  return c.display_format ? `${c.edm_type} (${c.display_format})` : c.edm_type;
 }
 
 /** Valor de una celda (vista previa o diff) como texto; vacío como raya. */

@@ -241,31 +241,45 @@ test.describe('con administrador', () => {
     await menuLink(page, 'Pipelines').click();
     await page.getByRole('button', { name: 'Nuevo pipeline' }).click();
     const code = `PPL_${suffix}`;
-    await page.getByLabel(/^Código/).fill(code);
-    await page.getByLabel('Nombre').fill('Mayor hacia CSV');
-    await page
-      .getByLabel('Origen', { exact: true })
-      .selectOption({ label: `${source.code} (Mayor E2E)` });
-    await page
-      .getByLabel('Destino', { exact: true })
-      .selectOption({ label: `${destination.destination.code} (Carpeta del motor E2E)` });
-    await expect(page.getByLabel(/^Modo de extracción/)).toHaveValue('DELTA');
-    await expect(page.getByLabel(/^Modo de carga/)).toHaveValue('append');
-    await page.getByLabel(/^Tabla o carpeta/).fill('GL_ITEMS');
-    await page.getByRole('button', { name: 'Crear pipeline' }).click();
+    const next = () => page.getByRole('button', { name: 'Siguiente' }).click();
+    // Asistente: origen, destino, carga, programación, nombre y resumen.
+    await page.getByLabel('Buscar origen').fill(source.code);
+    await page.getByRole('radio', { name: new RegExp(source.code) }).check();
+    await next();
+    await page.getByLabel('Buscar destino').fill(destination.destination.code);
+    await page.getByRole('radio', { name: new RegExp(destination.destination.code) }).check();
+    await next();
+    // Un delta aditivo hacia CSV propone añadir filas.
+    await expect(page.getByRole('radio', { name: 'Delta' })).toBeChecked();
+    await expect(page.getByRole('radio', { name: 'Añadir filas' })).toBeChecked();
+    await page.getByLabel('Tabla o archivo de destino').fill('GL_ITEMS');
+    await next();
+    await next(); // sin programación: solo a mano
+    await page.getByLabel('Código', { exact: true }).fill(code);
+    await page.getByLabel('Nombre', { exact: true }).fill('Mayor hacia CSV');
+    await next();
+    await page.getByRole('button', { name: 'Guardar borrador' }).click();
 
     await expect(page.getByRole('heading', { name: new RegExp(code) })).toBeVisible();
-    await expect(page.getByText(/^Borrador: actívelo/)).toBeVisible();
-    await page.getByRole('button', { name: 'Activar' }).click();
+    await expect(page.getByText(/^Este pipeline es un borrador/)).toBeVisible();
+    // La comprobación previa arranca al abrir el diálogo; «Activar» se habilita si pasa.
+    await page.getByRole('button', { name: 'Comprobar y activar' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Activar pipeline' }).click();
     await page.getByRole('button', { name: 'Ejecutar ahora' }).click();
-    await expect(page.getByRole('heading', { name: /Inicialización del delta/ })).toBeVisible();
+    await page.getByRole('dialog').getByRole('button', { name: 'Ejecutar ahora' }).click();
+    await expect(
+      page.getByRole('heading', { name: new RegExp(`Ejecución de ${code}`) }),
+    ).toBeVisible();
     // El worker del compose toma el run: el log llega en vivo hasta la confirmación.
     await expect(page.getByText('Delta inicializado: el token queda confirmado.')).toBeVisible({
       timeout: 60_000,
     });
     await expect(page.getByText('Correcta', { exact: true }).first()).toBeVisible();
 
-    await page.getByRole('link', { name: 'Ir al pipeline' }).click();
+    await page
+      .getByRole('main')
+      .getByRole('link', { name: new RegExp(code) })
+      .click();
     await page.getByRole('tab', { name: 'Delta' }).click();
     await expect(page.getByText('Inicializado', { exact: true }).first()).toBeVisible();
   });
