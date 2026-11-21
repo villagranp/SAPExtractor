@@ -37,8 +37,13 @@ export const navigation: NavSection[] = [
   {
     titleKey: 'nav.sectionOperation',
     items: [
-      { to: '/pipelines', labelKey: 'nav.pipelines', icon: IconArrowsShuffle, iteration: 6 },
-      { to: '/runs', labelKey: 'nav.runs', icon: IconPlayerPlay, iteration: 5 },
+      {
+        to: '/pipelines',
+        labelKey: 'nav.pipelines',
+        icon: IconArrowsShuffle,
+        permission: 'pipeline:read',
+      },
+      { to: '/runs', labelKey: 'nav.runs', icon: IconPlayerPlay, permission: 'pipeline:read' },
       { to: '/alerts', labelKey: 'nav.alerts', icon: IconBell, iteration: 8 },
     ],
   },

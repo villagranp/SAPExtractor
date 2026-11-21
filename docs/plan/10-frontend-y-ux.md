@@ -143,6 +143,11 @@ Un pipeline es un origen hacia un destino y no habrá multi-destino (decisión d
 - [x] Entra ID más compacta (20.11.2026): los campos cortos van en parejas de dos columnas (inquilino y aplicación; secreto y caducidad; certificado y clave privada; las dos casillas de acceso; rol por defecto y dominios), una sola columna por debajo de 720 px. La URI de redirección sigue a lo ancho. A 1440 px la página pasa a medir 1719 px de alto. Verificado a 375, 768, 1024 y 1440 px en claro y grafito, sin desborde.
 - [ ] Logo definitivo (hoy, monograma «SX»).
 
+**Iteración 5** (21.11.2026, plan 06 «Lo construido en la iteración 5»)
+- [x] Pipelines y Ejecuciones salen de «próximamente» en el carril (permiso `pipeline:read`). `features/pipelines`: lista, alta en una sola pantalla (el asistente con programación es de la It6) que solo ofrece los modos de extracción del origen y los modos de carga seguros (sin «upsert» en orígenes que no entregan imágenes posteriores, sin «reemplazar» fuera de la carga completa), y detalle con «Ejecutar ahora», pestañas Ejecuciones, Delta (estado, token, historial, reinicializar con código y motivo, confirmar el cierre en ODQMON o dejarla abierta con motivo) y Actividad.
+- [x] `features/runs`: historial global y detalle de run con resumen (filas, lote, generación, tokens, ventana), log en vivo (sondeo cada segundo con cursor hasta que la API indica `finished`), pasos, intentos y cancelación con confirmación. El nivel del log se marca con un filete de color, no con el color del texto. Cifras con `Intl.NumberFormat` del idioma.
+- [x] Verificado a 375, 768, 1024 y 1440 px en claro y grafito contra la pila real (worker incluido), sin desborde: las tarjetas del detalle de run van en una rejilla `minmax(0, 1fr)` (con `.sx-stack` la tabla de pasos estiraba la página a 527 px en 375). Contraste medido del log: 11,3:1 y 4,56:1 (hora y paso, claro), 16,2:1 y 8,1:1 (grafito); tokens 12,1:1 y 15,6:1. axe sin incumplimientos en `/pipelines`, `/pipelines/new` y `/runs`. E2E: pipeline delta → ejecutar ahora → worker → inicialización confirmada.
+
 **Por cada módulo**
 - [ ] Pantallas descritas en su plan, usando solo `shared/ui`.
 - [ ] Pruebas de componentes y E2E del flujo principal.

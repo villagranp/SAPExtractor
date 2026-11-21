@@ -1194,6 +1194,179 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/pipelines": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Pipelines */
+        get: operations["list_pipelines_api_v1_pipelines_get"];
+        put?: never;
+        /** Alta de pipeline (un origen hacia un destino) */
+        post: operations["create_pipeline_api_v1_pipelines_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pipelines/{pipeline_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Pipeline */
+        get: operations["get_pipeline_api_v1_pipelines__pipeline_id__get"];
+        put?: never;
+        post?: never;
+        /** Baja lógica; una suscripción de delta abierta queda pendiente de cerrar en SAP */
+        delete: operations["delete_pipeline_api_v1_pipelines__pipeline_id__delete"];
+        options?: never;
+        head?: never;
+        /** Edita nombre, opciones de carga, filtros, tiempo máximo e intentos */
+        patch: operations["update_pipeline_api_v1_pipelines__pipeline_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ejecuciones (más recientes primero) */
+        get: operations["list_runs_api_v1_runs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pipelines/{pipeline_id}/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ejecutar ahora: encola un run (init, delta, marca de agua o carga completa) */
+        post: operations["request_run_api_v1_pipelines__pipeline_id__runs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/runs/{run_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Run */
+        get: operations["get_run_api_v1_runs__run_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/runs/{run_id}/logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Log de la ejecución desde un cursor (la pantalla lo consulta cada segundo) */
+        get: operations["run_logs_api_v1_runs__run_id__logs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/runs/{run_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancelación cooperativa: el worker se detiene entre páginas y el token no avanza */
+        post: operations["cancel_run_api_v1_runs__run_id__cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pipelines/{pipeline_id}/delta": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Delta State */
+        get: operations["delta_state_api_v1_pipelines__pipeline_id__delta_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pipelines/{pipeline_id}/delta/reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reinicializa el delta: el próximo run será una inicialización nueva */
+        post: operations["reset_delta_api_v1_pipelines__pipeline_id__delta_reset_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pipelines/{pipeline_id}/delta/sap-subscription": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirma que la suscripción anterior se cerró en ODQMON o que se deja abierta */
+        post: operations["resolve_subscription_api_v1_pipelines__pipeline_id__delta_sap_subscription_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1276,6 +1449,35 @@ export interface components {
             last_used_at: string | null;
             /** Revoked At */
             revoked_at: string | null;
+        };
+        /**
+         * AttemptOutcome
+         * @enum {string}
+         */
+        AttemptOutcome: "succeeded" | "failed_transient" | "failed" | "stale" | "fenced" | "interrupted" | "cancelled";
+        /** AttemptResponse */
+        AttemptResponse: {
+            /** Number */
+            number: number;
+            /** Worker Id */
+            worker_id: string;
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /** Finished At */
+            finished_at: string | null;
+            outcome: components["schemas"]["AttemptOutcome"] | null;
+            /** Error Code */
+            error_code: string | null;
+            /** Error Message */
+            error_message: string | null;
+            /**
+             * Has Spool
+             * @description El worker de este intento tiene un spool válido del lote (un reintento allí no vuelve a llamar a SAP)
+             */
+            has_spool: boolean;
         };
         /** AuditActionInfo */
         AuditActionInfo: {
@@ -1653,6 +1855,26 @@ export interface components {
             /** Watermark Overlap Seconds */
             watermark_overlap_seconds?: number | null;
         };
+        /** DeltaHistoryEntry */
+        DeltaHistoryEntry: {
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /** Event */
+            event: string;
+            from_status: components["schemas"]["DeltaStatus"] | null;
+            to_status: components["schemas"]["DeltaStatus"] | null;
+            /** Generation */
+            generation: number;
+            /** Run Id */
+            run_id: string | null;
+            /** Actor */
+            actor: string | null;
+            /** Reason */
+            reason: string | null;
+        };
         /**
          * DeltaMethod
          * @enum {string}
@@ -1664,6 +1886,41 @@ export interface components {
          * @enum {string}
          */
         DeltaSemantics: "after_image" | "additive" | "before_after" | "unknown";
+        /** DeltaStateResponse */
+        DeltaStateResponse: {
+            status: components["schemas"]["DeltaStatus"];
+            /** Generation */
+            generation: number;
+            /** Current Token */
+            current_token: string | null;
+            /** Pending Run Id */
+            pending_run_id: string | null;
+            /**
+             * Sap Close Pending
+             * @description La suscripción anterior sigue abierta en SAP
+             */
+            sap_close_pending: boolean;
+            /**
+             * Requires Reinit
+             * @description Los filtros cambiaron desde la inicialización
+             */
+            requires_reinit: boolean;
+            /** Watermark Value */
+            watermark_value: {
+                [key: string]: unknown;
+            } | null;
+            /** Initialized At */
+            initialized_at: string | null;
+            /** Last Delta At */
+            last_delta_at: string | null;
+            /** History */
+            history: components["schemas"]["DeltaHistoryEntry"][];
+        };
+        /**
+         * DeltaStatus
+         * @enum {string}
+         */
+        DeltaStatus: "NOT_INITIALIZED" | "INITIALIZING" | "INITIALIZED" | "BROKEN";
         /** DependentResponse */
         DependentResponse: {
             /** Kind */
@@ -2113,7 +2370,7 @@ export interface components {
         /** EntraTestStepResponse */
         EntraTestStepResponse: {
             name: components["schemas"]["sapextract__identity__domain__entra__StepName"];
-            status: components["schemas"]["StepStatus"];
+            status: components["schemas"]["sapextract__identity__domain__entra__StepStatus"];
             /** Message */
             message: string;
             /** Duration Ms */
@@ -2125,6 +2382,11 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /**
+         * ExtractionMode
+         * @enum {string}
+         */
+        ExtractionMode: "FULL" | "DELTA" | "WATERMARK";
         /** FieldError */
         FieldError: {
             /** Field */
@@ -2133,6 +2395,15 @@ export interface components {
             message: string;
             /** Code */
             code?: string | null;
+        };
+        /** FilterBody */
+        FilterBody: {
+            /** Field */
+            field: string;
+            /** Op */
+            op: string;
+            /** Value */
+            value: string | number | boolean;
         };
         /** FilterConditionBody */
         FilterConditionBody: {
@@ -2244,6 +2515,36 @@ export interface components {
          * @enum {string}
          */
         LoadMode: "append" | "upsert" | "replace";
+        /** LoadOptionsBody */
+        LoadOptionsBody: {
+            load_mode: components["schemas"]["LoadMode"];
+            /**
+             * Target Name
+             * @example FI_GL_ITEMS
+             */
+            target_name: string;
+            /**
+             * Create If Missing
+             * @default true
+             */
+            create_if_missing: boolean;
+            /** @default add_columns */
+            schema_evolution: components["schemas"]["SchemaEvolution"];
+            /** @default soft */
+            delete_handling: components["schemas"]["DeleteHandling"];
+            /**
+             * Technical Columns
+             * @default true
+             */
+            technical_columns: boolean;
+            /**
+             * Column Mapping
+             * @description Columna SAP → nombre en destino; null la excluye
+             */
+            column_mapping?: {
+                [key: string]: string | null;
+            };
+        };
         /** LoginRequest */
         LoginRequest: {
             /** Username */
@@ -2359,6 +2660,28 @@ export interface components {
             /** Page Size */
             page_size: number;
         };
+        /** Page[PipelineSummary] */
+        Page_PipelineSummary_: {
+            /** Items */
+            items: components["schemas"]["PipelineSummary"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+        };
+        /** Page[RunSummary] */
+        Page_RunSummary_: {
+            /** Items */
+            items: components["schemas"]["RunSummary"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+        };
         /** Page[SapSystemSummary] */
         Page_SapSystemSummary_: {
             /** Items */
@@ -2412,6 +2735,157 @@ export interface components {
             module_name: string;
             /** Description */
             description: string;
+        };
+        /** PipelineCreateRequest */
+        PipelineCreateRequest: {
+            /**
+             * Code
+             * @example FI_GL_SNOW_QAS
+             */
+            code: string;
+            /** Name */
+            name: string;
+            /** Description */
+            description?: string | null;
+            /**
+             * Source Id
+             * Format: uuid
+             */
+            source_id: string;
+            /**
+             * Destination Id
+             * Format: uuid
+             */
+            destination_id: string;
+            extraction_mode: components["schemas"]["ExtractionMode"];
+            load_options: components["schemas"]["LoadOptionsBody"];
+            /** Filters */
+            filters?: components["schemas"]["FilterBody"][];
+            /** Timeout Minutes */
+            timeout_minutes?: number | null;
+            /** Max Attempts */
+            max_attempts?: number | null;
+            /** Tags */
+            tags?: string[];
+        };
+        /** PipelineDetail */
+        PipelineDetail: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+            /** Description */
+            description: string | null;
+            extraction_mode: components["schemas"]["ExtractionMode"];
+            status: components["schemas"]["PipelineStatus"];
+            source: components["schemas"]["PipelineEndpoint"];
+            destination: components["schemas"]["PipelineEndpoint"];
+            /** Load Options */
+            load_options: {
+                [key: string]: unknown;
+            };
+            /** Tags */
+            tags: string[];
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Version */
+            version: number;
+            /** Filters */
+            filters: {
+                [key: string]: unknown;
+            }[];
+            /** Timeout Minutes */
+            timeout_minutes: number;
+            /** Max Attempts */
+            max_attempts: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by: string | null;
+            /** Updated By */
+            updated_by: string | null;
+        };
+        /** PipelineEndpoint */
+        PipelineEndpoint: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+            /**
+             * Kind
+             * @description Tipo de origen (ODP_EXTRACTOR…) o de destino (csv…)
+             */
+            kind: string;
+        };
+        /**
+         * PipelineStatus
+         * @enum {string}
+         */
+        PipelineStatus: "draft" | "active" | "paused";
+        /** PipelineSummary */
+        PipelineSummary: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+            /** Description */
+            description: string | null;
+            extraction_mode: components["schemas"]["ExtractionMode"];
+            status: components["schemas"]["PipelineStatus"];
+            source: components["schemas"]["PipelineEndpoint"];
+            destination: components["schemas"]["PipelineEndpoint"];
+            /** Load Options */
+            load_options: {
+                [key: string]: unknown;
+            };
+            /** Tags */
+            tags: string[];
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Version */
+            version: number;
+        };
+        /** PipelineUpdateRequest */
+        PipelineUpdateRequest: {
+            /** Version */
+            version: number;
+            /** Name */
+            name?: string | null;
+            /** Description */
+            description?: string | null;
+            load_options?: components["schemas"]["LoadOptionsBody"] | null;
+            /** Filters */
+            filters?: components["schemas"]["FilterBody"][] | null;
+            /** Timeout Minutes */
+            timeout_minutes?: number | null;
+            /** Max Attempts */
+            max_attempts?: number | null;
+            /** Tags */
+            tags?: string[] | null;
         };
         /** PreviewResponse */
         PreviewResponse: {
@@ -2487,11 +2961,6 @@ export interface components {
             /** Display Format */
             display_format: string | null;
         };
-        /** ReasonRequest */
-        ReasonRequest: {
-            /** Reason */
-            reason?: string | null;
-        };
         /** RevokedResponse */
         RevokedResponse: {
             /** Revoked */
@@ -2564,6 +3033,187 @@ export interface components {
              */
             version?: number | null;
         };
+        /** RunDetailResponse */
+        RunDetailResponse: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Pipeline Id
+             * Format: uuid
+             */
+            pipeline_id: string;
+            /** Pipeline Code */
+            pipeline_code: string;
+            mode: components["schemas"]["RunMode"];
+            status: components["schemas"]["RunStatus"];
+            trigger: components["schemas"]["RunTrigger"];
+            /** Triggered By */
+            triggered_by: string | null;
+            /** Batch Id */
+            batch_id: string | null;
+            /** Attempts Used */
+            attempts_used: number;
+            /** Max Attempts */
+            max_attempts: number;
+            /** Cancel Requested */
+            cancel_requested: boolean;
+            /** Error Code */
+            error_code: string | null;
+            /** Error Message */
+            error_message: string | null;
+            /** Rows Extracted */
+            rows_extracted: number | null;
+            /** Rows Inserted */
+            rows_inserted: number | null;
+            /** Rows Updated */
+            rows_updated: number | null;
+            /** Rows Deleted */
+            rows_deleted: number | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Available At
+             * Format: date-time
+             */
+            available_at: string;
+            /** Started At */
+            started_at: string | null;
+            /** Finished At */
+            finished_at: string | null;
+            /** Delta Generation */
+            delta_generation: number | null;
+            /**
+             * Start Token
+             * @description Token de partida (solo en el detalle, no en logs)
+             */
+            start_token: string | null;
+            /**
+             * Next Token
+             * @description Token confirmado por este run
+             */
+            next_token: string | null;
+            /** Window Start */
+            window_start: string | null;
+            /** Window End */
+            window_end: string | null;
+            /** Timeout Minutes */
+            timeout_minutes: number;
+            /** Attempts */
+            attempts: components["schemas"]["AttemptResponse"][];
+            /** Steps */
+            steps: components["schemas"]["StepResponse"][];
+        };
+        /** RunLogLine */
+        RunLogLine: {
+            /** Id */
+            id: number;
+            /**
+             * Ts
+             * Format: date-time
+             */
+            ts: string;
+            /** Attempt */
+            attempt: number | null;
+            step: components["schemas"]["sapextract__extraction__domain__model__StepName"] | null;
+            /** Level */
+            level: string;
+            /** Message */
+            message: string;
+            /** Data */
+            data: {
+                [key: string]: unknown;
+            };
+        };
+        /** RunLogPage */
+        RunLogPage: {
+            /** Items */
+            items: components["schemas"]["RunLogLine"][];
+            /**
+             * Next After
+             * @description Cursor para la siguiente consulta (after)
+             */
+            next_after: number | null;
+            /**
+             * Finished
+             * @description El run terminó: no llegarán más líneas
+             */
+            finished: boolean;
+        };
+        /**
+         * RunMode
+         * @enum {string}
+         */
+        RunMode: "FULL" | "DELTA_INIT" | "DELTA" | "WATERMARK";
+        /**
+         * RunStatus
+         * @enum {string}
+         */
+        RunStatus: "queued" | "running" | "succeeded" | "failed" | "cancelled";
+        /** RunSummary */
+        RunSummary: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Pipeline Id
+             * Format: uuid
+             */
+            pipeline_id: string;
+            /** Pipeline Code */
+            pipeline_code: string;
+            mode: components["schemas"]["RunMode"];
+            status: components["schemas"]["RunStatus"];
+            trigger: components["schemas"]["RunTrigger"];
+            /** Triggered By */
+            triggered_by: string | null;
+            /** Batch Id */
+            batch_id: string | null;
+            /** Attempts Used */
+            attempts_used: number;
+            /** Max Attempts */
+            max_attempts: number;
+            /** Cancel Requested */
+            cancel_requested: boolean;
+            /** Error Code */
+            error_code: string | null;
+            /** Error Message */
+            error_message: string | null;
+            /** Rows Extracted */
+            rows_extracted: number | null;
+            /** Rows Inserted */
+            rows_inserted: number | null;
+            /** Rows Updated */
+            rows_updated: number | null;
+            /** Rows Deleted */
+            rows_deleted: number | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Available At
+             * Format: date-time
+             */
+            available_at: string;
+            /** Started At */
+            started_at: string | null;
+            /** Finished At */
+            finished_at: string | null;
+        };
+        /**
+         * RunTrigger
+         * @enum {string}
+         */
+        RunTrigger: "manual" | "schedule" | "api";
         /**
          * SapEnvironment
          * @enum {string}
@@ -3264,11 +3914,35 @@ export interface components {
             /** Reason */
             reason?: string | null;
         };
+        /** StepResponse */
+        StepResponse: {
+            /** Attempt */
+            attempt: number;
+            step: components["schemas"]["sapextract__extraction__domain__model__StepName"];
+            status: components["schemas"]["sapextract__extraction__domain__model__StepStatus"];
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /** Finished At */
+            finished_at: string | null;
+            /** Metrics */
+            metrics: {
+                [key: string]: unknown;
+            };
+        };
         /**
-         * StepStatus
+         * SubscriptionAction
          * @enum {string}
          */
-        StepStatus: "ok" | "warning" | "failed" | "skipped";
+        SubscriptionAction: "closed" | "left_open";
+        /** SubscriptionRequest */
+        SubscriptionRequest: {
+            action: components["schemas"]["SubscriptionAction"];
+            /** Reason */
+            reason?: string | null;
+        };
         /** SystemInfo */
         SystemInfo: {
             /** Name */
@@ -3323,7 +3997,7 @@ export interface components {
         /** TestStepResponse */
         TestStepResponse: {
             name: components["schemas"]["sapextract__sap_connections__domain__testing__StepName"];
-            status: components["schemas"]["StepStatus"];
+            status: components["schemas"]["sapextract__sap_connections__domain__testing__StepStatus"];
             /** Message */
             message: string;
             /** Duration Ms */
@@ -3500,16 +4174,46 @@ export interface components {
             /** Private Key Passphrase */
             private_key_passphrase?: string | null;
         };
+        /** ReasonRequest */
+        sapextract__extraction__api__schemas__ReasonRequest: {
+            /** Reason */
+            reason: string;
+        };
+        /**
+         * StepName
+         * @enum {string}
+         */
+        sapextract__extraction__domain__model__StepName: "prepare" | "extract" | "load" | "commit_delta" | "cleanup";
+        /**
+         * StepStatus
+         * @enum {string}
+         */
+        sapextract__extraction__domain__model__StepStatus: "running" | "succeeded" | "failed" | "skipped";
+        /** ReasonRequest */
+        sapextract__identity__api__schemas__ReasonRequest: {
+            /** Reason */
+            reason?: string | null;
+        };
         /**
          * StepName
          * @enum {string}
          */
         sapextract__identity__domain__entra__StepName: "discovery" | "keys" | "credential";
         /**
+         * StepStatus
+         * @enum {string}
+         */
+        sapextract__identity__domain__entra__StepStatus: "ok" | "warning" | "failed" | "skipped";
+        /**
          * StepName
          * @enum {string}
          */
         sapextract__sap_connections__domain__testing__StepName: "network" | "authentication" | "server_info" | "latency";
+        /**
+         * StepStatus
+         * @enum {string}
+         */
+        sapextract__sap_connections__domain__testing__StepStatus: "ok" | "warning" | "failed" | "skipped";
     };
     responses: never;
     parameters: never;
@@ -4075,7 +4779,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ReasonRequest"];
+                "application/json": components["schemas"]["sapextract__identity__api__schemas__ReasonRequest"];
             };
         };
         responses: {
@@ -4141,7 +4845,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ReasonRequest"];
+                "application/json": components["schemas"]["sapextract__identity__api__schemas__ReasonRequest"];
             };
         };
         responses: {
@@ -6311,6 +7015,436 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DdlPreviewResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    list_pipelines_api_v1_pipelines_get: {
+        parameters: {
+            query?: {
+                q?: string | null;
+                source_id?: string | null;
+                destination_id?: string | null;
+                extraction_mode?: components["schemas"]["ExtractionMode"] | null;
+                page?: number;
+                page_size?: number;
+                sort?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_PipelineSummary_"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    create_pipeline_api_v1_pipelines_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PipelineCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PipelineDetail"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    get_pipeline_api_v1_pipelines__pipeline_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pipeline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PipelineDetail"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    delete_pipeline_api_v1_pipelines__pipeline_id__delete: {
+        parameters: {
+            query?: {
+                reason?: string | null;
+            };
+            header?: never;
+            path: {
+                pipeline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    update_pipeline_api_v1_pipelines__pipeline_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pipeline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PipelineUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PipelineDetail"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    list_runs_api_v1_runs_get: {
+        parameters: {
+            query?: {
+                pipeline_id?: string | null;
+                status?: components["schemas"]["RunStatus"] | null;
+                page?: number;
+                page_size?: number;
+                sort?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_RunSummary_"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    request_run_api_v1_pipelines__pipeline_id__runs_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pipeline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunSummary"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    get_run_api_v1_runs__run_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunDetailResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    run_logs_api_v1_runs__run_id__logs_get: {
+        parameters: {
+            query?: {
+                after?: number | null;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunLogPage"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    cancel_run_api_v1_runs__run_id__cancel_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunSummary"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    delta_state_api_v1_pipelines__pipeline_id__delta_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pipeline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeltaStateResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    reset_delta_api_v1_pipelines__pipeline_id__delta_reset_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pipeline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["sapextract__extraction__api__schemas__ReasonRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeltaStateResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    resolve_subscription_api_v1_pipelines__pipeline_id__delta_sap_subscription_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pipeline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubscriptionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeltaStateResponse"];
                 };
             };
             /** @description Error */

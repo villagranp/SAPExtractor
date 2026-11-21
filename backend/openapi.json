@@ -829,7 +829,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ReasonRequest"
+                "$ref": "#/components/schemas/sapextract__identity__api__schemas__ReasonRequest"
               }
             }
           }
@@ -931,7 +931,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ReasonRequest"
+                "$ref": "#/components/schemas/sapextract__identity__api__schemas__ReasonRequest"
               }
             }
           }
@@ -4627,6 +4627,808 @@
         "x-sx-audit": [],
         "x-sx-audit-exempt": "Solo lectura: calcula sentencias sin ejecutarlas"
       }
+    },
+    "/api/v1/pipelines": {
+      "get": {
+        "tags": [
+          "Pipelines"
+        ],
+        "summary": "Pipelines",
+        "operationId": "list_pipelines_api_v1_pipelines_get",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "name": "source_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Source Id"
+            }
+          },
+          {
+            "name": "destination_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Destination Id"
+            }
+          },
+          {
+            "name": "extraction_mode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/ExtractionMode"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Extraction Mode"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Page Size"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^-?[a-z_][a-z0-9_]*$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Sort"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_PipelineSummary_"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Pipelines"
+        ],
+        "summary": "Alta de pipeline (un origen hacia un destino)",
+        "operationId": "create_pipeline_api_v1_pipelines_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PipelineCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PipelineDetail"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "pipeline.created"
+        ]
+      }
+    },
+    "/api/v1/pipelines/{pipeline_id}": {
+      "get": {
+        "tags": [
+          "Pipelines"
+        ],
+        "summary": "Get Pipeline",
+        "operationId": "get_pipeline_api_v1_pipelines__pipeline_id__get",
+        "parameters": [
+          {
+            "name": "pipeline_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Pipeline Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PipelineDetail"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Pipelines"
+        ],
+        "summary": "Edita nombre, opciones de carga, filtros, tiempo máximo e intentos",
+        "operationId": "update_pipeline_api_v1_pipelines__pipeline_id__patch",
+        "parameters": [
+          {
+            "name": "pipeline_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Pipeline Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PipelineUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PipelineDetail"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "pipeline.updated"
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Pipelines"
+        ],
+        "summary": "Baja lógica; una suscripción de delta abierta queda pendiente de cerrar en SAP",
+        "operationId": "delete_pipeline_api_v1_pipelines__pipeline_id__delete",
+        "parameters": [
+          {
+            "name": "pipeline_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Pipeline Id"
+            }
+          },
+          {
+            "name": "reason",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 500
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Reason"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "pipeline.deleted"
+        ]
+      }
+    },
+    "/api/v1/runs": {
+      "get": {
+        "tags": [
+          "Ejecuciones"
+        ],
+        "summary": "Ejecuciones (más recientes primero)",
+        "operationId": "list_runs_api_v1_runs_get",
+        "parameters": [
+          {
+            "name": "pipeline_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Pipeline Id"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/RunStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Page Size"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^-?[a-z_][a-z0-9_]*$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Sort"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_RunSummary_"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pipelines/{pipeline_id}/runs": {
+      "post": {
+        "tags": [
+          "Ejecuciones"
+        ],
+        "summary": "Ejecutar ahora: encola un run (init, delta, marca de agua o carga completa)",
+        "operationId": "request_run_api_v1_pipelines__pipeline_id__runs_post",
+        "parameters": [
+          {
+            "name": "pipeline_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Pipeline Id"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunSummary"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "pipeline.run_requested"
+        ]
+      }
+    },
+    "/api/v1/runs/{run_id}": {
+      "get": {
+        "tags": [
+          "Ejecuciones"
+        ],
+        "summary": "Get Run",
+        "operationId": "get_run_api_v1_runs__run_id__get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunDetailResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/runs/{run_id}/logs": {
+      "get": {
+        "tags": [
+          "Ejecuciones"
+        ],
+        "summary": "Log de la ejecución desde un cursor (la pantalla lo consulta cada segundo)",
+        "operationId": "run_logs_api_v1_runs__run_id__logs_get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "After"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "default": 200,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunLogPage"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/runs/{run_id}/cancel": {
+      "post": {
+        "tags": [
+          "Ejecuciones"
+        ],
+        "summary": "Cancelación cooperativa: el worker se detiene entre páginas y el token no avanza",
+        "operationId": "cancel_run_api_v1_runs__run_id__cancel_post",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunSummary"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "run.cancel_requested"
+        ]
+      }
+    },
+    "/api/v1/pipelines/{pipeline_id}/delta": {
+      "get": {
+        "tags": [
+          "Ejecuciones"
+        ],
+        "summary": "Delta State",
+        "operationId": "delta_state_api_v1_pipelines__pipeline_id__delta_get",
+        "parameters": [
+          {
+            "name": "pipeline_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Pipeline Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeltaStateResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pipelines/{pipeline_id}/delta/reset": {
+      "post": {
+        "tags": [
+          "Ejecuciones"
+        ],
+        "summary": "Reinicializa el delta: el próximo run será una inicialización nueva",
+        "operationId": "reset_delta_api_v1_pipelines__pipeline_id__delta_reset_post",
+        "parameters": [
+          {
+            "name": "pipeline_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Pipeline Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/sapextract__extraction__api__schemas__ReasonRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeltaStateResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "pipeline.delta_reset"
+        ]
+      }
+    },
+    "/api/v1/pipelines/{pipeline_id}/delta/sap-subscription": {
+      "post": {
+        "tags": [
+          "Ejecuciones"
+        ],
+        "summary": "Confirma que la suscripción anterior se cerró en ODQMON o que se deja abierta",
+        "operationId": "resolve_subscription_api_v1_pipelines__pipeline_id__delta_sap_subscription_post",
+        "parameters": [
+          {
+            "name": "pipeline_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Pipeline Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscriptionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeltaStateResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-sx-audit": [
+          "pipeline.sap_subscription_closed",
+          "pipeline.sap_subscription_left_open"
+        ]
+      }
     }
   },
   "components": {
@@ -4813,6 +5615,97 @@
           "revoked_at"
         ],
         "title": "ApiTokenResponse"
+      },
+      "AttemptOutcome": {
+        "type": "string",
+        "enum": [
+          "succeeded",
+          "failed_transient",
+          "failed",
+          "stale",
+          "fenced",
+          "interrupted",
+          "cancelled"
+        ],
+        "title": "AttemptOutcome"
+      },
+      "AttemptResponse": {
+        "properties": {
+          "number": {
+            "type": "integer",
+            "title": "Number"
+          },
+          "worker_id": {
+            "type": "string",
+            "title": "Worker Id"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "outcome": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AttemptOutcome"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Message"
+          },
+          "has_spool": {
+            "type": "boolean",
+            "title": "Has Spool",
+            "description": "El worker de este intento tiene un spool válido del lote (un reintento allí no vuelve a llamar a SAP)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "number",
+          "worker_id",
+          "started_at",
+          "finished_at",
+          "outcome",
+          "error_code",
+          "error_message",
+          "has_spool"
+        ],
+        "title": "AttemptResponse"
       },
       "AuditActionInfo": {
         "properties": {
@@ -5943,6 +6836,89 @@
         ],
         "title": "DeltaConfigBody"
       },
+      "DeltaHistoryEntry": {
+        "properties": {
+          "at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "At"
+          },
+          "event": {
+            "type": "string",
+            "title": "Event"
+          },
+          "from_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DeltaStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "to_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DeltaStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "generation": {
+            "type": "integer",
+            "title": "Generation"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          },
+          "actor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actor"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "at",
+          "event",
+          "from_status",
+          "to_status",
+          "generation",
+          "run_id",
+          "actor",
+          "reason"
+        ],
+        "title": "DeltaHistoryEntry"
+      },
       "DeltaMethod": {
         "type": "string",
         "enum": [
@@ -5962,6 +6938,117 @@
         ],
         "title": "DeltaSemantics",
         "description": "Proceso de delta del extractor (RSA2). No se detecta: lo declara el usuario."
+      },
+      "DeltaStateResponse": {
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/DeltaStatus"
+          },
+          "generation": {
+            "type": "integer",
+            "title": "Generation"
+          },
+          "current_token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Token"
+          },
+          "pending_run_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pending Run Id"
+          },
+          "sap_close_pending": {
+            "type": "boolean",
+            "title": "Sap Close Pending",
+            "description": "La suscripción anterior sigue abierta en SAP"
+          },
+          "requires_reinit": {
+            "type": "boolean",
+            "title": "Requires Reinit",
+            "description": "Los filtros cambiaron desde la inicialización"
+          },
+          "watermark_value": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Watermark Value"
+          },
+          "initialized_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Initialized At"
+          },
+          "last_delta_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Delta At"
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/DeltaHistoryEntry"
+            },
+            "type": "array",
+            "title": "History"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "generation",
+          "current_token",
+          "pending_run_id",
+          "sap_close_pending",
+          "requires_reinit",
+          "watermark_value",
+          "initialized_at",
+          "last_delta_at",
+          "history"
+        ],
+        "title": "DeltaStateResponse"
+      },
+      "DeltaStatus": {
+        "type": "string",
+        "enum": [
+          "NOT_INITIALIZED",
+          "INITIALIZING",
+          "INITIALIZED",
+          "BROKEN"
+        ],
+        "title": "DeltaStatus"
       },
       "DependentResponse": {
         "properties": {
@@ -7271,7 +8358,7 @@
             "$ref": "#/components/schemas/sapextract__identity__domain__entra__StepName"
           },
           "status": {
-            "$ref": "#/components/schemas/StepStatus"
+            "$ref": "#/components/schemas/sapextract__identity__domain__entra__StepStatus"
           },
           "message": {
             "type": "string",
@@ -7308,6 +8395,15 @@
         ],
         "title": "EntraTestStepResponse"
       },
+      "ExtractionMode": {
+        "type": "string",
+        "enum": [
+          "FULL",
+          "DELTA",
+          "WATERMARK"
+        ],
+        "title": "ExtractionMode"
+      },
       "FieldError": {
         "properties": {
           "field": {
@@ -7336,6 +8432,45 @@
           "message"
         ],
         "title": "FieldError"
+      },
+      "FilterBody": {
+        "properties": {
+          "field": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Field"
+          },
+          "op": {
+            "type": "string",
+            "pattern": "^(eq|ne|gt|ge|lt|le)$",
+            "title": "Op"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "type": "object",
+        "required": [
+          "field",
+          "op",
+          "value"
+        ],
+        "title": "FilterBody"
       },
       "FilterConditionBody": {
         "properties": {
@@ -7674,6 +8809,61 @@
         ],
         "title": "LoadMode"
       },
+      "LoadOptionsBody": {
+        "properties": {
+          "load_mode": {
+            "$ref": "#/components/schemas/LoadMode"
+          },
+          "target_name": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Target Name",
+            "examples": [
+              "FI_GL_ITEMS"
+            ]
+          },
+          "create_if_missing": {
+            "type": "boolean",
+            "title": "Create If Missing",
+            "default": true
+          },
+          "schema_evolution": {
+            "$ref": "#/components/schemas/SchemaEvolution",
+            "default": "add_columns"
+          },
+          "delete_handling": {
+            "$ref": "#/components/schemas/DeleteHandling",
+            "default": "soft"
+          },
+          "technical_columns": {
+            "type": "boolean",
+            "title": "Technical Columns",
+            "default": true
+          },
+          "column_mapping": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Column Mapping",
+            "description": "Columna SAP → nombre en destino; null la excluye"
+          }
+        },
+        "type": "object",
+        "required": [
+          "load_mode",
+          "target_name"
+        ],
+        "title": "LoadOptionsBody"
+      },
       "LoginRequest": {
         "properties": {
           "username": {
@@ -7955,6 +9145,68 @@
         ],
         "title": "Page[DestinationSummary]"
       },
+      "Page_PipelineSummary_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PipelineSummary"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "page_size": {
+            "type": "integer",
+            "title": "Page Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "page_size"
+        ],
+        "title": "Page[PipelineSummary]"
+      },
+      "Page_RunSummary_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/RunSummary"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "page_size": {
+            "type": "integer",
+            "title": "Page Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "page_size"
+        ],
+        "title": "Page[RunSummary]"
+      },
       "Page_SapSystemSummary_": {
         "properties": {
           "items": {
@@ -8103,6 +9355,447 @@
           "description"
         ],
         "title": "PermissionResponse"
+      },
+      "PipelineCreateRequest": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Code",
+            "examples": [
+              "FI_GL_SNOW_QAS"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "source_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Source Id"
+          },
+          "destination_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Destination Id"
+          },
+          "extraction_mode": {
+            "$ref": "#/components/schemas/ExtractionMode"
+          },
+          "load_options": {
+            "$ref": "#/components/schemas/LoadOptionsBody"
+          },
+          "filters": {
+            "items": {
+              "$ref": "#/components/schemas/FilterBody"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Filters"
+          },
+          "timeout_minutes": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timeout Minutes"
+          },
+          "max_attempts": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Attempts"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Tags"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "name",
+          "source_id",
+          "destination_id",
+          "extraction_mode",
+          "load_options"
+        ],
+        "title": "PipelineCreateRequest"
+      },
+      "PipelineDetail": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "extraction_mode": {
+            "$ref": "#/components/schemas/ExtractionMode"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PipelineStatus"
+          },
+          "source": {
+            "$ref": "#/components/schemas/PipelineEndpoint"
+          },
+          "destination": {
+            "$ref": "#/components/schemas/PipelineEndpoint"
+          },
+          "load_options": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Load Options"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "filters": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Filters"
+          },
+          "timeout_minutes": {
+            "type": "integer",
+            "title": "Timeout Minutes"
+          },
+          "max_attempts": {
+            "type": "integer",
+            "title": "Max Attempts"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          },
+          "updated_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated By"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "name",
+          "description",
+          "extraction_mode",
+          "status",
+          "source",
+          "destination",
+          "load_options",
+          "tags",
+          "updated_at",
+          "version",
+          "filters",
+          "timeout_minutes",
+          "max_attempts",
+          "created_at",
+          "created_by",
+          "updated_by"
+        ],
+        "title": "PipelineDetail"
+      },
+      "PipelineEndpoint": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind",
+            "description": "Tipo de origen (ODP_EXTRACTOR…) o de destino (csv…)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "name",
+          "kind"
+        ],
+        "title": "PipelineEndpoint"
+      },
+      "PipelineStatus": {
+        "type": "string",
+        "enum": [
+          "draft",
+          "active",
+          "paused"
+        ],
+        "title": "PipelineStatus"
+      },
+      "PipelineSummary": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "extraction_mode": {
+            "$ref": "#/components/schemas/ExtractionMode"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PipelineStatus"
+          },
+          "source": {
+            "$ref": "#/components/schemas/PipelineEndpoint"
+          },
+          "destination": {
+            "$ref": "#/components/schemas/PipelineEndpoint"
+          },
+          "load_options": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Load Options"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "name",
+          "description",
+          "extraction_mode",
+          "status",
+          "source",
+          "destination",
+          "load_options",
+          "tags",
+          "updated_at",
+          "version"
+        ],
+        "title": "PipelineSummary"
+      },
+      "PipelineUpdateRequest": {
+        "properties": {
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "load_options": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LoadOptionsBody"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "filters": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/FilterBody"
+                },
+                "type": "array",
+                "maxItems": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filters"
+          },
+          "timeout_minutes": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timeout Minutes"
+          },
+          "max_attempts": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Attempts"
+          },
+          "tags": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array",
+                "maxItems": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tags"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version"
+        ],
+        "title": "PipelineUpdateRequest"
       },
       "PreviewResponse": {
         "properties": {
@@ -8324,24 +10017,6 @@
         ],
         "title": "PropertyResponse"
       },
-      "ReasonRequest": {
-        "properties": {
-          "reason": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 500
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Reason"
-          }
-        },
-        "type": "object",
-        "title": "ReasonRequest"
-      },
       "RevokedResponse": {
         "properties": {
           "revoked": {
@@ -8546,6 +10221,586 @@
         },
         "type": "object",
         "title": "RoleUpdateRequest"
+      },
+      "RunDetailResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "pipeline_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Pipeline Id"
+          },
+          "pipeline_code": {
+            "type": "string",
+            "title": "Pipeline Code"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/RunMode"
+          },
+          "status": {
+            "$ref": "#/components/schemas/RunStatus"
+          },
+          "trigger": {
+            "$ref": "#/components/schemas/RunTrigger"
+          },
+          "triggered_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Triggered By"
+          },
+          "batch_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Batch Id"
+          },
+          "attempts_used": {
+            "type": "integer",
+            "title": "Attempts Used"
+          },
+          "max_attempts": {
+            "type": "integer",
+            "title": "Max Attempts"
+          },
+          "cancel_requested": {
+            "type": "boolean",
+            "title": "Cancel Requested"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Message"
+          },
+          "rows_extracted": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rows Extracted"
+          },
+          "rows_inserted": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rows Inserted"
+          },
+          "rows_updated": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rows Updated"
+          },
+          "rows_deleted": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rows Deleted"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "available_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Available At"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "delta_generation": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delta Generation"
+          },
+          "start_token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Token",
+            "description": "Token de partida (solo en el detalle, no en logs)"
+          },
+          "next_token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Token",
+            "description": "Token confirmado por este run"
+          },
+          "window_start": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Window Start"
+          },
+          "window_end": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Window End"
+          },
+          "timeout_minutes": {
+            "type": "integer",
+            "title": "Timeout Minutes"
+          },
+          "attempts": {
+            "items": {
+              "$ref": "#/components/schemas/AttemptResponse"
+            },
+            "type": "array",
+            "title": "Attempts"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/StepResponse"
+            },
+            "type": "array",
+            "title": "Steps"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "pipeline_id",
+          "pipeline_code",
+          "mode",
+          "status",
+          "trigger",
+          "triggered_by",
+          "batch_id",
+          "attempts_used",
+          "max_attempts",
+          "cancel_requested",
+          "error_code",
+          "error_message",
+          "rows_extracted",
+          "rows_inserted",
+          "rows_updated",
+          "rows_deleted",
+          "created_at",
+          "available_at",
+          "started_at",
+          "finished_at",
+          "delta_generation",
+          "start_token",
+          "next_token",
+          "window_start",
+          "window_end",
+          "timeout_minutes",
+          "attempts",
+          "steps"
+        ],
+        "title": "RunDetailResponse"
+      },
+      "RunLogLine": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "ts": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Ts"
+          },
+          "attempt": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attempt"
+          },
+          "step": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/sapextract__extraction__domain__model__StepName"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "level": {
+            "type": "string",
+            "title": "Level"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "data": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "ts",
+          "attempt",
+          "step",
+          "level",
+          "message",
+          "data"
+        ],
+        "title": "RunLogLine"
+      },
+      "RunLogPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/RunLogLine"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "next_after": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next After",
+            "description": "Cursor para la siguiente consulta (after)"
+          },
+          "finished": {
+            "type": "boolean",
+            "title": "Finished",
+            "description": "El run terminó: no llegarán más líneas"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "next_after",
+          "finished"
+        ],
+        "title": "RunLogPage"
+      },
+      "RunMode": {
+        "type": "string",
+        "enum": [
+          "FULL",
+          "DELTA_INIT",
+          "DELTA",
+          "WATERMARK"
+        ],
+        "title": "RunMode"
+      },
+      "RunStatus": {
+        "type": "string",
+        "enum": [
+          "queued",
+          "running",
+          "succeeded",
+          "failed",
+          "cancelled"
+        ],
+        "title": "RunStatus"
+      },
+      "RunSummary": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "pipeline_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Pipeline Id"
+          },
+          "pipeline_code": {
+            "type": "string",
+            "title": "Pipeline Code"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/RunMode"
+          },
+          "status": {
+            "$ref": "#/components/schemas/RunStatus"
+          },
+          "trigger": {
+            "$ref": "#/components/schemas/RunTrigger"
+          },
+          "triggered_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Triggered By"
+          },
+          "batch_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Batch Id"
+          },
+          "attempts_used": {
+            "type": "integer",
+            "title": "Attempts Used"
+          },
+          "max_attempts": {
+            "type": "integer",
+            "title": "Max Attempts"
+          },
+          "cancel_requested": {
+            "type": "boolean",
+            "title": "Cancel Requested"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Message"
+          },
+          "rows_extracted": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rows Extracted"
+          },
+          "rows_inserted": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rows Inserted"
+          },
+          "rows_updated": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rows Updated"
+          },
+          "rows_deleted": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rows Deleted"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "available_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Available At"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "pipeline_id",
+          "pipeline_code",
+          "mode",
+          "status",
+          "trigger",
+          "triggered_by",
+          "batch_id",
+          "attempts_used",
+          "max_attempts",
+          "cancel_requested",
+          "error_code",
+          "error_message",
+          "rows_extracted",
+          "rows_inserted",
+          "rows_updated",
+          "rows_deleted",
+          "created_at",
+          "available_at",
+          "started_at",
+          "finished_at"
+        ],
+        "title": "RunSummary"
+      },
+      "RunTrigger": {
+        "type": "string",
+        "enum": [
+          "manual",
+          "schedule",
+          "api"
+        ],
+        "title": "RunTrigger"
       },
       "SapEnvironment": {
         "type": "string",
@@ -10670,15 +12925,83 @@
         "type": "object",
         "title": "StatusReasonRequest"
       },
-      "StepStatus": {
+      "StepResponse": {
+        "properties": {
+          "attempt": {
+            "type": "integer",
+            "title": "Attempt"
+          },
+          "step": {
+            "$ref": "#/components/schemas/sapextract__extraction__domain__model__StepName"
+          },
+          "status": {
+            "$ref": "#/components/schemas/sapextract__extraction__domain__model__StepStatus"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "metrics": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Metrics"
+          }
+        },
+        "type": "object",
+        "required": [
+          "attempt",
+          "step",
+          "status",
+          "started_at",
+          "finished_at",
+          "metrics"
+        ],
+        "title": "StepResponse"
+      },
+      "SubscriptionAction": {
         "type": "string",
         "enum": [
-          "ok",
-          "warning",
-          "failed",
-          "skipped"
+          "closed",
+          "left_open"
         ],
-        "title": "StepStatus"
+        "title": "SubscriptionAction"
+      },
+      "SubscriptionRequest": {
+        "properties": {
+          "action": {
+            "$ref": "#/components/schemas/SubscriptionAction"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "action"
+        ],
+        "title": "SubscriptionRequest"
       },
       "SystemInfo": {
         "properties": {
@@ -10796,7 +13119,7 @@
             "$ref": "#/components/schemas/sapextract__sap_connections__domain__testing__StepName"
           },
           "status": {
-            "$ref": "#/components/schemas/StepStatus"
+            "$ref": "#/components/schemas/sapextract__sap_connections__domain__testing__StepStatus"
           },
           "message": {
             "type": "string",
@@ -11300,6 +13623,60 @@
         ],
         "title": "X509CredentialsIn"
       },
+      "sapextract__extraction__api__schemas__ReasonRequest": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 5,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "ReasonRequest"
+      },
+      "sapextract__extraction__domain__model__StepName": {
+        "type": "string",
+        "enum": [
+          "prepare",
+          "extract",
+          "load",
+          "commit_delta",
+          "cleanup"
+        ],
+        "title": "StepName"
+      },
+      "sapextract__extraction__domain__model__StepStatus": {
+        "type": "string",
+        "enum": [
+          "running",
+          "succeeded",
+          "failed",
+          "skipped"
+        ],
+        "title": "StepStatus"
+      },
+      "sapextract__identity__api__schemas__ReasonRequest": {
+        "properties": {
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "title": "ReasonRequest"
+      },
       "sapextract__identity__domain__entra__StepName": {
         "type": "string",
         "enum": [
@@ -11308,6 +13685,16 @@
           "credential"
         ],
         "title": "StepName"
+      },
+      "sapextract__identity__domain__entra__StepStatus": {
+        "type": "string",
+        "enum": [
+          "ok",
+          "warning",
+          "failed",
+          "skipped"
+        ],
+        "title": "StepStatus"
       },
       "sapextract__sap_connections__domain__testing__StepName": {
         "type": "string",
@@ -11318,6 +13705,16 @@
           "latency"
         ],
         "title": "StepName"
+      },
+      "sapextract__sap_connections__domain__testing__StepStatus": {
+        "type": "string",
+        "enum": [
+          "ok",
+          "warning",
+          "failed",
+          "skipped"
+        ],
+        "title": "StepStatus"
       }
     }
   }

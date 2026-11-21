@@ -1312,5 +1312,209 @@
         ]
       }
     }
+  },
+  "pipelines": {
+    "title": "Pipelines",
+    "description": "Cada pipeline lleva un origen SAP hacia un destino. Desde aquí se ejecutan a mano; la programación llega en la iteración 6.",
+    "new": "Nuevo pipeline",
+    "searchPlaceholder": "Código, nombre u origen",
+    "empty": "Ningún pipeline coincide con los filtros.",
+    "emptyFirstTitle": "Aún no hay pipelines",
+    "emptyFirst": "Cree el primero con un origen SAP y un destino activos.",
+    "modes": {
+      "DELTA": "Delta ODQ",
+      "WATERMARK": "Marca de agua",
+      "FULL": "Carga completa"
+    },
+    "fields": {
+      "pipeline": "Pipeline",
+      "code": "Código",
+      "name": "Nombre",
+      "description": "Descripción",
+      "source": "Origen",
+      "destination": "Destino",
+      "mode": "Modo de extracción",
+      "loadMode": "Modo de carga",
+      "target": "Tabla o carpeta de destino",
+      "updated": "Actualizado",
+      "attempts": "Intentos y tiempo máximo",
+      "deltaStatus": "Estado del delta",
+      "currentToken": "Token confirmado",
+      "watermark": "Marca de agua confirmada",
+      "initializedAt": "Fecha de inicialización",
+      "lastDelta": "Último delta"
+    },
+    "form": {
+      "title": "Nuevo pipeline",
+      "description": "Elija origen, destino y cómo se carga. Se guarda como borrador y se puede ejecutar enseguida.",
+      "generalTitle": "Datos generales",
+      "flowTitle": "Origen, destino y carga",
+      "codeHint": "De 3 a 40 caracteres: letras, números y guion bajo.",
+      "targetHint": "Nombre de la tabla en Snowflake o de la carpeta en CSV.",
+      "required": "Campo obligatorio.",
+      "option": "{{code}} ({{name}})",
+      "modeHint": {
+        "ODQ": "El origen tiene delta ODQ: la primera ejecución inicializa la suscripción.",
+        "WATERMARK": "El origen usa marca de agua: cada ejecución lee los cambios desde la anterior.",
+        "NONE": "El origen no tiene delta: solo carga completa."
+      },
+      "appendOnlyHint": "El origen no entrega imágenes posteriores: solo se puede añadir.",
+      "deltaNotice": "Mientras no se confirme en SAP que dos suscripciones conviven, solo puede haber un pipeline delta por entity set.",
+      "save": "Crear pipeline",
+      "saving": "Creando…"
+    },
+    "detail": {
+      "back": "Volver a pipelines",
+      "flow": "{{source}} hacia {{destination}}, en {{target}}",
+      "runNow": "Ejecutar ahora",
+      "queueing": "Poniendo en cola…",
+      "configTitle": "Configuración",
+      "attemptsValue": "{{attempts}} intentos, {{minutes}} min como máximo",
+      "tabsLabel": "Secciones del pipeline",
+      "tabs": {
+        "runs": "Ejecuciones",
+        "delta": "Delta",
+        "activity": "Actividad"
+      },
+      "noRuns": "Todavía no hay ejecuciones. Use «Ejecutar ahora» para lanzar la primera.",
+      "deltaTitle": "Estado del delta",
+      "historyTitle": "Historial del delta",
+      "noHistory": "Sin cambios de estado todavía.",
+      "historyLine": "{{when}}, {{who}}, generación {{generation}}",
+      "closePendingTitle": "Suscripción pendiente de cerrar en SAP",
+      "closePending": "La suscripción anterior puede seguir abierta en ODQMON. Ciérrela allí y confírmelo, o declare que la deja abierta, antes de inicializar de nuevo.",
+      "filtersChanged": "Los filtros cambiaron desde la inicialización: reinicialice el delta para volver a ejecutar.",
+      "actions": {
+        "reset": "Reinicializar delta",
+        "closed": "Confirmar cierre en SAP",
+        "leftOpen": "Dejarla abierta",
+        "delete": "Eliminar"
+      }
+    },
+    "deltaEvents": {
+      "init_started": "Inicialización iniciada",
+      "initialized": "Delta inicializado",
+      "init_aborted": "Inicialización interrumpida",
+      "broken": "SAP rechazó el token",
+      "reset": "Delta reinicializado",
+      "sap_subscription_closed": "Suscripción cerrada en SAP",
+      "sap_subscription_left_open": "Suscripción anterior dejada abierta"
+    },
+    "confirm": {
+      "reason": "Motivo",
+      "typeCode": "Escriba {{code}} para confirmar",
+      "reset": {
+        "title": "Reinicializar el delta de {{code}}",
+        "message": "La próxima ejecución hará una inicialización completa. La suscripción actual queda pendiente de cerrar en ODQMON.",
+        "confirm": "Reinicializar"
+      },
+      "closed": {
+        "title": "Confirmar el cierre en SAP",
+        "message": "Confirme que borró la suscripción anterior en ODQMON. Después se podrá inicializar de nuevo.",
+        "confirm": "Confirmar cierre"
+      },
+      "left_open": {
+        "title": "Dejar abierta la suscripción anterior",
+        "message": "La cola de la suscripción anterior seguirá creciendo en SAP. Indique por qué la deja abierta.",
+        "confirm": "Dejarla abierta"
+      },
+      "delete": {
+        "title": "Eliminar {{code}}",
+        "message": "El pipeline deja de ejecutarse. Si tenía delta, su suscripción queda pendiente de cerrar en SAP.",
+        "confirm": "Eliminar"
+      }
+    }
+  },
+  "runs": {
+    "title": "Ejecuciones",
+    "description": "Historial de ejecuciones de todos los pipelines, con su estado y sus filas.",
+    "empty": "Todavía no hay ejecuciones.",
+    "emptyFiltered": "Ninguna ejecución con ese estado.",
+    "attemptsOf": "{{used}} de {{max}}",
+    "statuses": {
+      "queued": "En cola",
+      "running": "En curso",
+      "succeeded": "Correcta",
+      "failed": "Fallida",
+      "cancelled": "Cancelada"
+    },
+    "deltaStatuses": {
+      "NOT_INITIALIZED": "Sin inicializar",
+      "INITIALIZING": "Inicializando",
+      "INITIALIZED": "Inicializado",
+      "BROKEN": "Roto"
+    },
+    "outcomes": {
+      "succeeded": "Correcto",
+      "failed_transient": "Fallo transitorio",
+      "failed": "Fallido",
+      "stale": "Sin latido",
+      "fenced": "Relevado",
+      "interrupted": "Interrumpido",
+      "cancelled": "Cancelado"
+    },
+    "modes": {
+      "DELTA_INIT": "Inicialización del delta",
+      "DELTA": "Delta",
+      "WATERMARK": "Marca de agua",
+      "FULL": "Carga completa"
+    },
+    "steps": {
+      "prepare": "Preparar",
+      "extract": "Extraer",
+      "load": "Cargar",
+      "commit_delta": "Confirmar",
+      "cleanup": "Limpiar"
+    },
+    "stepStatuses": {
+      "running": "En curso",
+      "succeeded": "Correcto",
+      "failed": "Fallido",
+      "skipped": "Omitido"
+    },
+    "fields": {
+      "pipeline": "Pipeline",
+      "mode": "Modo",
+      "status": "Estado",
+      "rows": "Filas leídas",
+      "attempts": "Intentos",
+      "requested": "Pedida",
+      "finished": "Terminada",
+      "started": "Inicio",
+      "attempt": "Intento",
+      "step": "Paso",
+      "duration": "Duración",
+      "worker": "Worker",
+      "outcome": "Resultado",
+      "spool": "Spool en el worker",
+      "error": "Error",
+      "inserted": "Filas nuevas",
+      "updated": "Actualizadas",
+      "deleted": "Borradas",
+      "batch": "Lote",
+      "generation": "Generación",
+      "startToken": "Token de partida",
+      "nextToken": "Token confirmado",
+      "window": "Ventana"
+    },
+    "detail": {
+      "requestedBy": "Pedida por {{user}} el {{when}}",
+      "toPipeline": "Ir al pipeline",
+      "cancel": "Cancelar ejecución",
+      "cancelling": "Cancelando…",
+      "cancelTitle": "Cancelar la ejecución",
+      "cancelMessage": "El worker se detiene entre páginas y el token no avanza. Lo cargado sin confirmar se repetirá en la siguiente ejecución sin duplicar.",
+      "retryAt": "Falló un intento: se reintentará a partir del {{when}}.",
+      "summaryTitle": "Resumen",
+      "window": "Desde {{from}} hasta {{to}}",
+      "logTitle": "Log de la ejecución",
+      "general": "General",
+      "noLog": "Sin líneas todavía.",
+      "live": "Se actualiza cada segundo mientras la ejecución sigue en curso.",
+      "stepsTitle": "Pasos",
+      "noSteps": "Ningún paso todavía: la ejecución está en cola.",
+      "attemptsTitle": "Intentos",
+      "noAttempts": "Ningún worker la ha tomado todavía."
+    }
   }
 }

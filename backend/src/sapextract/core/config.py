@@ -134,6 +134,22 @@ class Settings(BaseSettings):
     scheduler_tick_seconds: float = 5.0
     worker_poll_seconds: float = 5.0
     spool_dir: Path = Path("spool")
+    # --- Motor (plan 06)
+    worker_heartbeat_seconds: float = Field(15.0, gt=0, description="Latido del worker")
+    worker_stale_seconds: float = Field(
+        90.0, gt=0, description="Sin latido durante este tiempo, el intento se da por caído"
+    )
+    run_retry_backoff_seconds: list[int] = Field(
+        default_factory=lambda: [60, 300, 900],
+        description="Espera antes de cada reintento automático (1, 5 y 15 min)",
+    )
+    spool_keep_on_success: bool = Field(
+        default=False, description="Conservar el spool tras una carga correcta (diagnóstico)"
+    )
+    page_timeout_seconds: int = Field(300, ge=10, le=3600, description="Timeout por página SAP")
+    watermark_safety_lag_seconds: int = Field(
+        120, ge=0, le=3600, description="Margen para no leer transacciones en curso (plan 06 §5)"
+    )
 
     @model_validator(mode="after")
     def _validate_network(self) -> Self:

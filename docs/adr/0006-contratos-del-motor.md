@@ -266,6 +266,16 @@ Lo construido en la It4a sigue este ADR con estas diferencias, que la revisión 
 - **`_sx_deleted` en CSV.** Se escribe como columna del archivo (`true`/`false`) igual que en Snowflake.
 - **Dobles de prueba.** `tests/support/dataflow.py` (`GL_SCHEMA`, `make_spool`, `InMemoryWriter`) y la batería `tests/contract/destination_contract.py`, que pasan memoria, CSV y CSV gzip; Snowflake la pasa con la cuenta de pruebas.
 
+## Notas de implementación (It5, 21.11.2026)
+
+Construida contra el mock (detalle en el plan 06, «Lo construido en la iteración 5»). Diferencias con el texto de arriba que la revisión conjunta debe confirmar:
+
+- **`run`** añade `filters_hash`, `timeout_minutes`, `cancel_requested(_by)`, `error_*`, `next_token`, `rows_*`, `started_at`. `attempts_used` cuenta todos los intentos que gastan uno (también el que confirma); un apagado ordenado (`interrupted`) no gasta.
+- **`run_attempt`** añade `error_message` y `sap_requested` (el intento llegó a pedir datos a SAP). Un intento ya cerrado no se vuelve a cerrar: el cierre de un zombi no pisa el `stale` del scheduler.
+- **`run_step`** usa `skipped` para `extract` y `load` cuando la tabla de control del destino ya tiene el lote.
+- **Estado de delta**: se implementa el borrador del plan 06 §3.6 con opciones conservadoras; el ADR posterior al spike lo fijará. `delta_state.lease_epoch` copia el del run al tomarlo.
+- **`SourceConnector`**: implementado por `ODataSourceConnector`, que además expone `server_now()` (hora de SAP para la ventana de marca de agua). Los filtros llegan como `{"$filter": …}`.
+
 ## Fuera de este ADR (pendiente del spike)
 
 | Tema | Dónde | Depende de |

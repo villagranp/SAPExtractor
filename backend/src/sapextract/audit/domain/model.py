@@ -91,6 +91,20 @@ ACTIONS: dict[str, Category] = {
     "destination.credentials_rotated": Category.SECURITY,
     "destination.activated": Category.CONFIG,
     "destination.deactivated": Category.CONFIG,
+    # config: pipelines (plan 08, reducido en la It5)
+    "pipeline.created": Category.CONFIG,
+    "pipeline.updated": Category.CONFIG,
+    "pipeline.deleted": Category.CONFIG,
+    # execution: motor y estado de delta (plan 06)
+    "pipeline.run_requested": Category.EXECUTION,
+    "run.cancel_requested": Category.EXECUTION,
+    "run.succeeded": Category.EXECUTION,
+    "run.failed": Category.EXECUTION,
+    "run.cancelled": Category.EXECUTION,
+    "pipeline.delta_reset": Category.EXECUTION,
+    "pipeline.delta_broken": Category.EXECUTION,
+    "pipeline.sap_subscription_closed": Category.EXECUTION,
+    "pipeline.sap_subscription_left_open": Category.EXECUTION,
     # security
     "audit.exported": Category.SECURITY,
     "audit.verified": Category.SECURITY,

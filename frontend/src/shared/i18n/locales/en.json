@@ -510,5 +510,209 @@
         ]
       }
     }
+  },
+  "pipelines": {
+    "title": "Pipelines",
+    "description": "Each pipeline moves one SAP source into one destination. Run them manually here; scheduling arrives in iteration 6.",
+    "new": "New pipeline",
+    "searchPlaceholder": "Code, name or source",
+    "empty": "No pipeline matches the filters.",
+    "emptyFirstTitle": "No pipelines yet",
+    "emptyFirst": "Create the first one with an active SAP source and destination.",
+    "modes": {
+      "DELTA": "ODQ delta",
+      "WATERMARK": "Watermark",
+      "FULL": "Full load"
+    },
+    "fields": {
+      "pipeline": "Pipeline",
+      "code": "Code",
+      "name": "Name",
+      "description": "Description",
+      "source": "Source",
+      "destination": "Destination",
+      "mode": "Extraction mode",
+      "loadMode": "Load mode",
+      "target": "Target table or folder",
+      "updated": "Updated",
+      "attempts": "Attempts and time limit",
+      "deltaStatus": "Delta status",
+      "currentToken": "Confirmed token",
+      "watermark": "Confirmed watermark",
+      "initializedAt": "Initialization date",
+      "lastDelta": "Last delta"
+    },
+    "form": {
+      "title": "New pipeline",
+      "description": "Choose the source, the destination and how it loads. It is saved as a draft and can run right away.",
+      "generalTitle": "General",
+      "flowTitle": "Source, destination and load",
+      "codeHint": "3 to 40 characters: letters, digits and underscore.",
+      "targetHint": "Table name in Snowflake or folder name in CSV.",
+      "required": "Required field.",
+      "option": "{{code}} ({{name}})",
+      "modeHint": {
+        "ODQ": "The source has ODQ delta: the first run initializes the subscription.",
+        "WATERMARK": "The source uses a watermark: each run reads the changes since the previous one.",
+        "NONE": "The source has no delta: full load only."
+      },
+      "appendOnlyHint": "The source does not deliver after images: append only.",
+      "deltaNotice": "Until SAP confirms that two subscriptions can coexist, there can be only one delta pipeline per entity set.",
+      "save": "Create pipeline",
+      "saving": "Creating…"
+    },
+    "detail": {
+      "back": "Back to pipelines",
+      "flow": "{{source}} into {{destination}}, at {{target}}",
+      "runNow": "Run now",
+      "queueing": "Queueing…",
+      "configTitle": "Configuration",
+      "attemptsValue": "{{attempts}} attempts, {{minutes}} min at most",
+      "tabsLabel": "Pipeline sections",
+      "tabs": {
+        "runs": "Runs",
+        "delta": "Delta",
+        "activity": "Activity"
+      },
+      "noRuns": "No runs yet. Use “Run now” to start the first one.",
+      "deltaTitle": "Delta status",
+      "historyTitle": "Delta history",
+      "noHistory": "No status changes yet.",
+      "historyLine": "{{when}}, {{who}}, generation {{generation}}",
+      "closePendingTitle": "Subscription pending closure in SAP",
+      "closePending": "The previous subscription may still be open in ODQMON. Close it there and confirm, or declare that you leave it open, before initializing again.",
+      "filtersChanged": "The filters changed since the initialization: reset the delta to run again.",
+      "actions": {
+        "reset": "Reset delta",
+        "closed": "Confirm closure in SAP",
+        "leftOpen": "Leave it open",
+        "delete": "Delete"
+      }
+    },
+    "deltaEvents": {
+      "init_started": "Initialization started",
+      "initialized": "Delta initialized",
+      "init_aborted": "Initialization interrupted",
+      "broken": "SAP rejected the token",
+      "reset": "Delta reset",
+      "sap_subscription_closed": "Subscription closed in SAP",
+      "sap_subscription_left_open": "Previous subscription left open"
+    },
+    "confirm": {
+      "reason": "Reason",
+      "typeCode": "Type {{code}} to confirm",
+      "reset": {
+        "title": "Reset the delta of {{code}}",
+        "message": "The next run performs a full initialization. The current subscription stays pending closure in ODQMON.",
+        "confirm": "Reset"
+      },
+      "closed": {
+        "title": "Confirm closure in SAP",
+        "message": "Confirm that you deleted the previous subscription in ODQMON. Then the delta can be initialized again.",
+        "confirm": "Confirm closure"
+      },
+      "left_open": {
+        "title": "Leave the previous subscription open",
+        "message": "The previous subscription queue keeps growing in SAP. Say why you leave it open.",
+        "confirm": "Leave it open"
+      },
+      "delete": {
+        "title": "Delete {{code}}",
+        "message": "The pipeline stops running. If it had a delta, its subscription stays pending closure in SAP.",
+        "confirm": "Delete"
+      }
+    }
+  },
+  "runs": {
+    "title": "Runs",
+    "description": "Run history of every pipeline, with status and rows.",
+    "empty": "No runs yet.",
+    "emptyFiltered": "No run with that status.",
+    "attemptsOf": "{{used}} of {{max}}",
+    "statuses": {
+      "queued": "Queued",
+      "running": "Running",
+      "succeeded": "Succeeded",
+      "failed": "Failed",
+      "cancelled": "Cancelled"
+    },
+    "deltaStatuses": {
+      "NOT_INITIALIZED": "Not initialized",
+      "INITIALIZING": "Initializing",
+      "INITIALIZED": "Initialized",
+      "BROKEN": "Broken"
+    },
+    "outcomes": {
+      "succeeded": "Succeeded",
+      "failed_transient": "Transient failure",
+      "failed": "Failed",
+      "stale": "No heartbeat",
+      "fenced": "Superseded",
+      "interrupted": "Interrupted",
+      "cancelled": "Cancelled"
+    },
+    "modes": {
+      "DELTA_INIT": "Delta initialization",
+      "DELTA": "Delta",
+      "WATERMARK": "Watermark",
+      "FULL": "Full load"
+    },
+    "steps": {
+      "prepare": "Prepare",
+      "extract": "Extract",
+      "load": "Load",
+      "commit_delta": "Confirm",
+      "cleanup": "Clean up"
+    },
+    "stepStatuses": {
+      "running": "Running",
+      "succeeded": "Succeeded",
+      "failed": "Failed",
+      "skipped": "Skipped"
+    },
+    "fields": {
+      "pipeline": "Pipeline",
+      "mode": "Mode",
+      "status": "Status",
+      "rows": "Rows read",
+      "attempts": "Attempts",
+      "requested": "Requested",
+      "finished": "Finished",
+      "started": "Start",
+      "attempt": "Attempt",
+      "step": "Step",
+      "duration": "Duration",
+      "worker": "Worker",
+      "outcome": "Outcome",
+      "spool": "Spool on the worker",
+      "error": "Error",
+      "inserted": "New rows",
+      "updated": "Updated",
+      "deleted": "Deleted",
+      "batch": "Batch",
+      "generation": "Generation",
+      "startToken": "Start token",
+      "nextToken": "Confirmed token",
+      "window": "Window"
+    },
+    "detail": {
+      "requestedBy": "Requested by {{user}} on {{when}}",
+      "toPipeline": "Go to pipeline",
+      "cancel": "Cancel run",
+      "cancelling": "Cancelling…",
+      "cancelTitle": "Cancel the run",
+      "cancelMessage": "The worker stops between pages and the token does not move. Anything loaded but not confirmed is repeated by the next run without duplicates.",
+      "retryAt": "An attempt failed: it will retry from {{when}}.",
+      "summaryTitle": "Summary",
+      "window": "From {{from}} to {{to}}",
+      "logTitle": "Run log",
+      "general": "General",
+      "noLog": "No lines yet.",
+      "live": "Refreshes every second while the run is in progress.",
+      "stepsTitle": "Steps",
+      "noSteps": "No steps yet: the run is queued.",
+      "attemptsTitle": "Attempts",
+      "noAttempts": "No worker has taken it yet."
+    }
   }
 }

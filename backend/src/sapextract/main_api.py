@@ -22,8 +22,16 @@ from sapextract.core.middleware import RequestContextMiddleware
 from sapextract.core.ratelimit import SlidingWindowLimiter
 from sapextract.destinations.api import routes as destination_routes
 from sapextract.destinations.application.toolkit import DestinationsToolkit
+from sapextract.extraction.api import routes as extraction_routes
+from sapextract.extraction.application.resolve import ExtractionToolkit
+from sapextract.extraction.application.run_service import delete_guard
 from sapextract.identity.api import admin_routes, auth_routes, idp_routes
 from sapextract.identity.application.toolkit import IdentityToolkit
+from sapextract.orchestration.api import routes as pipeline_routes
+from sapextract.orchestration.application.pipeline_service import (
+    PipelinesToolkit,
+    destination_dependents,
+)
 from sapextract.sap_connections.api import routes as sap_routes
 from sapextract.sap_connections.application.toolkit import SapToolkit
 from sapextract.sources.api import routes as source_routes
@@ -44,6 +52,8 @@ def build_api_router() -> APIRouter:
     api.include_router(sap_routes.router)
     api.include_router(source_routes.router)
     api.include_router(destination_routes.router)
+    api.include_router(pipeline_routes.router)
+    api.include_router(extraction_routes.router)
     return api
 
 
@@ -76,6 +86,20 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     # Un sistema SAP con orígenes vivos no se puede dar de baja (plan 04).
     app.state.sap.dependents.append(sap_system_dependents)
     app.state.destinations = DestinationsToolkit.build(settings, audit=app.state.identity.audit)
+    # Un destino con pipelines vivos no se puede dar de baja (plan 07).
+    app.state.destinations.dependents.append(destination_dependents)
+    app.state.extraction = ExtractionToolkit.build(
+        settings,
+        sap=app.state.sap,
+        destinations=app.state.destinations,
+        audit=app.state.identity.audit,
+    )
+    app.state.pipelines = PipelinesToolkit(
+        audit=app.state.identity.audit,
+        sap=app.state.sap,
+        destinations=app.state.destinations,
+        before_delete=[delete_guard(app.state.extraction)],
+    )
     app.state.auth_limiter = SlidingWindowLimiter(settings.auth_rate_limit_per_minute)
 
     register_exception_handlers(app)

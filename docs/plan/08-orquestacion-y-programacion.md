@@ -131,7 +131,8 @@ GET    /api/v1/concurrency-groups   PUT …
 
 ## Tareas
 
-- [ ] Modelos `pipeline`, `schedule`, `worker`, `concurrency_group`; columnas de cola en `run` y tabla `run_attempt` (con el plan 06).
+- [ ] Modelos `schedule`, `worker`, `concurrency_group`. Hechos en la It5: `pipeline` mínimo (sin `priority`, `concurrency_group`, `worker_pool`, `log_level`, `owner_id`), las columnas de cola de `run` y `run_attempt` (plan 06, «Lo construido en la iteración 5»).
+- [ ] Ampliar en la It6 lo adelantado en la It5: toma con límites por sistema y grupo, *jitter* en los reintentos, reintento manual, pausa y activación con comprobaciones.
 - [ ] Scheduler con liderazgo, blackout, misfire, detección de intentos sin latido y tareas de sistema.
 - [ ] Cola `SKIP LOCKED` sobre `run` + LISTEN/NOTIFY + límites por pipeline, grupo y sistema en la consulta de toma.
 - [ ] Workers con pools, heartbeat y apagado ordenado.

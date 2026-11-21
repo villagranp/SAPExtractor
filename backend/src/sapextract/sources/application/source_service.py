@@ -21,6 +21,7 @@ from sapextract.core.exceptions import BusinessRuleError, ConflictError, NotFoun
 from sapextract.core.pagination import PageParams
 from sapextract.dataflow.domain.schema import EntitySchema
 from sapextract.identity.domain.model import Principal
+from sapextract.orchestration.infrastructure.models import Pipeline
 from sapextract.sap_connections.application.explorer_service import SapExplorerService
 from sapextract.sap_connections.application.system_service import SapSystemService
 from sapextract.sap_connections.application.toolkit import Dependent, SapToolkit
@@ -410,7 +411,7 @@ class SourceService:
         self, source_id: uuid.UUID, reason: str | None, actor: Principal, request: RequestInfo
     ) -> None:
         source = self.get(source_id)
-        # Los pipelines (It6) bloquearán aquí la baja de un origen en uso.
+        self._ensure_unused(source)
         self._audit(
             "source.deleted", source, actor, request, diff(_snapshot(source), None), reason=reason
         )
@@ -418,6 +419,19 @@ class SourceService:
         source.status = SourceStatus.DEPRECATED.value
         source.updated_by = actor.username
         self.session.commit()
+
+    def _ensure_unused(self, source: Source) -> None:
+        """Un origen con pipelines vivos no se puede dar de baja (plan 05 §1)."""
+        codes = list(
+            self.session.scalars(
+                select(Pipeline.code).where(
+                    Pipeline.source_id == source.id, Pipeline.deleted_at.is_(None)
+                )
+            )
+        )
+        if codes:
+            msg = f"El origen lo usan los pipelines {', '.join(sorted(codes))}: elimínelos antes."
+            raise ConflictError(msg, code="SX-SRC-IN-USE")
 
     # -------------------------------------------------------------- esquema
     def refresh_schema(

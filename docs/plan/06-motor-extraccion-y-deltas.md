@@ -325,20 +325,67 @@ Registro de plugins por tipo (`ODP_EXTRACTOR`, `CDS_ODP`, `CDS_ODATA` / `csv`, `
 | Datos | Conversión imposible, clave nula en `upsert` | No → alerta con la clave y la columna afectadas; la muestra de filas se consulta en el detalle del run y no viaja en el aviso |
 | Delta | Token inválido | No → `BROKEN` |
 
+## Lo construido en la iteración 5
+
+Construida el 21.11.2026 **contra el mock de SAP, sin el spike** (ADR 0002 sigue con H1–H18 pendientes; plan 13 §5 prevé este caso). La iteración no se da por cerrada hasta validar en el SAP real el primer dato (H2) y el criterio de volumen.
+
+Código: `backend/src/sapextract/extraction/` (motor, conector, estado de delta, API de ejecuciones), `backend/src/sapextract/orchestration/` (pipeline mínimo) y `frontend/src/features/{pipelines,runs}/`. Migración `0008_engine`. Pruebas: `tests/integration/test_engine.py` y `tests/unit/test_extraction_domain.py`.
+
+**Piezas.**
+
+| Pieza | Dónde | Qué hace |
+|---|---|---|
+| Pipeline mínimo | `orchestration/` | Alta, consulta, edición y baja lógica (`pipeline:*`, auditado). Valida modo contra el origen, modo de carga contra el destino y la semántica de delta (§3.4), mapeo de columnas y filtros propios. Sin programación ni activación con comprobaciones: It6 |
+| Conector OData | `extraction/infrastructure/odata_connector.py` | Un solo conector para ODP (extractor y CDS) y CDS vía OData: `Prefer: odata.maxpagesize`, `__next`/`@odata.nextLink`, `__delta`/`@odata.deltaLink`, `!deltatoken`, ventana de marca de agua con el literal de cada `watermark_kind`. Sin reintento HTTP (`NO_RETRY`), límite de bytes por página, cancelación entre páginas |
+| Conversión EDM → Arrow | `extraction/domain/convert.py` | V2 (`/Date(ms)/`, `PT…`, decimales como texto) y V4 (ISO); horas ABAP sin zona (H15); fechas vacías a nulo; decimales con más escala que el `$metadata` son error de datos, no se redondean |
+| Estado y *fencing* | `extraction/application/store.py` | Toma `FOR UPDATE SKIP LOCKED`, `lease_epoch` en run, intento y `delta_state`; latido; token pendiente; `commit_delta` en una transacción con el run `succeeded`; liberación del estado al fallar; intentos sin latido (`reap_stale`, desde el scheduler) |
+| Motor | `extraction/application/engine.py` | Pasos `prepare → extract → load → commit_delta → cleanup` con `run_step` y `run_log`; salto de extracción y carga si la tabla de control del destino ya tiene el lote; reutilización del spool en el mismo worker; ventana de marca de agua con la hora de SAP (cabecera `Date`) |
+| Worker | `main_worker.py`, `extraction/application/worker.py` | Bucle de toma y ejecución; SIGTERM devuelve el run a la cola sin gastar intento |
+| API | `extraction/api/` | `POST /pipelines/{id}/runs` (ejecutar ahora), `GET /runs`, `GET /runs/{id}`, `GET /runs/{id}/logs?after=`, `POST /runs/{id}/cancel`, `GET /pipelines/{id}/delta`, `POST …/delta/reset`, `POST …/delta/sap-subscription` |
+| Pantallas | `features/pipelines`, `features/runs` | Lista y alta de pipelines en una pantalla, detalle con «Ejecutar ahora», pestañas Ejecuciones, Delta (estado, historial, reinicializar, confirmar cierre en SAP) y Actividad; historial global y detalle de run con resumen, tokens, log en vivo, pasos e intentos |
+
+**Opciones provisionales hasta el spike** (cada una está en una constante o en un punto del código con la hipótesis que la cierra):
+
+| Hipótesis | Comportamiento ahora | Dónde se cambia |
+|---|---|---|
+| H6, H18 | Un solo pipeline delta por entity set (mismo sistema, servicio y entity set): `SX-PPL-DELTA-SHARED-SOURCE` | `ALLOW_SHARED_DELTA_SOURCE` en `orchestration/domain/model.py` |
+| H10 | Una init no se reintenta sola; si llegó a pedir datos a SAP, al fallar marca `sap_close_pending` y la siguiente init exige confirmar el cierre o declarar que se deja abierta | `RETRY_DELTA_INIT` e `INIT_FAILURE_LEAVES_SUBSCRIPTION` en `extraction/domain/model.py` |
+| H12 | El cierre de la suscripción en SAP es siempre manual (ODQMON) y se confirma desde la pestaña Delta; `terminate_delta` no existe todavía | `RunService.reset_delta` |
+| H7 | En una lectura delta, un 404 o 400 de SAP se interpreta como token rechazado (`SX-SAP-DELTA-INVALID` → `BROKEN`) | `classify` en `odata_connector.py` |
+| H11 | `pending_token` es el último token recibido (lo esperado) | `RunStore.set_pending_token` |
+| H13 | Sin umbral de alerta todavía (plan 09, It8) | — |
+| H9 | Sin modo `DELTA_INIT_NO_DATA` | — |
+
+**Diferencias con el diseño (decididas al implementar):**
+
+- El `delta_state.lease_epoch` toma el mismo valor que el del run al tomarlo (no un contador propio): el *fencing* exige además `pending_run_id = run`, así que un zombi de otro run o de un intento anterior queda fuera igual.
+- Un intento solo marca `sap_close_pending` al fallar una init si llegó a pedir datos a SAP (`run_attempt.sap_requested`); un fallo en `prepare` (destino caído, por ejemplo) no deja nada abierto.
+- La huella de filtros se guarda en el run al encolarlo (`run.filters_hash`) y pasa a `delta_state.init_filters_hash` en la init.
+- Las consultas a SAP se codifican como en los enlaces de SAP y en el spike (`!deltatoken='…'`, `$filter` con `%20`), no con la codificación por defecto de httpx (`%21`, `%27`, `+`). Afecta también al explorador y a la vista previa.
+- Las ventanas de marca de agua se guardan en `run.window_*` (timestamptz) marcadas como UTC aunque sean horas locales de SAP; el `batch_id` se calcula siempre con esos valores. El margen de seguridad es configurable (`SX_WATERMARK_SAFETY_LAG_SECONDS`, 120 s).
+- Las métricas por paso van en `run_step.metrics` (páginas, filas, bytes, latencia de SAP, duración); la tabla `run_metric` del plan 03 queda para la It8.
+- El log en vivo es un sondeo de la pantalla cada segundo con cursor (`after`), no SSE; deja de consultar cuando la API indica `finished`.
+- La paginación por clave de CDS vía OData (servicios sin `__next`) no está hecha: depende de cómo paginen los servicios reales.
+- Los reintentos esperan 1, 5 y 15 min (`SX_RUN_RETRY_BACKOFF_SECONDS`), sin *jitter* (It6).
+
+**Pruebas de caída** (`test_engine.py`, contra PostgreSQL real, el mock en un hilo y una carpeta CSV real): la muerte del worker se simula con una excepción que el motor no captura, en cinco puntos (al leer de SAP, con el spool escrito y el token sin guardar, antes de llevar al destino, después del `apply` y antes del `commit_delta`); otro worker termina el run sin perder ni duplicar filas y solo vuelve a SAP cuando el lote no llegó al destino. También: reintento en el mismo worker sin llamar a SAP, intentos agotados con el token quieto y repetición del mismo lote, worker zombi que no confirma, token inválido → `BROKEN` → reinicialización → confirmación de cierre → init de generación 2, init fallida que no se reintenta, cancelación en cola y en curso, carga completa con reemplazo y dos ventanas de marca de agua.
+
 ## Tareas
 
 - [x] Diseño del estado de delta: transiciones, *fencing*, `commit_delta` y cierre en SAP (§3.6, borrador del 20.11.2026; se cierra con el spike).
 - [x] ADR 0006 con los contratos (`SourceConnector`, `DestinationWriter`, spool, run e intentos, `batch_id`, tabla de control), propuesto el 20.11.2026 y pendiente de revisión conjunta. El estado de delta queda fuera hasta el spike (§3.6).
-- [ ] Paquete `dataflow/` con esos tipos, batería de conformidad y dobles de prueba (inicio de la Fase 1).
-- [ ] Modelo `run`, `run_attempt`, `run_step`, `delta_state`, `delta_state_history`.
-- [ ] Conectores `ODP_EXTRACTOR` / `CDS_ODP` (comparten implementación ODP) y `CDS_ODATA` (paginación por clave).
-- [ ] Iterador de páginas del motor, conversión de tipos EDM → Arrow, spool Parquet con manifiesto.
-- [ ] Máquina de estados de delta con commit en dos fases, `batch_id` y *fencing*.
-- [ ] Salto de `load` cuando la tabla de control del destino ya tiene el lote.
-- [ ] Pseudo-delta por marca de agua con `watermark_kind`.
-- [ ] `ExtractionEngine` con pasos, cancelación, heartbeat y métricas.
-- [ ] Reinicialización de delta y cierre de la suscripción en SAP (API + auditoría).
-- [ ] Pruebas con `sap-mock`: init, delta, repetición, token inválido, caída en cada paso (inyección de fallos), worker zombi, reintento en otro worker.
+- [x] Paquete `dataflow/` con esos tipos, batería de conformidad y dobles de prueba (It4a).
+- [x] Modelo `run`, `run_attempt`, `run_step`, `delta_state`, `delta_state_history` (migración `0008_engine`, con `run_log` particionada).
+- [x] Conectores `ODP_EXTRACTOR` / `CDS_ODP` y `CDS_ODATA` con paginación de servidor. Falta la paginación por clave de CDS vía OData para servicios sin `__next`.
+- [x] Iterador de páginas del motor, conversión de tipos EDM → Arrow, spool Parquet con manifiesto.
+- [x] Máquina de estados de delta con commit en dos fases, `batch_id` y *fencing* (con las opciones provisionales de arriba).
+- [x] Salto de `load` cuando la tabla de control del destino ya tiene el lote.
+- [x] Pseudo-delta por marca de agua con `watermark_kind`.
+- [x] `ExtractionEngine` con pasos, cancelación, heartbeat y métricas.
+- [x] Reinicialización de delta (API + auditoría). El cierre en SAP es manual hasta H12.
+- [x] Pruebas con `sap-mock`: init, delta, repetición, token inválido, caída en cada paso (inyección de fallos), worker zombi, reintento en otro worker.
+- [ ] Validar contra el SAP real tras el spike: ajustar las opciones provisionales y el mock a lo observado.
+- [ ] Pruebas de caída contra Snowflake real (con la cuenta de pruebas).
 - [ ] Prueba de volumen (≥ 10 M filas sintéticas) con memoria acotada.
 - [ ] ADR de cargas iniciales grandes, tras el spike.
 
