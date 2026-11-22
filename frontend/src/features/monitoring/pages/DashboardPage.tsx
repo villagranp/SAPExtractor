@@ -54,6 +54,12 @@ export function DashboardPage() {
     style: 'percent',
     maximumFractionDigits: 1,
   });
+  // Las filas pueden llegar a millones: en notación compacta («125 mil», «1,3 M») la cifra no se
+  // parte dentro de su columna.
+  const compact = new Intl.NumberFormat(i18n.resolvedLanguage ?? 'es', {
+    notation: 'compact',
+    maximumFractionDigits: 1,
+  });
   const s = summary.data;
   const openAlerts = s ? Object.values(s.alerts_open).reduce((a, b) => a + b, 0) : 0;
 
@@ -228,7 +234,10 @@ export function DashboardPage() {
               label={t('monitoring.kpis.live')}
               value={s ? rows(s.runs_24h.running + s.runs_24h.queued) : '—'}
             />
-            <Metric label={t('monitoring.kpis.rows')} value={s ? rows(s.rows_24h) : '—'} />
+            <Metric
+              label={t('monitoring.kpis.rows')}
+              value={s ? compact.format(s.rows_24h) : '—'}
+            />
             <Metric
               label={t('monitoring.kpis.successRate')}
               value={s?.success_rate_7d != null ? percent.format(s.success_rate_7d) : '—'}

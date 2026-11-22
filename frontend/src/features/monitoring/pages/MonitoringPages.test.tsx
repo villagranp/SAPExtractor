@@ -13,7 +13,7 @@ describe('DashboardPage', () => {
   it('resume el estado: indicadores, runs en curso, fallos, frescura y workers', async () => {
     renderWithProviders(<DashboardPage />);
     expect(await screen.findByText('Pipelines activos')).toBeInTheDocument();
-    expect(await screen.findByText('125.000')).toBeInTheDocument();
+    expect(await screen.findByText('125 mil')).toBeInTheDocument();
     expect(screen.getByText('95,3 %')).toBeInTheDocument();
     const live = screen.getByRole('table', { name: 'Ejecuciones en curso' });
     expect(within(live).getByText('3000 filas en 3 páginas')).toBeInTheDocument();
