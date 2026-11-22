@@ -129,6 +129,10 @@ class Settings(BaseSettings):
         default_factory=list,
         description="Carpetas raíz donde los destinos CSV pueden escribir; sin ellas no hay CSV",
     )
+    mssql_odbc_driver: str = Field(
+        "ODBC Driver 18 for SQL Server",
+        description="Driver ODBC instalado para los destinos SQL Server",
+    )
 
     # --- Procesos de fondo
     scheduler_tick_seconds: float = 5.0

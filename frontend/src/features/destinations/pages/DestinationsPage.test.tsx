@@ -27,7 +27,8 @@ describe('DestinationsPage', () => {
       await screen.findByRole('button', { name: 'Nuevo destino Snowflake' }),
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Nuevo destino Archivos CSV' })).toBeInTheDocument();
-    expect(screen.getByText(/Añadir, Reemplazar y Upsert/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Nuevo destino SQL Server' })).toBeInTheDocument();
+    expect(screen.getAllByText(/Añadir, Reemplazar y Upsert/)).toHaveLength(2);
   });
 
   it('sin destinos invita a registrar el primero', async () => {

@@ -17,6 +17,7 @@ from sapextract.destinations.application.plugins import PluginContext, PluginReg
 from sapextract.destinations.domain.model import CsvRoots
 from sapextract.destinations.infrastructure.csv_plugin import CsvPlugin
 from sapextract.destinations.infrastructure.snowflake_plugin import SnowflakePlugin
+from sapextract.destinations.infrastructure.sqlserver_plugin import SqlServerPlugin
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -53,11 +54,13 @@ class DestinationsToolkit:
             settings=settings,
             audit=audit or AuditService(),
             cipher=SecretCipher.from_settings(settings) if settings.master_key else None,
-            registry=registry or PluginRegistry([CsvPlugin(), SnowflakePlugin()]),
+            registry=registry
+            or PluginRegistry([CsvPlugin(), SnowflakePlugin(), SqlServerPlugin()]),
             context=PluginContext(
                 host_policy=settings.dest_host_policy,
                 csv_roots=CsvRoots(tuple(Path(r) for r in settings.csv_roots)),
                 work_dir=Path(tempfile.gettempdir()),
+                odbc_driver=settings.mssql_odbc_driver,
             ),
         )
 

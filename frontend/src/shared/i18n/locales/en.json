@@ -123,13 +123,13 @@
   },
   "destinations": {
     "title": "Destinations",
-    "description": "Where extracted data is loaded: Snowflake or CSV files. Each destination is tested before it is activated.",
+    "description": "Where extracted data is loaded: Snowflake, SQL Server or CSV files. Each destination is tested before it is activated.",
     "new": "New destination",
     "newOfType": "New {{type}} destination",
     "searchPlaceholder": "Code, name or description",
     "empty": "No destination matches the filters.",
     "emptyFirstTitle": "No destinations yet",
-    "emptyFirst": "Register a Snowflake destination or a CSV folder to create pipelines.",
+    "emptyFirst": "Register a Snowflake or SQL Server destination, or a CSV folder, to create pipelines.",
     "types": {
       "snowflake": {
         "label": "Snowflake",
@@ -138,6 +138,10 @@
       "csv": {
         "label": "CSV files",
         "description": "CSV files (optionally gzip) in an allowed server folder, published atomically with a manifest and _SUCCESS."
+      },
+      "sqlserver": {
+        "label": "SQL Server",
+        "description": "Loads into SQL Server tables with a SQL login or an Entra ID service principal: per-batch staging and MERGE in one transaction."
       }
     },
     "loadModes": {
@@ -192,7 +196,9 @@
         "tab": "Tab",
         "lf": "LF (Linux)",
         "crlf": "CRLF (Windows)",
-        "none": "No compression"
+        "none": "No compression",
+        "sql": "SQL login",
+        "entra_service_principal": "Entra ID service principal"
       }
     },
     "config": {
@@ -222,8 +228,8 @@
         "path": "Target folder",
         "write": "Write access and free space",
         "network": "Network and DNS",
-        "authentication": "Authentication (key pair)",
-        "context": "Role, warehouse, database and schema",
+        "authentication": "Authentication",
+        "context": "Connection context",
         "privileges": "Load privileges"
       },
       "statuses": {
@@ -248,16 +254,25 @@
       },
       "typeHelp": "Choose the destination type. The next form depends on it.",
       "noCsvRoots": "The server has no CSV root folders (SX_CSV_ROOTS). Ask the administrator to configure at least one.",
-      "keyPairTitle": "Key-pair authentication",
-      "keyPairHelp": "Generate an RSA key pair, register the public key on the Snowflake service user (ALTER USER … SET RSA_PUBLIC_KEY) and paste the private key here.",
+      "credentials": {
+        "snowflake": {
+          "title": "Key-pair authentication",
+          "help": "Generate an RSA key pair, register the public key on the Snowflake service user (ALTER USER … SET RSA_PUBLIC_KEY) and paste the private key here."
+        },
+        "sqlserver": {
+          "title": "SQL login or service principal",
+          "help": "With a SQL login, enter its password. With an Entra ID service principal, the user in the configuration is the application ID and its client secret goes here. The connection is always encrypted."
+        }
+      },
       "testHelp": {
         "snowflake": "Checks network, authentication, context (role, warehouse, database and schema) and privileges to create tables and stages.",
-        "csv": "Checks that the folder is inside an allowed root, is writable and has free space."
+        "csv": "Checks that the folder is inside an allowed root, is writable and has free space.",
+        "sqlserver": "Checks network, authentication, that the database and schema exist, and that tables can be created, written and altered, in a transaction that is rolled back."
       },
-      "testReusesCredentials": "The test uses the stored credentials. To change them use “Rotate keys” on the detail page.",
+      "testReusesCredentials": "The test uses the stored credentials. To change them use “Change credentials” on the detail page.",
       "testButton": "Test destination",
       "testing": "Testing…",
-      "credentialsElsewhere": "Credentials are changed from the detail page with “Rotate keys”.",
+      "credentialsElsewhere": "Credentials are changed from the detail page with “Change credentials”.",
       "activate": "Activate on save",
       "activateHelp": "The test passed: the destination will be available to pipelines.",
       "activateBlocked": "It can only be activated after a successful test.",
@@ -268,8 +283,11 @@
       "saving": "Saving…"
     },
     "rotate": {
-      "title": "Rotate keys of {{code}}",
-      "help": "Register the new public key in Snowflake first (two can be active: RSA_PUBLIC_KEY_2). Saving tests the destination with the new key.",
+      "title": "Change credentials of {{code}}",
+      "help": {
+        "snowflake": "Register the new public key in Snowflake first (two can be active: RSA_PUBLIC_KEY_2). Saving tests the destination with the new key.",
+        "sqlserver": "First change the password or client secret in SQL Server or Entra ID. Saving tests the destination with the new credential."
+      },
       "submit": "Save and test",
       "working": "Saving…"
     },
@@ -311,7 +329,7 @@
       "actions": {
         "test": "Test now",
         "edit": "Edit",
-        "rotate": "Rotate keys",
+        "rotate": "Change credentials",
         "activate": "Activate",
         "deactivate": "Deactivate",
         "delete": "Delete"

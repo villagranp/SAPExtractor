@@ -176,6 +176,35 @@ Identificadores en mayúsculas y siempre citados; los nombres SAP con `/` se con
 
 **API real:** la del §7 más `POST /destinations/{id}/activate` y `POST /destinations/{id}/deactivate`. Permisos `destination:read|manage|test`.
 
+## Lo construido en la iteración 4b
+
+Código: `destinations/infrastructure/sqlserver_plugin.py` (configuración, prueba, escritor) y `sqlserver_sql.py` (T-SQL puro, probado sin conexión). Pantallas: el mismo asistente y detalle de It4a, con el tipo nuevo. Migración `0012_sqlserver_destination` (valor `sqlserver` en `destination.type`).
+
+**Diferencias con el diseño inicial (decididas al implementar):**
+
+| Tema | Diseño | Implementado | Motivo |
+|---|---|---|---|
+| Autenticación | SQL, Entra ID (service principal) o integrada | SQL y service principal (`Authentication=ActiveDirectoryServicePrincipal`, usuario = client ID, secreto en `secret`) | La integrada necesita Kerberos en el contenedor Linux; se añadirá si un cliente la pide |
+| Cifrado | `Encrypt=yes`, `TrustServerCertificate` configurable | Igual; `Encrypt=yes` siempre, sin opción para desactivarlo | Nunca credenciales en claro por la red |
+| Driver | ODBC Driver 18 | 18 en la imagen y en CI; nombre configurable con `SX_MSSQL_ODBC_DRIVER` (en local sirve el 17) | Estaciones Windows con el 17 instalado |
+| Esquema | Servidor, base, esquema | Tablas en `[esquema].[tabla]` dentro de la base de la conexión; identificadores con corchetes, sin pasar a mayúsculas | SQL Server compara según la intercalación de la base; el catálogo se compara sin distinguir mayúsculas |
+| `replace` | `TRUNCATE` + `SWITCH` (o `INSERT … SELECT`) | `TRUNCATE` + `INSERT … SELECT WITH (TABLOCK)` en la transacción de carga | `SWITCH` exige que la staging tenga la misma estructura e índices que la final, y la staging lleva los nombres del spool. `TRUNCATE` toma Sch-M hasta el `COMMIT`: los consumidores esperan y nunca ven la tabla vacía. Requiere `ALTER` y falla si otra tabla la referencia con una FK |
+| `upsert` | `MERGE` con `ROW_NUMBER()` | Igual, con `HOLDLOCK` y conteo por acción (`OUTPUT $action INTO @tabla`) | SQL Server solo admite dos `WHEN MATCHED` si uno actualiza y otro borra: el borrado lógico es un único `UPDATE` con `CASE` que conserva los datos y marca `_sx_deleted` y el lote |
+| Clave primaria | En columnas clave (para `upsert`) | Solo en `upsert`: agrupada hasta 900 bytes, no agrupada hasta 1700; por encima, o con una clave `NVARCHAR(MAX)`, no se crea y la vista previa de DDL lo explica en un comentario | En `append` y `replace` una clave repetida entre lotes es legítima. La clave *hash* queda para cuando aparezca un caso real |
+| Tabla de control | `__sx_load_state` | Clave `(target_table, batch_id, pipeline_id)`; repetir un lote borra y reescribe su fila en la misma transacción | SQL Server sí aplica la clave primaria (Snowflake no) |
+| Staging | `__sx_stg_<target>_<batch>` | `__sx_stg_<lote>_<destino>` (máx. 128, el lote primero para que el recorte no lo corte), tabla real que se confirma por lote Arrow y se borra en `cleanup` | Una tabla temporal `#` no sobrevive a un reintento con otra conexión |
+| Prueba de red | Lista de hosts | Comprobación estática del host al guardar, resolución y conexión TCP al probar; el driver abre su propio socket | Mismo riesgo residual de *DNS rebinding* que Snowflake |
+
+**Prueba de conexión por pasos:** `network` (host permitido, DNS y TCP), `authentication` (`SX-DST-AUTH`; `SX-DST-ODBC-DRIVER` si falta el driver), `context` (versión, base, inicio de sesión y que el esquema exista: `SX-DST-SCHEMA-MISSING`) y `privileges` (crea, escribe y altera una tabla de prueba en una transacción que se deshace: no deja nada).
+
+**Errores** por SQLSTATE y número nativo: login (28000, 18456) y permisos (229, 262…) son de configuración; datos (22xxx, 23xxx) de datos; red, *timeout* y *deadlock* (08xxx, HYT00, 40001), transitorios. Los mensajes llegan sin los prefijos `[Microsoft][ODBC…]` y nunca incluyen la cadena de conexión.
+
+**Pruebas:** unitarias del T-SQL, tipos, ancho de clave, cadena de conexión y clasificación de errores; la batería de conformidad (`TestSqlServerDestination`) y la API de punta a punta (alta, prueba por pasos, activación, contraseña errónea) contra SQL Server 2022 en testcontainers. En CI, `SX_TEST_REQUIRE_MSSQL=1` hace que falten el driver o el contenedor sea un fallo, no un salto.
+
+**Medición de `fast_executemany`** (`tests/perf/bench_sqlserver_load.py`, esquema GL de prueba, SQL Server 2022 en Docker Desktop sobre Windows con ODBC 17): 10 M filas en `append`: spool 22 s; staging 501 s (≈ 20 000 filas/s); `apply` (`INSERT … SELECT` + control) 522 s; en total unos 17,5 min. Staging y `apply` pesan lo mismo y `apply` es trabajo del servidor (disco de Docker Desktop), así que `bcp` solo acortaría la mitad del tiempo. **Decisión:** se mantiene `fast_executemany`; se repite la medición en el SQL Server de AG y se pasa a `bcp`/`BULK INSERT` solo si el staging supera la mitad de la ventana de carga con el volumen real (D5). La primera medición falló por el timeout de sentencia (600 s, derivado del de conexión): ahora es un ajuste propio, `query_timeout_seconds`, de 2 h por defecto.
+
+**Desarrollo:** `docker compose --profile mssql up` levanta un SQL Server de pruebas; el host `mssql` está en `SX_DEST_ALLOWED_HOSTS` del compose de desarrollo.
+
 ## Tareas
 
 **It4a (Fase 1)**
@@ -188,8 +217,9 @@ Identificadores en mayúsculas y siempre citados; los nombres SAP con `/` se con
 - [x] Pantallas 1–3.
 
 **It4b (Fase 3)**
-- [ ] Plugin **SQL Server** (staging, `MERGE`, `SWITCH`, DDL, evolución de esquema, tabla de control).
-- [ ] Pruebas de integración con testcontainers y medición de `fast_executemany` con 10 M de filas.
+- [x] Plugin **SQL Server** (staging, `MERGE`, `TRUNCATE` + `INSERT … SELECT` en lugar de `SWITCH`, DDL, evolución de esquema, tabla de control).
+- [x] Pruebas de integración con testcontainers y medición de `fast_executemany` con 10 M de filas.
+- [ ] Validar contra el SQL Server de AG (y el service principal de Entra ID) y repetir la medición en ese servidor.
 
 ## Criterios de aceptación
 

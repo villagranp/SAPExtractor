@@ -10553,7 +10553,8 @@
         "type": "string",
         "enum": [
           "csv",
-          "snowflake"
+          "snowflake",
+          "sqlserver"
         ],
         "title": "DestinationType"
       },

@@ -19,7 +19,7 @@ export type DdlPreviewRequest = S['DdlPreviewRequest'];
 export type DdlPreview = S['DdlPreviewResponse'];
 export type LoadMode = S['LoadMode'];
 
-export const DESTINATION_TYPES: DestinationType[] = ['snowflake', 'csv'];
+export const DESTINATION_TYPES: DestinationType[] = ['snowflake', 'sqlserver', 'csv'];
 export const ENVIRONMENTS: DestinationEnvironment[] = ['DEV', 'QAS', 'PRD'];
 export const LOAD_MODES: LoadMode[] = ['upsert', 'append', 'replace'];
 

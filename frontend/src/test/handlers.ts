@@ -346,6 +346,44 @@ export const snowflakeSecretSchema = {
   },
 };
 
+export const sqlserverConfigSchema = {
+  title: 'SQL Server',
+  type: 'object',
+  required: ['host', 'database', 'user'],
+  properties: {
+    host: { title: 'Servidor', type: 'string', description: 'Nombre DNS o IP, sin puerto' },
+    port: { title: 'Puerto', type: 'integer', default: 1433, minimum: 1, maximum: 65535 },
+    database: { title: 'Base de datos', type: 'string' },
+    schema_name: { title: 'Esquema', type: 'string', default: 'dbo' },
+    authentication: {
+      title: 'Autenticación',
+      type: 'string',
+      enum: ['sql', 'entra_service_principal'],
+      default: 'sql',
+    },
+    user: { title: 'Usuario', type: 'string' },
+    trust_server_certificate: {
+      title: 'Confiar en el certificado del servidor',
+      type: 'boolean',
+      default: false,
+    },
+  },
+};
+
+export const sqlserverSecretSchema = {
+  title: 'Credencial',
+  type: 'object',
+  required: ['password'],
+  properties: {
+    password: {
+      title: 'Contraseña o secreto de cliente',
+      type: 'string',
+      format: 'password',
+      writeOnly: true,
+    },
+  },
+};
+
 export const destinationTypes: S['DestinationTypeResponse'][] = [
   {
     type: 'csv',
@@ -356,6 +394,12 @@ export const destinationTypes: S['DestinationTypeResponse'][] = [
   {
     type: 'snowflake',
     label: 'Snowflake',
+    requires_secret: true,
+    supported_modes: ['append', 'replace', 'upsert'],
+  },
+  {
+    type: 'sqlserver',
+    label: 'SQL Server',
     requires_secret: true,
     supported_modes: ['append', 'replace', 'upsert'],
   },
@@ -851,8 +895,18 @@ export const handlers = [
     const info = destinationTypes.find((t) => t.type === params.type);
     return HttpResponse.json({
       ...info,
-      config_schema: params.type === 'csv' ? csvConfigSchema : snowflakeConfigSchema,
-      secret_schema: params.type === 'csv' ? null : snowflakeSecretSchema,
+      config_schema:
+        params.type === 'csv'
+          ? csvConfigSchema
+          : params.type === 'sqlserver'
+            ? sqlserverConfigSchema
+            : snowflakeConfigSchema,
+      secret_schema:
+        params.type === 'csv'
+          ? null
+          : params.type === 'sqlserver'
+            ? sqlserverSecretSchema
+            : snowflakeSecretSchema,
     });
   }),
   http.get('*/api/v1/destinations', () =>

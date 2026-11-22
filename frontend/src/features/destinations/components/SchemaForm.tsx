@@ -14,6 +14,8 @@ const ENUM_LABELS: Record<string, string> = {
   '\n': 'enumLabels.lf',
   '\r\n': 'enumLabels.crlf',
   none: 'enumLabels.none',
+  sql: 'enumLabels.sql',
+  entra_service_principal: 'enumLabels.entra_service_principal',
 };
 
 interface SchemaFormProps {

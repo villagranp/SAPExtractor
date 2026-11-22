@@ -96,7 +96,7 @@ function Wizard({ existing, initialType }: WizardProps) {
   const [type, setType] = useState<DestinationType | null>(existing?.type ?? initialType);
   const typeSchema = useDestinationTypeSchema(type);
   const info: DestinationTypeSchema | undefined = typeSchema.data;
-  const needsSecret = info?.requires_secret ?? type === 'snowflake';
+  const needsSecret = info?.requires_secret ?? (type !== null && type !== 'csv');
   const steps: StepId[] = editing
     ? ['general', 'config', 'test', 'summary']
     : [
@@ -352,9 +352,11 @@ function Wizard({ existing, initialType }: WizardProps) {
     ),
     credentials: (
       <div className="sx-stack">
-        <Alert tone="info" title={t('destinations.wizard.keyPairTitle')}>
-          {t('destinations.wizard.keyPairHelp')}
-        </Alert>
+        {type && type !== 'csv' && (
+          <Alert tone="info" title={t(`destinations.wizard.credentials.${type}.title`)}>
+            {t(`destinations.wizard.credentials.${type}.help`)}
+          </Alert>
+        )}
         <SchemaForm
           schema={secretSchema}
           values={secretValues}

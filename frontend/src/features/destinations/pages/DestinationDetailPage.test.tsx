@@ -25,7 +25,7 @@ describe('DestinationDetailPage', () => {
     expect(await screen.findByText('SHA256:abc123')).toBeInTheDocument();
     expect(screen.getByText('SX_LOADER')).toBeInTheDocument();
     expect(screen.getByText('Privilegios de carga')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Rotar claves' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Cambiar credenciales' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Desactivar' })).toBeInTheDocument();
   });
 
@@ -33,7 +33,7 @@ describe('DestinationDetailPage', () => {
     renderDetail(csvDestination.id);
     expect(await screen.findByText('Este destino aún no se ha probado.')).toBeInTheDocument();
     expect(screen.getByText('Separador')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Rotar claves' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Cambiar credenciales' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Activar' })).toBeDisabled();
   });
 
@@ -47,7 +47,7 @@ describe('DestinationDetailPage', () => {
     );
     const user = userEvent.setup();
     renderDetail(snowflakeDestination.id);
-    await user.click(await screen.findByRole('button', { name: 'Rotar claves' }));
+    await user.click(await screen.findByRole('button', { name: 'Cambiar credenciales' }));
     const dialog = await screen.findByRole('dialog');
     const save = within(dialog).getByRole('button', { name: 'Guardar y probar' });
     expect(save).toBeDisabled();

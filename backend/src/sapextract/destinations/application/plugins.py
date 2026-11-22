@@ -27,6 +27,7 @@ class PluginContext:
     host_policy: HostPolicy
     csv_roots: CsvRoots
     work_dir: Path  # carpeta temporal del proceso (p. ej. para claves o archivos de prueba)
+    odbc_driver: str = "ODBC Driver 18 for SQL Server"  # destinos SQL Server
 
 
 def wrong_model(value: object, expected: type[BaseModel]) -> TypeError:

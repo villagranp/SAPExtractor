@@ -250,6 +250,9 @@ def _target(d: Destination) -> str:
     c = d.config
     if d.type == DestinationType.SNOWFLAKE:
         return f"{c.get('account', '')} · {c.get('database', '')}.{c.get('schema_name', '')}"
+    if d.type == DestinationType.SQLSERVER:
+        server = f"{c.get('host', '')}:{c.get('port', 1433)}"
+        return f"{server} · {c.get('database', '')}.{c.get('schema_name', '')}"
     return f"{c.get('root', '')}/{c.get('path', '')}".rstrip("/")
 
 

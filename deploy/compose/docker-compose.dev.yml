@@ -24,7 +24,7 @@ x-backend: &backend
     SX_BOOTSTRAP_ADMIN_PASSWORD: ${SX_BOOTSTRAP_ADMIN_PASSWORD:-Inicial.Dev-Temporal-2026}
     # Destinos (plan 07): carpeta raíz para CSV y hosts de Snowflake permitidos.
     SX_CSV_ROOTS: '["/data/csv"]'
-    SX_DEST_ALLOWED_HOSTS: '["snowflakecomputing.com"]'
+    SX_DEST_ALLOWED_HOSTS: '["snowflakecomputing.com", "mssql"]' # mssql: perfil opcional de pruebas
     # URL con la que se abre la plataforma en desarrollo (URI de redirección de Entra ID).
     SX_PUBLIC_URL: ${SX_PUBLIC_URL:-http://localhost:5173}
   volumes:

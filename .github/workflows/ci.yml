@@ -25,11 +25,25 @@ jobs:
         with:
           enable-cache: true
       - run: uv sync --locked
+      # Destino SQL Server (plan 07 §3): las pruebas usan un contenedor y el driver ODBC 18.
+      - name: Driver ODBC 18 de SQL Server
+        run: |
+          if ! odbcinst -q -d -n "ODBC Driver 18 for SQL Server" >/dev/null 2>&1; then
+            . /etc/os-release
+            curl -fsSL -o "$RUNNER_TEMP/ms-prod.deb" \
+              "https://packages.microsoft.com/config/ubuntu/${VERSION_ID}/packages-microsoft-prod.deb"
+            sudo dpkg -i "$RUNNER_TEMP/ms-prod.deb"
+            sudo apt-get update
+            sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc-dev
+          fi
+          odbcinst -q -d -n "ODBC Driver 18 for SQL Server"
       - run: uv run ruff format --check .
       - run: uv run ruff check .
       - run: uv run mypy
       - name: Pruebas (unitarias + integración con testcontainers)
         run: uv run pytest --cov --cov-report=xml
+        env:
+          SX_TEST_REQUIRE_MSSQL: "1" # sin driver o sin SQL Server, falla en vez de saltarse
       - name: Cobertura mínima de domain y application (80 %)
         run: >-
           uv run coverage report --fail-under=80

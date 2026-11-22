@@ -4,7 +4,21 @@
 
 FROM ghcr.io/astral-sh/uv:0.11.11 AS uv
 
-FROM python:3.14-slim AS base
+# ---- sistema: ODBC Driver 18 para los destinos SQL Server (plan 07 §3)
+FROM python:3.14-slim AS os-base
+# packages-microsoft-prod.deb instala la clave y el repositorio de la versión de Debian.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates curl \
+    && . /etc/os-release \
+    && curl -fsSL -o /tmp/ms-prod.deb \
+       "https://packages.microsoft.com/config/debian/${VERSION_ID}/packages-microsoft-prod.deb" \
+    && dpkg -i /tmp/ms-prod.deb && rm /tmp/ms-prod.deb \
+    && apt-get update \
+    && ACCEPT_EULA=Y apt-get install -y --no-install-recommends msodbcsql18 unixodbc \
+    && apt-get purge -y curl && apt-get autoremove -y \
+    && rm -rf /var/lib/apt/lists/*
+
+FROM os-base AS base
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     UV_COMPILE_BYTECODE=1 \
@@ -34,7 +48,7 @@ COPY backend/ ./
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --locked --no-dev --no-editable
 
 # ---- runtime mínimo, sin root
-FROM python:3.14-slim AS runtime
+FROM os-base AS runtime
 ARG BUILD_COMMIT=local
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \

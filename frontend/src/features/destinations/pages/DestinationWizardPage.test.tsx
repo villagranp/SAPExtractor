@@ -59,7 +59,7 @@ describe('DestinationWizardPage', () => {
 
     await user.click(await screen.findByRole('button', { name: 'Probar destino' }));
     expect(await screen.findByText('Destino accesible')).toBeInTheDocument();
-    expect(screen.getByText('Autenticación (par de claves)')).toBeInTheDocument();
+    expect(screen.getByText('Autenticación')).toBeInTheDocument();
     expect(tested).toMatchObject({
       type: 'snowflake',
       config: { account: 'ab12345.east-us-2.azure', database: 'raw' },
@@ -78,6 +78,49 @@ describe('DestinationWizardPage', () => {
       environment: 'DEV',
       activate: true,
       secret: { private_key_pem: PEM },
+    });
+  });
+
+  it('da de alta un SQL Server con service principal y envía el secreto aparte', async () => {
+    let tested: Record<string, unknown> = {};
+    server.use(
+      http.post('*/api/v1/destinations/test', async ({ request }) => {
+        tested = (await request.json()) as Record<string, unknown>;
+        return HttpResponse.json(destinationOkReport);
+      }),
+    );
+    const user = userEvent.setup();
+    renderWithProviders(<DestinationWizardPage />, { route: '/nuevo?type=sqlserver' });
+
+    await user.type(await screen.findByLabelText('Código'), 'mssql_dwh');
+    await user.type(screen.getByLabelText('Nombre'), 'Almacén corporativo');
+    await user.click(screen.getByRole('button', { name: 'Siguiente' }));
+
+    await user.type(await screen.findByLabelText('Servidor'), 'sql01.empresa.local');
+    await user.type(screen.getByLabelText('Base de datos'), 'DWH');
+    await user.selectOptions(
+      screen.getByLabelText(/^Autenticación/),
+      screen.getByRole('option', { name: 'Service principal de Entra ID' }),
+    );
+    await user.type(screen.getByLabelText('Usuario'), '00000000-app');
+    await user.click(screen.getByRole('button', { name: 'Siguiente' }));
+
+    expect(await screen.findByText('Usuario SQL o service principal')).toBeInTheDocument();
+    await user.type(screen.getByLabelText('Contraseña o secreto de cliente'), 'secreto');
+    await user.click(screen.getByRole('button', { name: 'Siguiente' }));
+
+    await user.click(await screen.findByRole('button', { name: 'Probar destino' }));
+    expect(await screen.findByText('Destino accesible')).toBeInTheDocument();
+    expect(tested).toMatchObject({
+      type: 'sqlserver',
+      config: {
+        host: 'sql01.empresa.local',
+        port: 1433,
+        database: 'DWH',
+        authentication: 'entra_service_principal',
+        user: '00000000-app',
+      },
+      secret: { password: 'secreto' },
     });
   });
 

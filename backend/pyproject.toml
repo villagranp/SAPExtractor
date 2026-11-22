@@ -23,6 +23,7 @@ dependencies = [
     "tzdata>=2025.2",
     "joserfc>=1.6",
     "croniter>=6.0",
+    "pyodbc>=5.2",
 ]
 
 [project.scripts]
@@ -72,6 +73,7 @@ ignore = [
 "src/sapextract/**/api/*.py" = ["PLR0917"]
 # SQL generado con identificadores validados y citados; los valores van siempre ligados.
 "src/sapextract/destinations/infrastructure/snowflake_sql.py" = ["S608"]
+"src/sapextract/destinations/infrastructure/sqlserver_sql.py" = ["S608"]
 
 # ---------------------------------------------------------------- mypy
 [tool.mypy]
@@ -82,7 +84,7 @@ mypy_path = "src"
 files = ["src", "tests"]
 
 [[tool.mypy.overrides]]
-module = ["testcontainers.*"]
+module = ["testcontainers.*", "pyodbc"]
 ignore_missing_imports = true
 
 # ---------------------------------------------------------------- pytest

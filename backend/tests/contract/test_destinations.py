@@ -1,4 +1,4 @@
-"""Batería de conformidad: memoria (referencia), CSV y Snowflake real (si hay cuenta)."""
+"""Batería de conformidad: memoria (referencia), CSV, SQL Server en contenedor y Snowflake real."""
 
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ from sapextract.core.network import HostPolicy
 from sapextract.dataflow.domain.batch import LoadMode
 from sapextract.destinations.application.plugins import PluginContext
 from sapextract.destinations.domain.model import CsvRoots
-from sapextract.destinations.infrastructure import snowflake_sql
+from sapextract.destinations.infrastructure import snowflake_sql, sqlserver_sql
 from sapextract.destinations.infrastructure.csv_plugin import CsvConfig, CsvWriter
 from sapextract.destinations.infrastructure.snowflake_plugin import (
     SnowflakeConfig,
@@ -27,8 +27,13 @@ from sapextract.destinations.infrastructure.snowflake_plugin import (
     SnowflakeSecret,
     SnowflakeWriter,
 )
+from sapextract.destinations.infrastructure.sqlserver_plugin import (
+    SqlServerPlugin,
+    SqlServerWriter,
+)
 from tests.contract.destination_contract import DestinationContract
 from tests.support.dataflow import InMemoryWriter
+from tests.support.mssql import SqlServerInstance
 
 
 def _upper(row: dict[str, Any]) -> dict[str, Any]:
@@ -187,3 +192,51 @@ class TestSnowflakeDestination(DestinationContract):
                 cursor.execute(f"DROP TABLE IF EXISTS {target}")
         finally:
             cursor.close()
+
+
+# ------------------------------------------------------------------ SQL Server en contenedor
+class SqlServerHarness:
+    supported_modes = SqlServerWriter.supported_modes
+
+    def __init__(self, writer: SqlServerWriter) -> None:
+        self.writer = writer
+
+    def rows(self, target: str) -> list[dict[str, Any]]:
+        cursor = self.writer.conn.cursor()
+        try:
+            exists = cursor.execute("SELECT OBJECT_ID(?, 'U')", target).fetchone()[0]
+            if exists is None:
+                return []
+            cursor.execute(f"SELECT * FROM {target}")  # noqa: S608 - nombre generado por la prueba
+            names = [d[0].upper() for d in cursor.description]
+            return [dict(zip(names, row, strict=True)) for row in cursor.fetchall()]
+        finally:
+            cursor.close()
+            self.writer.conn.commit()
+
+    @contextmanager
+    def failure_inside_apply(self) -> Iterator[None]:
+        original = sqlserver_sql.insert_control
+
+        def broken(schema: str) -> str:
+            return "SELECT 1/0"  # error de SQL Server dentro de la transacción de carga
+
+        sqlserver_sql.insert_control = broken
+        try:
+            yield
+        finally:
+            sqlserver_sql.insert_control = original
+
+
+@pytest.fixture(scope="module")
+def sqlserver_writer(sqlserver: SqlServerInstance) -> Iterator[SqlServerWriter]:
+    ctx = sqlserver.context(Path(tempfile.gettempdir()))
+    with SqlServerPlugin().open_writer(sqlserver.config, sqlserver.secret, ctx) as writer:
+        yield writer
+
+
+@pytest.mark.integration
+class TestSqlServerDestination(DestinationContract):
+    @pytest.fixture
+    def harness(self, sqlserver_writer: SqlServerWriter) -> SqlServerHarness:
+        return SqlServerHarness(sqlserver_writer)

@@ -3037,7 +3037,7 @@ export interface components {
          * DestinationType
          * @enum {string}
          */
-        DestinationType: "csv" | "snowflake";
+        DestinationType: "csv" | "snowflake" | "sqlserver";
         /** DestinationTypeResponse */
         DestinationTypeResponse: {
             type: components["schemas"]["DestinationType"];

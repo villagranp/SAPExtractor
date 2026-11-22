@@ -649,13 +649,13 @@
   },
   "destinations": {
     "title": "Destinos",
-    "description": "Dónde se cargan los datos extraídos: Snowflake o archivos CSV. Cada destino se prueba antes de activarse.",
+    "description": "Dónde se cargan los datos extraídos: Snowflake, SQL Server o archivos CSV. Cada destino se prueba antes de activarse.",
     "new": "Nuevo destino",
     "newOfType": "Nuevo destino {{type}}",
     "searchPlaceholder": "Código, nombre o descripción",
     "empty": "Ningún destino coincide con los filtros.",
     "emptyFirstTitle": "Aún no hay destinos",
-    "emptyFirst": "Registre un destino Snowflake o una carpeta CSV para poder crear pipelines.",
+    "emptyFirst": "Registre un destino Snowflake o SQL Server, o una carpeta CSV, para poder crear pipelines.",
     "types": {
       "snowflake": {
         "label": "Snowflake",
@@ -664,6 +664,10 @@
       "csv": {
         "label": "Archivos CSV",
         "description": "Archivos CSV (opcionalmente gzip) en una carpeta permitida del servidor, publicados de forma atómica con manifiesto y _SUCCESS."
+      },
+      "sqlserver": {
+        "label": "SQL Server",
+        "description": "Carga en tablas de SQL Server con usuario SQL o service principal de Entra ID: staging por lote y MERGE en una transacción."
       }
     },
     "loadModes": {
@@ -718,7 +722,9 @@
         "tab": "Tabulador",
         "lf": "LF (Linux)",
         "crlf": "CRLF (Windows)",
-        "none": "Sin compresión"
+        "none": "Sin compresión",
+        "sql": "Usuario SQL",
+        "entra_service_principal": "Service principal de Entra ID"
       }
     },
     "config": {
@@ -748,8 +754,8 @@
         "path": "Carpeta de destino",
         "write": "Escritura y espacio libre",
         "network": "Red y DNS",
-        "authentication": "Autenticación (par de claves)",
-        "context": "Rol, warehouse, base y esquema",
+        "authentication": "Autenticación",
+        "context": "Contexto de la conexión",
         "privileges": "Privilegios de carga"
       },
       "statuses": {
@@ -774,16 +780,25 @@
       },
       "typeHelp": "Elija el tipo de destino. El formulario siguiente depende del tipo.",
       "noCsvRoots": "El servidor no tiene carpetas raíz para CSV (SX_CSV_ROOTS). Pida al administrador que configure al menos una.",
-      "keyPairTitle": "Autenticación con par de claves",
-      "keyPairHelp": "Genere un par RSA, registre la clave pública en el usuario de servicio de Snowflake (ALTER USER … SET RSA_PUBLIC_KEY) y pegue aquí la clave privada.",
+      "credentials": {
+        "snowflake": {
+          "title": "Autenticación con par de claves",
+          "help": "Genere un par RSA, registre la clave pública en el usuario de servicio de Snowflake (ALTER USER … SET RSA_PUBLIC_KEY) y pegue aquí la clave privada."
+        },
+        "sqlserver": {
+          "title": "Usuario SQL o service principal",
+          "help": "Con usuario SQL, escriba su contraseña. Con un service principal de Entra ID, el usuario de la configuración es el ID de aplicación y aquí va su secreto de cliente. La conexión siempre va cifrada."
+        }
+      },
       "testHelp": {
         "snowflake": "Se comprueba la red, la autenticación, el contexto (rol, warehouse, base y esquema) y los privilegios para crear tablas y stages.",
-        "csv": "Se comprueba que la carpeta esté dentro de una raíz permitida, que se pueda escribir y que haya espacio libre."
+        "csv": "Se comprueba que la carpeta esté dentro de una raíz permitida, que se pueda escribir y que haya espacio libre.",
+        "sqlserver": "Se comprueba la red, la autenticación, que existan la base y el esquema y que se puedan crear, escribir y modificar tablas, en una transacción que se deshace."
       },
-      "testReusesCredentials": "La prueba usa las credenciales guardadas. Para cambiarlas use «Rotar claves» en el detalle.",
+      "testReusesCredentials": "La prueba usa las credenciales guardadas. Para cambiarlas use «Cambiar credenciales» en el detalle.",
       "testButton": "Probar destino",
       "testing": "Probando…",
-      "credentialsElsewhere": "Las credenciales se cambian desde el detalle con «Rotar claves».",
+      "credentialsElsewhere": "Las credenciales se cambian desde el detalle con «Cambiar credenciales».",
       "activate": "Activar al guardar",
       "activateHelp": "La prueba fue correcta: el destino quedará disponible para los pipelines.",
       "activateBlocked": "Solo se puede activar con una prueba correcta.",
@@ -794,8 +809,11 @@
       "saving": "Guardando…"
     },
     "rotate": {
-      "title": "Rotar claves de {{code}}",
-      "help": "Registre primero la nueva clave pública en Snowflake (puede tener dos activas: RSA_PUBLIC_KEY_2). Al guardar se prueba el destino con la clave nueva.",
+      "title": "Cambiar credenciales de {{code}}",
+      "help": {
+        "snowflake": "Registre primero la nueva clave pública en Snowflake (puede tener dos activas: RSA_PUBLIC_KEY_2). Al guardar se prueba el destino con la clave nueva.",
+        "sqlserver": "Cambie primero la contraseña o el secreto de cliente en SQL Server o en Entra ID. Al guardar se prueba el destino con la credencial nueva."
+      },
       "submit": "Guardar y probar",
       "working": "Guardando…"
     },
@@ -837,7 +855,7 @@
       "actions": {
         "test": "Probar ahora",
         "edit": "Editar",
-        "rotate": "Rotar claves",
+        "rotate": "Cambiar credenciales",
         "activate": "Activar",
         "deactivate": "Desactivar",
         "delete": "Eliminar"

@@ -79,7 +79,7 @@ export function RotateSecretDialog({ destination, open, onClose }: Props) {
         <Spinner label={t('common.loading')} />
       ) : (
         <>
-          <p>{t('destinations.rotate.help')}</p>
+          {destination.type !== 'csv' && <p>{t(`destinations.rotate.help.${destination.type}`)}</p>}
           {error && <Alert tone="danger">{error.message}</Alert>}
           <SchemaForm schema={schema} values={current} onChange={setValues} errors={errors} />
         </>

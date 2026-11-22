@@ -17,6 +17,7 @@ from sapextract.dataflow.domain.schema import EntitySchema
 class DestinationType(StrEnum):
     CSV = "csv"
     SNOWFLAKE = "snowflake"
+    SQLSERVER = "sqlserver"
 
 
 class DestinationStatus(StrEnum):
