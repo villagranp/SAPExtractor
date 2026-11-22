@@ -145,7 +145,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  /* SAP, flechas y base de datos ocupan la franja media (33 % a 68 % del alto). */
+  /* Ventana, flujo y base de datos ocupan la franja media (20 % a 80 % del alto). */
   object-position: 50% 50%;
 }
 

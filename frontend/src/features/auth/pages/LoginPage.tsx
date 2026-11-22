@@ -15,7 +15,7 @@ import {
 } from '../api/queries';
 import { ChangePasswordForm } from '../components/ChangePasswordForm';
 import { MfaSetup } from '../components/MfaSetup';
-import photoL from '../assets/login-main-1199.webp';
+import photoL from '../assets/login-main-1122.webp';
 import photoS from '../assets/login-main-640.webp';
 import './login.css';
 
@@ -243,7 +243,7 @@ function LoginVisual() {
       <img
         className="sx-login__photo"
         src={photoL}
-        srcSet={`${photoS} 640w, ${photoL} 1199w`}
+        srcSet={`${photoS} 640w, ${photoL} 1122w`}
         sizes={PHOTO_SIZES}
         alt=""
         decoding="async"
