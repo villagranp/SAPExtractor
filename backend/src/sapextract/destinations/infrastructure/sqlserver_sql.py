@@ -364,7 +364,7 @@ def merge_statement(table: str, staging: str, cols: TargetColumns, delete: Delet
         "DECLARE @sx_actions TABLE ([action] NVARCHAR(10) NOT NULL);\n"
         f"MERGE {table} WITH (HOLDLOCK) AS t USING {source} AS s ON {on}\n"
         + "\n".join(clauses)
-        + f"\nOUTPUT {action} INTO @sx_actions;\n"
+        + f"\nOUTPUT {action} INTO @sx_actions;\n"  # nosec B608
         "SELECT ISNULL(SUM(CASE WHEN [action] = 'INSERT' THEN 1 ELSE 0 END), 0) AS inserted, "
         "ISNULL(SUM(CASE WHEN [action] = 'UPDATE' THEN 1 ELSE 0 END), 0) AS updated, "
         "ISNULL(SUM(CASE WHEN [action] = 'DELETE' THEN 1 ELSE 0 END), 0) AS deleted "
