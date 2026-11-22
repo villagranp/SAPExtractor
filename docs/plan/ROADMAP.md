@@ -20,7 +20,7 @@ It7  SSO Microsoft Entra ID              ← obligatorio antes de PRD
 It8  Monitoreo y alertas
 It9  Endurecimiento, despliegue QA y PRD, runbooks   ══► v1.0
 ──────────────────────────────────────────────────────────
-v1.1 Dependencias · ámbito por área · Graph sync
+v1.1 Dependencias (encadenar: hecho el 21.11.2026; queda el DAG) · ámbito por área · Graph sync
 v2   Streaming (plan 12)
 ```
 

@@ -11,22 +11,28 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 
 import structlog
-from sqlalchemy import delete, select, update
+from sqlalchemy import delete, exists, select, update
 from sqlalchemy.orm import Session
 
 from sapextract.core.db import Database
-from sapextract.orchestration.application.lifecycle import enqueue_run, reap_stale
+from sapextract.orchestration.application.lifecycle import enqueue_run, live_run, reap_stale
 from sapextract.orchestration.application.schedule_service import spec_of
 from sapextract.orchestration.application.toolkit import OrchestrationToolkit
 from sapextract.orchestration.domain.model import (
     ExtractionMode,
     PipelineStatus,
+    RunStatus,
     RunTrigger,
     WorkerStatus,
     run_mode_for,
 )
-from sapextract.orchestration.domain.schedule import MisfirePolicy, SkipReason, next_fire
-from sapextract.orchestration.infrastructure.models import Pipeline, Schedule, Worker
+from sapextract.orchestration.domain.schedule import (
+    MisfirePolicy,
+    ScheduleType,
+    SkipReason,
+    next_fire,
+)
+from sapextract.orchestration.infrastructure.models import Pipeline, Run, Schedule, Worker
 
 log = structlog.get_logger(__name__)
 
@@ -41,6 +47,7 @@ class TickResult:
     skipped: int = 0
     reaped: int = 0
     workers_offline: int = 0
+    chained: int = 0  # runs lanzados porque terminó bien el pipeline anterior
 
 
 class SchedulerService:
@@ -50,8 +57,13 @@ class SchedulerService:
 
     def tick(self) -> TickResult:
         fired, skipped = self.fire_due()
+        chained, held = self.fire_dependencies()
         return TickResult(
-            fired=fired, skipped=skipped, reaped=self.reap(), workers_offline=self.sweep_workers()
+            fired=fired,
+            skipped=skipped + held,
+            reaped=self.reap(),
+            workers_offline=self.sweep_workers(),
+            chained=chained,
         )
 
     # -------------------------------------------------------------- programación
@@ -113,6 +125,99 @@ class SchedulerService:
             schedule_id=schedule.id,
         )
         return SkipReason.ALREADY_LIVE if run is None else None
+
+    # -------------------------------------------------------------- dependencias
+    def fire_dependencies(self) -> tuple[int, int]:
+        """Encola los pipelines cuyo pipeline anterior terminó con éxito (plan 08 §6).
+
+        Cuenta cualquier ejecución correcta del anterior (programada, manual, reintentada o
+        lanzada a su vez por otra) terminada después del cursor de la dependencia. Varias
+        seguidas lanzan una sola. Si el pipeline tiene una ejecución viva, la dependencia
+        espera: se lanza cuando esa termine, para que recoja lo que dejó el anterior.
+        Devuelve (lanzadas, omitidas por una ventana de exclusión).
+        """
+        now = self.tk.clock()
+        fired = skipped = 0
+        with self.db.session() as session:
+            pending = exists(
+                select(Run.id).where(
+                    Run.pipeline_id == Schedule.upstream_pipeline_id,
+                    Run.status == RunStatus.SUCCEEDED.value,
+                    Run.finished_at > Schedule.upstream_cursor_at,
+                )
+            )
+            stmt = (
+                select(Schedule, Pipeline)
+                .join(Pipeline, Pipeline.id == Schedule.pipeline_id)
+                .where(
+                    Schedule.type == ScheduleType.DEPENDENCY.value,
+                    Schedule.enabled,
+                    Schedule.upstream_cursor_at.is_not(None),
+                    Pipeline.status == PipelineStatus.ACTIVE.value,
+                    Pipeline.deleted_at.is_(None),
+                    pending,
+                )
+                .order_by(Schedule.upstream_cursor_at)
+                .limit(BATCH)
+                .with_for_update(of=Schedule, skip_locked=True)
+            )
+            for schedule, pipeline in session.execute(stmt).all():
+                outcome = self._chain(session, schedule, pipeline, now)
+                if outcome is None:
+                    fired += 1
+                elif outcome is SkipReason.BLACKOUT:
+                    skipped += 1
+            session.commit()
+        return fired, skipped
+
+    def _chain(
+        self, session: Session, schedule: Schedule, pipeline: Pipeline, now: datetime
+    ) -> SkipReason | None:
+        """Lanza el pipeline tras la última ejecución correcta del anterior.
+
+        ``None`` si encoló; ``ALREADY_LIVE`` si espera (el cursor no avanza); ``BLACKOUT`` si
+        cae en una ventana de exclusión (se omite y el cursor avanza).
+        """
+        upstream = session.scalars(
+            select(Run)
+            .where(
+                Run.pipeline_id == schedule.upstream_pipeline_id,
+                Run.status == RunStatus.SUCCEEDED.value,
+                Run.finished_at > schedule.upstream_cursor_at,
+            )
+            .order_by(Run.finished_at.desc())
+            .limit(1)
+        ).first()
+        if upstream is None or upstream.finished_at is None:
+            return SkipReason.ALREADY_LIVE  # otra transacción ya lo atendió
+        if live_run(session, pipeline.id) is not None:
+            return SkipReason.ALREADY_LIVE
+        if spec_of(schedule).blackout_at(now):
+            schedule.upstream_cursor_at = upstream.finished_at
+            schedule.last_skip_at, schedule.last_skip_reason = now, SkipReason.BLACKOUT.value
+            log.info(
+                "schedule_skipped",
+                pipeline=pipeline.code,
+                schedule_id=str(schedule.id),
+                reason=SkipReason.BLACKOUT.value,
+            )
+            return SkipReason.BLACKOUT
+        run = enqueue_run(
+            session,
+            pipeline,
+            mode=run_mode_for(ExtractionMode(pipeline.extraction_mode)),
+            trigger=RunTrigger.DEPENDENCY,
+            triggered_by=SCHEDULER_ACTOR,
+            priority=pipeline.priority,
+            now=now,
+            schedule_id=schedule.id,
+            upstream_run_id=upstream.id,
+        )
+        if run is None:
+            return SkipReason.ALREADY_LIVE
+        schedule.upstream_cursor_at = upstream.finished_at
+        schedule.last_fire_at = now
+        return None
 
     # -------------------------------------------------------------- huérfanos
     def reap(self) -> int:

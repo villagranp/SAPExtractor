@@ -43,7 +43,13 @@ from sapextract.orchestration.domain.schedule import (
     ScheduleType,
     SkipReason,
 )
-from sapextract.orchestration.infrastructure.models import Run, RunAttempt, Schedule, Worker
+from sapextract.orchestration.infrastructure.models import (
+    Pipeline,
+    Run,
+    RunAttempt,
+    Schedule,
+    Worker,
+)
 from sapextract.sources.api.schemas import (
     ColumnChangeResponse,
     DiffColumnResponse,
@@ -209,6 +215,11 @@ class ScheduleBody(BaseModel):
     blackout_windows: list[BlackoutWindowBody] = Field(default_factory=list, max_length=20)
     misfire_policy: MisfirePolicy = MisfirePolicy.SKIP
     enabled: bool = True
+    upstream_pipeline_id: uuid.UUID | None = Field(
+        None,
+        description="Tipo dependency: el pipeline cuyas ejecuciones correctas lanzan las de "
+        "este. Excluye cualquier otra programación",
+    )
 
     def to_domain(self) -> ScheduleInput:
         return ScheduleInput(
@@ -221,6 +232,7 @@ class ScheduleBody(BaseModel):
             blackout_windows=tuple(w.to_domain() for w in self.blackout_windows),
             misfire_policy=self.misfire_policy,
             enabled=self.enabled,
+            upstream_pipeline_id=self.upstream_pipeline_id,
         )
 
 
@@ -290,6 +302,23 @@ class PipelineDestinationRef(BaseModel):
         )
 
 
+class PipelineRef(BaseModel):
+    """Otro pipeline con el que este se encadena."""
+
+    id: uuid.UUID
+    code: str
+    name: str
+    status: PipelineStatus
+
+    @classmethod
+    def of(cls, p: Pipeline) -> PipelineRef:
+        return cls(id=p.id, code=p.code, name=p.name, status=PipelineStatus(p.status))
+
+    @classmethod
+    def maybe(cls, p: Pipeline | None) -> PipelineRef | None:
+        return cls.of(p) if p is not None else None
+
+
 class RunBrief(BaseModel):
     id: uuid.UUID
     mode: RunMode
@@ -334,6 +363,9 @@ class PipelineSummary(BaseModel):
     concurrency_group: str | None
     tags: list[str]
     next_fire_at: datetime | None
+    upstream: PipelineRef | None = Field(
+        description="Pipeline tras el que se ejecuta este, si depende de otro"
+    )
     live_run: RunBrief | None = Field(description="Ejecución en cola o en curso")
     last_run: RunBrief | None = Field(description="Última ejecución terminada")
     updated_at: datetime
@@ -357,6 +389,7 @@ class PipelineSummary(BaseModel):
             concurrency_group=p.concurrency_group,
             tags=list(p.tags),
             next_fire_at=v.next_fire_at,
+            upstream=PipelineRef.maybe(v.upstream),
             live_run=RunBrief.of(v.live_run),
             last_run=RunBrief.of(v.last_run),
             updated_at=p.updated_at,
@@ -403,6 +436,9 @@ class PipelineDetail(PipelineSummary):
         description="La configuración cambió desde la última ejecución de prueba"
     )
     findings: list[FindingResponse] = Field(description="Avisos y bloqueos de la configuración")
+    downstream: list[PipelineRef] = Field(
+        description="Pipelines que se ejecutan cuando este termina con éxito"
+    )
 
     @classmethod
     def of_view(cls, v: PipelineView) -> PipelineDetail:
@@ -430,6 +466,7 @@ class PipelineDetail(PipelineSummary):
             last_test_ok=p.last_test_ok,
             test_outdated=trial_outdated(p, v.source),
             findings=FindingResponse.list_of(v.findings),
+            downstream=[PipelineRef.of(d) for d in v.downstream],
         )
 
 
@@ -518,9 +555,12 @@ class ScheduleResponse(BaseModel):
     last_fire_at: datetime | None
     last_skip_at: datetime | None
     last_skip_reason: SkipReason | None
+    upstream: PipelineRef | None = Field(
+        description="Tipo dependency: pipeline tras el que se ejecuta"
+    )
 
     @classmethod
-    def of(cls, s: Schedule) -> ScheduleResponse:
+    def of(cls, s: Schedule, upstream: Pipeline | None = None) -> ScheduleResponse:
         return cls(
             id=s.id,
             type=ScheduleType(s.type),
@@ -536,7 +576,17 @@ class ScheduleResponse(BaseModel):
             last_fire_at=s.last_fire_at,
             last_skip_at=s.last_skip_at,
             last_skip_reason=SkipReason(s.last_skip_reason) if s.last_skip_reason else None,
+            upstream=PipelineRef.maybe(upstream),
         )
+
+    @classmethod
+    def list_of(
+        cls, schedules: list[Schedule], upstreams: dict[uuid.UUID, Pipeline]
+    ) -> list[ScheduleResponse]:
+        return [
+            cls.of(s, upstreams.get(s.upstream_pipeline_id) if s.upstream_pipeline_id else None)
+            for s in schedules
+        ]
 
 
 class SchedulePreviewResponse(BaseModel):
@@ -548,6 +598,14 @@ class RunPipelineRef(BaseModel):
     id: uuid.UUID
     code: str
     name: str
+
+
+class UpstreamRunRef(BaseModel):
+    """Ejecución del pipeline anterior que lanzó esta."""
+
+    id: uuid.UUID
+    pipeline: RunPipelineRef
+    finished_at: datetime | None
 
 
 class RunSummary(BaseModel):
@@ -638,10 +696,21 @@ class RunDetail(RunSummary):
     rows_inserted: int | None = None
     rows_updated: int | None = None
     rows_deleted: int | None = None
+    upstream_run: UpstreamRunRef | None = Field(
+        None, description="Ejecución del pipeline anterior que lanzó esta (trigger dependency)"
+    )
 
     @classmethod
     def of_view(cls, v: RunView) -> RunDetail:
         r = v.run
+        upstream = None
+        if v.upstream is not None:
+            run, pipeline = v.upstream
+            upstream = UpstreamRunRef(
+                id=run.id,
+                pipeline=RunPipelineRef(id=pipeline.id, code=pipeline.code, name=pipeline.name),
+                finished_at=run.finished_at,
+            )
         return cls(
             **RunSummary.of(v).model_dump(),
             attempts=[AttemptResponse.of(a) for a in v.attempts],
@@ -658,6 +727,7 @@ class RunDetail(RunSummary):
             rows_inserted=r.rows_inserted,
             rows_updated=r.rows_updated,
             rows_deleted=r.rows_deleted,
+            upstream_run=upstream,
         )
 
 

@@ -144,6 +144,28 @@ describe('RunDetailPage', () => {
     expect(retried).toBe(true);
   });
 
+  it('enlaza la ejecución del pipeline anterior que la lanzó', async () => {
+    server.use(
+      http.get('*/api/v1/runs/:id', () =>
+        HttpResponse.json({
+          ...queuedRun,
+          trigger: 'dependency',
+          triggered_by: 'scheduler',
+          upstream_run: {
+            id: failedRun.id,
+            pipeline: { id: 'p-upstream', code: 'GL_A_SNOWFLAKE', name: 'Partidas de mayor' },
+            finished_at: '2026-11-21T09:07:40Z',
+          },
+        }),
+      ),
+      ...pipelineHandlers,
+    );
+    renderRun(queuedRun.id);
+    const link = await screen.findByRole('link', { name: /^GL_A_SNOWFLAKE, terminada el / });
+    expect(link).toHaveAttribute('href', `/runs/${failedRun.id}`);
+    expect(screen.getByText('Otro pipeline')).toBeInTheDocument();
+  });
+
   it('cancela una ejecución en cola con su motivo', async () => {
     let body: Record<string, unknown> = {};
     server.use(

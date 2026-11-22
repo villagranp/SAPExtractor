@@ -44,6 +44,8 @@ export const activePipeline: S['PipelineDetail'] = {
   concurrency_group: null,
   tags: ['fi'],
   next_fire_at: '2026-11-23T08:30:00Z',
+  upstream: null,
+  downstream: [],
   live_run: null,
   last_run: finishedRun,
   updated_at: '2026-11-20T10:00:00Z',
@@ -101,6 +103,8 @@ export const draftPipeline: S['PipelineDetail'] = {
   cross_environment: false,
   cross_environment_reason: null,
   next_fire_at: null,
+  upstream: null,
+  downstream: [],
   last_run: null,
   activated_at: null,
   load: { ...activePipeline.load, load_mode: 'replace', column_mapping: {} },
@@ -129,9 +133,27 @@ export const weekdaySchedule: S['ScheduleResponse'] = {
   misfire_policy: 'skip',
   enabled: true,
   next_fire_at: '2026-11-23T08:30:00Z',
+  upstream: null,
   last_fire_at: '2026-11-20T23:30:00Z',
   last_skip_at: null,
   last_skip_reason: null,
+};
+
+/** `draftPipeline` encadenado detrás de `activePipeline`. */
+export const dependencySchedule: S['ScheduleResponse'] = {
+  ...weekdaySchedule,
+  id: '00000000-0000-7000-8000-00000000s002',
+  type: 'dependency',
+  cron_expression: null,
+  blackout_windows: [],
+  next_fire_at: null,
+  last_fire_at: '2026-11-21T09:08:00Z',
+  upstream: {
+    id: activePipeline.id,
+    code: activePipeline.code,
+    name: activePipeline.name,
+    status: 'active',
+  },
 };
 
 export const previewFires = [

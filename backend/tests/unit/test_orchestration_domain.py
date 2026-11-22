@@ -34,7 +34,9 @@ from sapextract.orchestration.domain.schedule import (
     MisfirePolicy,
     ScheduleSpec,
     ScheduleType,
+    check_dependency,
     check_schedule,
+    check_schedule_set,
     next_fire,
     upcoming,
 )
@@ -426,3 +428,68 @@ def test_fingerprint_follows_what_a_trial_checks() -> None:
     }
     for name, value in changes.items():
         assert trial_fingerprint(**{**base, name: value}) != fingerprint, name
+
+
+# ====================================================================== dependencias
+def test_dependency_schedule_has_no_clock() -> None:
+    upstream = uuid.uuid4()
+    window = BlackoutWindow(kind=BlackoutKind.WEEKLY, days=(5, 6), start=time(0), end=time(6))
+    spec = check_schedule(
+        ScheduleSpec(
+            type=ScheduleType.DEPENDENCY,
+            timezone="Europe/Madrid",
+            cron_expression="0 2 * * *",
+            interval_minutes=30,
+            start_at=ANCHOR,
+            misfire_policy=MisfirePolicy.RUN_ONCE,
+            blackout_windows=(window,),
+            upstream_pipeline_id=upstream,
+        )
+    )
+    # Solo quedan el pipeline anterior y las exclusiones: lo demás es de un reloj.
+    assert spec.upstream_pipeline_id == upstream
+    assert (spec.cron_expression, spec.interval_minutes, spec.start_at) == (None, None, None)
+    assert spec.misfire_policy is MisfirePolicy.SKIP
+    assert spec.blackout_windows == (window,)
+    assert next_fire(spec, ANCHOR, anchor=ANCHOR) is None
+    assert upcoming(spec, ANCHOR, anchor=ANCHOR) == []
+
+    with pytest.raises(BusinessRuleError) as missing:
+        check_schedule(ScheduleSpec(type=ScheduleType.DEPENDENCY))
+    assert _code(missing) == "SX-SCHED-UPSTREAM-REQUIRED"
+    # En una programación con reloj el pipeline anterior se ignora.
+    cron = check_schedule(
+        ScheduleSpec(
+            type=ScheduleType.CRON, cron_expression="0 2 * * *", upstream_pipeline_id=upstream
+        )
+    )
+    assert cron.upstream_pipeline_id is None
+
+
+def test_dependency_excludes_any_other_schedule() -> None:
+    dependency = ScheduleSpec(type=ScheduleType.DEPENDENCY, upstream_pipeline_id=uuid.uuid4())
+    cron = ScheduleSpec(type=ScheduleType.CRON, cron_expression="0 2 * * *")
+    check_schedule_set([])
+    check_schedule_set([dependency])
+    check_schedule_set([cron, cron])
+    for both in ([dependency, cron], [dependency, dependency]):
+        with pytest.raises(BusinessRuleError) as exc:
+            check_schedule_set(both)
+        assert _code(exc) == "SX-SCHED-DEPENDENCY-EXCLUSIVE"
+    with pytest.raises(BusinessRuleError) as many:
+        check_schedule_set([cron] * 6)
+    assert _code(many) == "SX-SCHED-TOO-MANY"
+
+
+def test_dependency_cannot_close_a_cycle() -> None:
+    chain = {"B": "A", "C": "B"}  # B tras A, C tras B
+    check_dependency("D", "C", chain.get)  # D tras C: una cadena más larga, sin ciclo
+    check_dependency("E", "A", chain.get)  # un segundo pipeline tras A
+    for pipeline, upstream in (("A", "A"), ("A", "B"), ("A", "C")):
+        with pytest.raises(BusinessRuleError) as exc:
+            check_dependency(pipeline, upstream, chain.get)
+        assert _code(exc) == "SX-SCHED-DEPENDENCY-CYCLE"
+    # Un ciclo que ya existiera entre otros pipelines no deja la comprobación sin terminar.
+    loop = {"X": "Y", "Y": "X"}
+    with pytest.raises(BusinessRuleError):
+        check_dependency("Z", "X", loop.get)

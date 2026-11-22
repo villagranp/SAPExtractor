@@ -1371,6 +1371,7 @@
       "route": "Recorrido",
       "nextFire": "Próxima ejecución",
       "lastRun": "Última ejecución",
+      "downstream": "Después se ejecutan",
       "sapEnvironment": "Entorno SAP",
       "extractionMode": "Modo de extracción",
       "targetName": "Tabla o archivo de destino",
@@ -1512,6 +1513,7 @@
     },
     "crossEnvironment": "Entornos distintos",
     "neverRun": "Sin ejecuciones",
+    "afterPipeline": "Cuando termine {{code}}",
     "onlyDestination": "Solo los pipelines que cargan en el destino elegido.",
     "onlySource": "Solo los pipelines que leen del origen elegido.",
     "seeAll": "Ver todos",
@@ -1668,11 +1670,13 @@
       "launch": "Lanzamiento",
       "launches": {
         "scheduled": "Con programación",
-        "manual": "Solo a mano"
+        "manual": "Solo a mano",
+        "after": "Después de otro pipeline"
       },
       "launchHints": {
         "scheduled": "La plataforma lanza el pipeline cuando toca. También se puede lanzar a mano.",
-        "manual": "El pipeline solo se ejecuta cuando alguien pulsa «Ejecutar ahora»."
+        "manual": "El pipeline solo se ejecuta cuando alguien pulsa «Ejecutar ahora».",
+        "after": "El pipeline se lanza cuando otro termina con éxito. No admite además una programación con reloj."
       },
       "manualOnly": "Solo a mano",
       "mode": "Cómo se define",
@@ -1756,7 +1760,8 @@
         "monthDay": "El día del mes va de 1 a 31.",
         "blackoutDays": "Marque al menos un día en cada ventana semanal.",
         "blackoutHours": "En cada ventana semanal, la hora de inicio y la de fin deben ser distintas.",
-        "blackoutRange": "En cada ventana entre fechas, el fin debe ser posterior al inicio."
+        "blackoutRange": "En cada ventana entre fechas, el fin debe ser posterior al inicio.",
+        "upstream": "Elija el pipeline anterior."
       },
       "days": {
         "all": "todos los días",
@@ -1772,7 +1777,9 @@
         "monthly": "El día {{day}} de cada mes a las {{time}}",
         "cron": "Según la expresión cron {{expression}}",
         "interval_one": "Cada minuto desde la activación",
-        "interval_other": "Cada {{count}} minutos desde la activación"
+        "interval_other": "Cada {{count}} minutos desde la activación",
+        "dependency": "Cuando {{pipeline}} termina con éxito",
+        "dependencyUnset": "Después de otro pipeline, aún sin elegir"
       },
       "on": "En marcha",
       "off": "Detenida",
@@ -1784,7 +1791,19 @@
         "already_live": "{{date}}, porque la ejecución anterior no había terminado"
       },
       "bandCaption": "Horas sin lanzamientos, de lunes a domingo.",
-      "platformZoneShort": "Zona horaria de la plataforma"
+      "platformZoneShort": "Zona horaria de la plataforma",
+      "upstream": "Pipeline anterior",
+      "upstreamHint": "Cada ejecución correcta de ese pipeline lanza una de este.",
+      "upstreamPlaceholder": "Elija un pipeline",
+      "upstreamNone": "Todavía no hay otro pipeline del que depender. Cree antes el pipeline anterior.",
+      "dependencyTitle": "Cómo se encadena",
+      "dependencyRules": {
+        "any": "Cuenta cualquier ejecución correcta del pipeline anterior: programada, a mano o reintentada.",
+        "busy": "Si este pipeline sigue en ejecución, espera y se lanza una sola vez cuando termine.",
+        "off": "Lo que el anterior termine mientras este está en pausa o en borrador no cuenta."
+      },
+      "dependencyEnabled": "Dependencia en marcha",
+      "dependencyZoneHint": "Las ventanas semanales se leen en esta zona."
     },
     "activate": {
       "title": "Comprobar y activar {{code}}",
@@ -1949,6 +1968,7 @@
       "window": "Ventana",
       "created": "Lanzada",
       "trigger": "Lanzada por",
+      "upstreamRun": "Ejecución anterior",
       "from": "Desde el día",
       "to": "Hasta el día",
       "reason": "Motivo",
@@ -1983,6 +2003,7 @@
       "errorTitle": "Error {{code}}",
       "timesTitle": "Tiempos",
       "attemptsBudget": "{{used}} de {{budget}} permitidos",
+      "upstreamRun": "{{code}}, terminada el {{date}}",
       "failedTitle_one": "La ejecución falló en su único intento ({{code}})",
       "failedTitle_other": "La ejecución falló tras {{count}} intentos ({{code}})",
       "dataTitle": "Datos"

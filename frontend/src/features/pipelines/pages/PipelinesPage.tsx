@@ -120,6 +120,8 @@ export function PipelinesPage() {
           <RunStatusPill status={p.live_run.status} />
         ) : p.next_fire_at && p.status === 'active' ? (
           formatDateTime(p.next_fire_at)
+        ) : p.upstream && p.status === 'active' ? (
+          t('pipelines.afterPipeline', { code: p.upstream.code })
         ) : (
           <span className="sx-muted">
             {p.status === 'active' ? t('pipelines.schedule.manualOnly') : '—'}

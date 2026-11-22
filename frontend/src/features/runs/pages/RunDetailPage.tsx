@@ -189,6 +189,21 @@ export function RunDetailPage() {
                     ? t(`runs.triggeredBy.${r.trigger}`, { user: r.triggered_by })
                     : t(`runs.triggers.${r.trigger}`),
                 },
+                ...(r.upstream_run
+                  ? [
+                      {
+                        label: t('runs.fields.upstreamRun'),
+                        value: (
+                          <Link to={`/runs/${r.upstream_run.id}`}>
+                            {t('runs.detail.upstreamRun', {
+                              code: r.upstream_run.pipeline.code,
+                              date: formatDateTime(r.upstream_run.finished_at),
+                            })}
+                          </Link>
+                        ),
+                      },
+                    ]
+                  : []),
                 { label: t('runs.fields.reason'), value: r.reason },
                 {
                   label: t('runs.fields.priority'),

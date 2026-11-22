@@ -17,7 +17,7 @@ Un pipeline es siempre **un origen hacia un destino**. No hay multi-destino: si 
 | Tabla | Campos clave |
 |---|---|
 | `pipeline` | `id`, `code`, `name`, `description`, `source_id`, `destination_id`, `extraction_mode` (`FULL` \| `DELTA` \| `WATERMARK`), `load_options` (JSON, ver plan 07), `filters`, `column_mapping`, `priority` (1–5), `timeout_minutes`, `retry_policy` (máx. intentos, backoff), `concurrency_group`, `worker_pool`, `log_level`, `status` (`draft` \| `active` \| `paused`), `tags`, `owner_id` |
-| `schedule` | `id`, `pipeline_id`, `type` (`cron` \| `interval` \| `manual_only`), `cron_expression`, `interval_minutes`, `timezone` (por defecto la zona horaria global de la plataforma, configurable en Ajustes), `start_at`, `end_at`, `blackout_windows` (JSON), `enabled`, `next_fire_at`, `last_fire_at`, `misfire_policy` (`skip` \| `run_once`) |
+| `schedule` | `id`, `pipeline_id`, `type` (`cron` \| `interval` \| `manual_only` \| `dependency`), `upstream_pipeline_id`, `cron_expression`, `interval_minutes`, `timezone` (por defecto la zona horaria global de la plataforma, configurable en Ajustes), `start_at`, `end_at`, `blackout_windows` (JSON), `enabled`, `next_fire_at`, `last_fire_at`, `misfire_policy` (`skip` \| `run_once`) |
 | `run` | (plan 06) + `trigger` (`schedule` \| `manual` \| `api` \| `dependency`), `triggered_by`, `priority`, `available_at`, `claimed_by`, `claimed_at`, `heartbeat_at`, `lease_epoch`, `status` (`queued` \| `running` \| `succeeded` \| `failed` \| `cancelled`) |
 | `run_attempt` | `run_id`, `number`, `worker_id`, `started_at`, `finished_at`, `outcome`, `error_code`, `lease_epoch`, `has_spool` |
 | `worker` | `id`, `hostname`, `pid`, `pools`, `started_at`, `heartbeat_at`, `status`, `current_run_id` |
@@ -104,9 +104,9 @@ Sustituye al lienzo previsto inicialmente: con un origen y un destino por pipeli
 - **Validación en vivo**: avisos (p. ej. `upsert` sin clave, origen aditivo con `upsert`, CSV con `upsert`, origen sin delta en modo `DELTA`, segundo pipeline delta sobre un origen que ya tiene uno, entornos distintos en origen y destino).
 - **Simulación**: "Probar pipeline" ejecuta con `$top` limitado hacia un destino de prueba sin crear suscripción.
 
-### Dependencias (v1.1)
+### Dependencias
 
-- Encadenar pipelines: "ejecutar B cuando A termine con éxito" (`trigger = dependency`).
+- Encadenar pipelines: "ejecutar B cuando A termine con éxito" (`trigger = dependency`). Construido el 21.11.2026, adelantado desde la v1.1; ver [Dependencias entre pipelines](#dependencias-entre-pipelines-21112026).
 - Evolución a DAG completo en plan 12.
 
 ## 7. API (resumen)
@@ -143,6 +143,7 @@ GET    /api/v1/concurrency-groups   PUT …
 - [x] API de vista previa de cron.
 - [x] Asistente de pipeline, constructor de programación y validaciones en vivo (con plan 10). Ver [Pantallas](#pantallas-it6-21112026).
 - [x] Pruebas: concurrencia (dos workers no toman el mismo run ni superan el límite por sistema), caída del líder, cambio de horario, blackout.
+- [x] Dependencias entre pipelines (21.11.2026, adelantado desde la v1.1): programación «después de otro pipeline», `trigger = dependency`. Ver [Dependencias entre pipelines](#dependencias-entre-pipelines-21112026).
 
 **Conexión con el motor (It5, 21.11.2026).** El worker ejecuta `ExtractionEngine` como `RunExecutor`. Se añadió un segundo puerto, `EngineHooks` (`orchestration/domain/ports.py`), que la orquestación llama en cuatro puntos: antes de encolar a mano (`check_run`: 409 si el delta está roto o tiene una suscripción sin cerrar), al terminar un run sin éxito en el worker, al recuperar runs caídos y al cancelar uno en cola (`run_finished`: suelta el estado de delta), y al borrar un pipeline (`pipeline_deleted`). `reap_stale` recibe el gancho como `on_final`. Sin motor registrado (`hooks=None`) la orquestación funciona igual. Detalle en el plan 06, «Lo construido en la iteración 5».
 
@@ -218,7 +219,7 @@ POST   /api/v1/pipelines/review                    # avisos sin guardar
 POST   /api/v1/pipelines/{id}/validate | /activate  {cross_environment_reason?}
 POST   /api/v1/pipelines/{id}/pause                {reason?} → {pipeline, warnings}
 POST   /api/v1/pipelines/{id}/clone                {code, name?, sap_system_id?, destination_id?, source_code?}
-PUT    /api/v1/pipelines/{id}/schedules            {schedules: [...]}   # sustituye todas (máx. 5)
+PUT    /api/v1/pipelines/{id}/schedules            {schedules: [...]}   # sustituye todas (máx. 5; una sola si es dependency)
 POST   /api/v1/schedules/preview                   {type, cron_expression | interval_minutes, timezone?, count?}
 GET    /api/v1/runs?pipeline=&status=&trigger=&from=&to=
 PUT    /api/v1/concurrency-groups/{code}           DELETE …
@@ -309,6 +310,34 @@ El líder lanza las tareas diarias en un hilo aparte (`MaintenanceThread`): una 
 
 Código: `core/maintenance.py` (ejecutor), `extraction/application/maintenance.py` (retención), `SapExplorerService.refresh_all` y `main_scheduler.system_tasks`.
 
+### Dependencias entre pipelines (21.11.2026)
+
+«Ejecutar B cuando A termine con éxito». Es un tipo de programación más, `dependency`, con el pipeline anterior en `schedule.upstream_pipeline_id` (migración `0013_pipeline_dependency`). Se edita donde las demás: en el paso «Programación» del asistente y en la pestaña «Programación» de la ficha, con la opción «Después de otro pipeline».
+
+Reglas (decisión de Dev A del 21.11.2026; revisables):
+
+- **Un solo pipeline anterior.** Varios pipelines pueden ir detrás del mismo, y las cadenas pueden ser largas (A → B → C), pero cada uno depende de uno. Depender de varios es el DAG del plan 12.
+- **Sin reloj propio.** Una dependencia es la única programación del pipeline: mezclarla con cron o intervalo se rechaza (`SX-SCHED-DEPENDENCY-EXCLUSIVE`). «Ejecutar ahora» sigue disponible.
+- **Cuenta cualquier ejecución correcta del anterior**: programada, a mano, por API, reintentada o lanzada a su vez por otra dependencia. Una que falla o se cancela no lanza nada.
+- Sin ciclos: ni después de sí mismo ni cerrando una cadena (`SX-SCHED-DEPENDENCY-CYCLE`). El pipeline anterior tiene que existir (`SX-SCHED-UPSTREAM-NOT-FOUND`).
+
+Cómo se lanza:
+
+- Lo hace el scheduler en cada ciclo (`SchedulerService.fire_dependencies`), no el worker: si el worker cae justo después de terminar el run, la dependencia se lanza igual. El run nuevo lleva `trigger = dependency`, `schedule_id` y `upstream_run_id` (la ejecución del anterior que lo lanzó), con la prioridad y el modo del pipeline. No se audita, como los runs programados.
+- Cada dependencia guarda un cursor (`schedule.upstream_cursor_at`): solo cuentan las ejecuciones del anterior terminadas después. Al lanzar, el cursor pasa al fin de la última ejecución atendida, así que **varias ejecuciones seguidas del anterior lanzan una sola**.
+- **Si el pipeline tiene una ejecución viva, la dependencia espera**: no se omite. Se lanza cuando esa ejecución termina, para recoger lo que dejó el anterior. Es distinto de una programación con reloj, que en ese caso se salta el disparo.
+- Al activar, reanudar o cambiar la programación, el cursor se pone en ese momento: lo que el anterior terminó mientras el pipeline estaba en borrador, en pausa o con la dependencia detenida no lanza nada al volver (la misma regla que evita disparos de golpe tras una pausa).
+- Las ventanas de exclusión valen también aquí: si el anterior termina dentro de una, esa ejecución se omite y queda anotada (`last_skip_reason = blackout`). Las fechas de vigencia y la política de atraso no aplican y no se guardan.
+- El cursor compara la hora de fin que pone el worker con la del proceso que activó la dependencia: da por buenos relojes sincronizados (NTP), igual que el latido de los workers.
+
+Lo que cambia alrededor:
+
+- **Eliminar** un pipeline con otros detrás se rechaza (`SX-PIPE-HAS-DOWNSTREAM`): hay que cambiar antes su programación. Sin esto dejarían de ejecutarse sin avisar.
+- **Clonar** no copia la dependencia: en otro entorno apuntaría al pipeline equivocado. El clon queda sin programación.
+- API: `ScheduleBody.upstream_pipeline_id`; `ScheduleResponse.upstream`; `PipelineSummary.upstream` y `PipelineDetail.downstream` (tras cuál se ejecuta y cuáles se ejecutan tras él); `RunDetail.upstream_run`; `GET /runs?trigger=dependency`.
+- Pantallas: la lista y la ficha dicen «Cuando termine X» en lugar de la próxima ejecución; la ficha del anterior lista los que se ejecutan después; el detalle de una ejecución enlaza la del anterior que la lanzó; el historial filtra por «Otro pipeline».
+- Pruebas: reglas y ciclos en `test_orchestration_domain.py`; la API en `test_dependency_rules`; el scheduler en `test_orchestration_queue.py` (lanza tras el éxito, no tras el fallo, espera a la ejecución viva, una sola por varias, cadena A → B → C, pausa, borrador, detenida y ventana de exclusión).
+
 ### Decisiones aceptadas (21.11.2026)
 
 Estas cuatro diferencias con el diseño inicial se dan por buenas para seguir avanzando (decisión de Dev A); si más adelante hace falta cambiarlas, se revisan:
@@ -331,7 +360,7 @@ Criterios de aceptación comprobados:
 
 ### Pendiente
 
-- Dependencias entre pipelines (`trigger = dependency`): v1.1.
+- Dependencias: depender de varios pipelines, ejecución condicional y vista de grafo (plan 12).
 - Hito H3 «Autónoma»: falta validar el motor contra el SAP real (spike, ADR 0002).
 - Prueba de usabilidad del asistente con 2 o 3 usuarios (plan 10).
 - Retención: la API `/settings/retention` y el archivado firmado de la auditoría siguen en el plan 03; hoy la retención del log se fija con `SX_RUN_LOG_RETENTION_DAYS`.

@@ -7,6 +7,7 @@ import { renderWithProviders } from '@/test/render';
 import { server } from '@/test/setup';
 import {
   activePipeline,
+  dependencySchedule,
   draftPipeline,
   failedTrial,
   okActivation,
@@ -78,6 +79,83 @@ describe('PipelineDetailPage', () => {
         },
       ],
     });
+  });
+
+  it('encadena un pipeline después de otro y no le deja otra programación', async () => {
+    let saved: Record<string, unknown> = {};
+    server.use(
+      http.put('*/api/v1/pipelines/:id/schedules', async ({ request }) => {
+        saved = (await request.json()) as Record<string, unknown>;
+        return HttpResponse.json([dependencySchedule]);
+      }),
+      ...pipelineHandlers,
+    );
+    const user = userEvent.setup();
+    renderDetail(draftPipeline.id);
+    await user.click(await screen.findByRole('tab', { name: 'Programación' }));
+    await user.click(await screen.findByRole('button', { name: 'Editar programación' }));
+    await user.click(screen.getByRole('radio', { name: 'Después de otro pipeline' }));
+
+    // Sin elegir el pipeline anterior no se guarda; el propio pipeline no está en la lista.
+    const upstream = await screen.findByLabelText('Pipeline anterior');
+    expect(screen.getByRole('button', { name: 'Guardar programación' })).toBeDisabled();
+    expect(within(upstream).queryByRole('option', { name: /GL_A_CSV/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Añadir otra programación' })).toBeNull();
+    await user.selectOptions(upstream, 'GL_A_SNOWFLAKE, Partidas de mayor hacia Snowflake');
+    expect(screen.getByText('Cuando GL_A_SNOWFLAKE termina con éxito')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Guardar programación' }));
+    await screen.findByRole('button', { name: 'Editar programación' });
+    expect(saved).toEqual({
+      schedules: [
+        {
+          type: 'dependency',
+          upstream_pipeline_id: activePipeline.id,
+          timezone: null,
+          blackout_windows: [],
+          misfire_policy: 'skip',
+          enabled: true,
+        },
+      ],
+    });
+  });
+
+  it('enseña tras qué pipeline se ejecuta y cuáles se ejecutan después', async () => {
+    const follower = {
+      id: draftPipeline.id,
+      code: draftPipeline.code,
+      name: draftPipeline.name,
+      status: 'active' as const,
+    };
+    server.use(
+      http.get('*/api/v1/pipelines/:id/schedules', () => HttpResponse.json([dependencySchedule])),
+      http.get('*/api/v1/pipelines/:id', ({ params }) =>
+        HttpResponse.json(
+          params.id === draftPipeline.id
+            ? { ...draftPipeline, status: 'active', upstream: dependencySchedule.upstream }
+            : { ...activePipeline, downstream: [follower] },
+        ),
+      ),
+      ...pipelineHandlers,
+    );
+    const user = userEvent.setup();
+    const first = renderDetail(activePipeline.id);
+    const after = await screen.findByRole('link', {
+      name: 'GL_A_CSV, Partidas de mayor hacia CSV',
+    });
+    expect(after).toHaveAttribute('href', `/pipelines/${draftPipeline.id}`);
+    first.unmount();
+
+    renderDetail(draftPipeline.id);
+    const before = await screen.findByRole('link', { name: 'Cuando termine GL_A_SNOWFLAKE' });
+    expect(before).toHaveAttribute('href', `/pipelines/${activePipeline.id}`);
+    await user.click(screen.getByRole('tab', { name: 'Programación' }));
+    expect(await screen.findByText('Cuando GL_A_SNOWFLAKE termina con éxito')).toBeInTheDocument();
+    // Una dependencia no tiene reloj: ni expresión cron ni próxima ejecución.
+    const row = screen.getByText('Cuando GL_A_SNOWFLAKE termina con éxito').closest('li');
+    expect(row).not.toBeNull();
+    expect(within(row as HTMLElement).queryByText('Próxima ejecución')).not.toBeInTheDocument();
+    expect(within(row as HTMLElement).getByText('Último lanzamiento')).toBeInTheDocument();
   });
 
   it('comprueba y activa un borrador', async () => {

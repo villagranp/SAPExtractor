@@ -8,10 +8,12 @@ import type {
 /**
  * Programación tal como la edita el usuario (plan 08 §6): frases sencillas, cron o un
  * intervalo fijo. La API solo entiende `cron` e `interval`; aquí se traduce en los dos sentidos.
+ * `dependency` no lleva reloj: el pipeline se lanza cuando otro termina con éxito, y es la
+ * única programación que puede tener.
  *
  * Días de la semana: 0 = lunes … 6 = domingo, igual que las ventanas de exclusión de la API.
  */
-export type ScheduleMode = 'simple' | 'cron' | 'interval';
+export type ScheduleMode = 'simple' | 'cron' | 'interval' | 'dependency';
 export type Repeat = 'minutes' | 'hours' | 'daily' | 'monthly';
 export type MisfirePolicy = ScheduleBody['misfire_policy'];
 
@@ -54,6 +56,9 @@ export interface ScheduleDraft {
   /** Vigencia fijada por API: la pantalla no la edita, pero la conserva al guardar. */
   startAt: string | null;
   endAt: string | null;
+  /** Modo `dependency`: pipeline anterior (vacío = sin elegir) y cómo nombrarlo. */
+  upstreamId: string;
+  upstreamCode: string;
 }
 
 let counter = 0;
@@ -77,8 +82,17 @@ export function newSchedule(): ScheduleDraft {
     blackouts: [],
     startAt: null,
     endAt: null,
+    upstreamId: '',
+    upstreamCode: '',
   };
 }
+
+/** «Después de otro pipeline», con el pipeline anterior aún sin elegir. */
+export function newDependency(): ScheduleDraft {
+  return { ...newSchedule(), mode: 'dependency' };
+}
+
+export const isDependency = (drafts: ScheduleDraft[]) => drafts[0]?.mode === 'dependency';
 
 export function newBlackout(kind: BlackoutDraft['kind']): BlackoutDraft {
   return {
@@ -233,13 +247,16 @@ export type ScheduleIssue =
   | 'cron'
   | 'interval'
   | 'monthDay'
+  | 'upstream'
   | 'blackoutDays'
   | 'blackoutHours'
   | 'blackoutRange';
 
 /** Primer problema de formato de una programación; las reglas de cron las valida la API. */
 export function scheduleIssue(draft: ScheduleDraft): ScheduleIssue | null {
-  if (draft.mode === 'cron') {
+  if (draft.mode === 'dependency') {
+    if (!draft.upstreamId) return 'upstream';
+  } else if (draft.mode === 'cron') {
     if (draft.cron.trim().split(/\s+/).length !== 5) return 'cron';
   } else if (draft.mode === 'interval') {
     const minutes = Number(draft.intervalMinutes);
@@ -295,6 +312,17 @@ function blackoutBody(window: BlackoutDraft): BlackoutWindowBody {
 }
 
 export function toScheduleBody(draft: ScheduleDraft): ScheduleBody {
+  if (draft.mode === 'dependency') {
+    // Sin reloj: solo cuentan el pipeline anterior, las exclusiones y si está en marcha.
+    return {
+      type: 'dependency',
+      upstream_pipeline_id: draft.upstreamId || null,
+      timezone: draft.timezone || null,
+      blackout_windows: draft.blackouts.map(blackoutBody),
+      misfire_policy: 'skip',
+      enabled: draft.enabled,
+    };
+  }
   const common = {
     timezone: draft.timezone || null,
     start_at: draft.startAt,
@@ -313,7 +341,7 @@ export function toScheduleBody(draft: ScheduleDraft): ScheduleBody {
 
 /** Petición de vista previa, o `null` si la programación aún no tiene un formato válido. */
 export function toPreviewRequest(draft: ScheduleDraft): SchedulePreviewRequest | null {
-  if (scheduleIssue(draft) !== null) return null;
+  if (draft.mode === 'dependency' || scheduleIssue(draft) !== null) return null;
   const body = toScheduleBody(draft);
   return {
     type: body.type,
@@ -364,6 +392,14 @@ export function fromSchedules(schedules: ScheduleResponse[]): ScheduleDraft[] {
         startAt: s.start_at,
         endAt: s.end_at,
       };
+      if (s.type === 'dependency') {
+        return {
+          ...base,
+          mode: 'dependency',
+          upstreamId: s.upstream?.id ?? '',
+          upstreamCode: s.upstream?.code ?? '',
+        };
+      }
       if (s.type === 'interval') {
         return { ...base, mode: 'interval', intervalMinutes: String(s.interval_minutes ?? 60) };
       }

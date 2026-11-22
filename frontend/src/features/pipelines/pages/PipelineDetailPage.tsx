@@ -131,8 +131,33 @@ function SummaryTab({ pipeline: p }: { pipeline: PipelineDetail }) {
             },
             {
               label: t('pipelines.fields.nextFire'),
-              value: p.status === 'active' ? formatDateTime(p.next_fire_at) : null,
+              value:
+                p.status !== 'active' ? null : p.upstream ? (
+                  <Link to={`/pipelines/${p.upstream.id}`}>
+                    {t('pipelines.afterPipeline', { code: p.upstream.code })}
+                  </Link>
+                ) : (
+                  formatDateTime(p.next_fire_at)
+                ),
             },
+            ...(p.downstream.length > 0
+              ? [
+                  {
+                    label: t('pipelines.fields.downstream'),
+                    value: (
+                      <ul className="sx-pipelines__plain-list">
+                        {p.downstream.map((next) => (
+                          <li key={next.id}>
+                            <Link to={`/pipelines/${next.id}`}>
+                              {next.code}, {next.name}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    ),
+                  },
+                ]
+              : []),
             {
               label: t('pipelines.fields.lastRun'),
               value: p.last_run ? (
@@ -201,18 +226,30 @@ function ScheduleRow({ schedule, draft }: { schedule: ScheduleResponse; draft: S
   const cron = cronOf(draft);
   const format = fireFormatter(language, schedule.timezone);
   const inZone = (value: string | null) => (value ? format.format(new Date(value)) : null);
+  const upstream = schedule.type === 'dependency' ? schedule.upstream : null;
+  // Sin reloj, la zona solo importa si hay ventanas de exclusión.
+  const showZone = schedule.type !== 'dependency' || draft.blackouts.length > 0;
   return (
     <li className="sx-pipelines__schedule-row">
       <div>
         <strong>{describe(draft)}</strong>
+        {upstream && (
+          <div>
+            <Link to={`/pipelines/${upstream.id}`}>
+              {upstream.code}, {upstream.name}
+            </Link>
+          </div>
+        )}
         {cron && (
           <div className="sx-muted">
             <code>{cron}</code>
           </div>
         )}
-        <div className="sx-muted">
-          {t('pipelines.schedule.previewZone', { zone: schedule.timezone })}
-        </div>
+        {showZone && (
+          <div className="sx-muted">
+            {t('pipelines.schedule.previewZone', { zone: schedule.timezone })}
+          </div>
+        )}
         {draft.blackouts.length > 0 && (
           <div className="sx-muted">
             {t('pipelines.schedule.blackoutCount', { count: draft.blackouts.length })}
@@ -224,7 +261,9 @@ function ScheduleRow({ schedule, draft }: { schedule: ScheduleResponse; draft: S
       </StatusPill>
       <DetailList
         items={[
-          { label: t('pipelines.fields.nextFire'), value: inZone(schedule.next_fire_at) },
+          ...(schedule.type === 'dependency'
+            ? []
+            : [{ label: t('pipelines.fields.nextFire'), value: inZone(schedule.next_fire_at) }]),
           { label: t('pipelines.schedule.lastFire'), value: inZone(schedule.last_fire_at) },
           ...(schedule.last_skip_at && schedule.last_skip_reason
             ? [
@@ -260,7 +299,7 @@ function ScheduleTab({ pipeline, canManage }: { pipeline: PipelineDetail; canMan
       <Card title={t('pipelines.detail.editSchedule')}>
         <div className="sx-stack">
           {save.error && <Alert tone="danger">{describeError(save.error).message}</Alert>}
-          <SchedulesEditor drafts={drafts} onChange={setDrafts} />
+          <SchedulesEditor drafts={drafts} onChange={setDrafts} pipelineId={pipeline.id} />
           <div className="sx-row">
             <Button
               variant="secondary"

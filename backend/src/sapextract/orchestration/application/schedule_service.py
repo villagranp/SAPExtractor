@@ -16,12 +16,13 @@ from sapextract.identity.domain.model import Principal
 from sapextract.orchestration.application.toolkit import OrchestrationToolkit
 from sapextract.orchestration.domain.model import PipelineStatus, issue
 from sapextract.orchestration.domain.schedule import (
-    MAX_SCHEDULES,
     BlackoutWindow,
     MisfirePolicy,
     ScheduleSpec,
     ScheduleType,
+    check_dependency,
     check_schedule,
+    check_schedule_set,
     next_fire,
     upcoming,
 )
@@ -43,6 +44,7 @@ class ScheduleInput:
     blackout_windows: tuple[BlackoutWindow, ...] = ()
     misfire_policy: MisfirePolicy = MisfirePolicy.SKIP
     enabled: bool = True
+    upstream_pipeline_id: uuid.UUID | None = None
 
 
 def spec_of(schedule: Schedule) -> ScheduleSpec:
@@ -55,6 +57,7 @@ def spec_of(schedule: Schedule) -> ScheduleSpec:
         end_at=schedule.end_at,
         blackout_windows=tuple(BlackoutWindow.from_dict(w) for w in schedule.blackout_windows),
         misfire_policy=MisfirePolicy(schedule.misfire_policy),
+        upstream_pipeline_id=schedule.upstream_pipeline_id,
     )
 
 
@@ -66,15 +69,59 @@ def platform_timezone(session: Session) -> str:
 def reset_next_fire(session: Session, pipeline: Pipeline, now: datetime) -> None:
     """Recalcula el próximo disparo desde ahora (al activar, reanudar o cambiar la programación).
 
-    Así una pausa larga no deja disparos atrasados que se lanzarían de golpe al reanudar.
+    Así una pausa larga no deja disparos atrasados que se lanzarían de golpe al reanudar. Lo
+    mismo vale para una dependencia: solo cuentan las ejecuciones del pipeline anterior que
+    terminen a partir de ahora.
     """
     active = pipeline.status == PipelineStatus.ACTIVE.value
     for schedule in session.scalars(select(Schedule).where(Schedule.pipeline_id == pipeline.id)):
+        live = active and schedule.enabled
         schedule.next_fire_at = (
-            next_fire(spec_of(schedule), now, anchor=schedule.created_at)
-            if active and schedule.enabled
-            else None
+            next_fire(spec_of(schedule), now, anchor=schedule.created_at) if live else None
         )
+        dependent = schedule.type == ScheduleType.DEPENDENCY.value
+        schedule.upstream_cursor_at = now if live and dependent else None
+
+
+def upstream_ids(session: Session) -> dict[uuid.UUID, uuid.UUID]:
+    """Pipeline anterior de cada pipeline que depende de otro."""
+    stmt = (
+        select(Schedule.pipeline_id, Schedule.upstream_pipeline_id)
+        .join(Pipeline, Pipeline.id == Schedule.pipeline_id)
+        .where(
+            Schedule.type == ScheduleType.DEPENDENCY.value,
+            Schedule.upstream_pipeline_id.is_not(None),
+            Pipeline.deleted_at.is_(None),
+        )
+    )
+    return {child: parent for child, parent in session.execute(stmt).all() if parent is not None}
+
+
+def upstream_pipelines(session: Session, ids: list[uuid.UUID]) -> dict[uuid.UUID, Pipeline]:
+    """Pipeline anterior de cada uno de ``ids`` (los que dependen de otro)."""
+    if not ids:
+        return {}
+    stmt = (
+        select(Schedule.pipeline_id, Pipeline)
+        .join(Pipeline, Pipeline.id == Schedule.upstream_pipeline_id)
+        .where(Schedule.pipeline_id.in_(ids), Schedule.type == ScheduleType.DEPENDENCY.value)
+    )
+    return {row[0]: row[1] for row in session.execute(stmt).all()}
+
+
+def downstream_of(session: Session, pipeline_id: uuid.UUID) -> list[Pipeline]:
+    """Pipelines que se ejecutan después de este."""
+    stmt = (
+        select(Pipeline)
+        .join(Schedule, Schedule.pipeline_id == Pipeline.id)
+        .where(
+            Schedule.type == ScheduleType.DEPENDENCY.value,
+            Schedule.upstream_pipeline_id == pipeline_id,
+            Pipeline.deleted_at.is_(None),
+        )
+        .order_by(Pipeline.code)
+    )
+    return list(session.scalars(stmt))
 
 
 def _snapshot(schedule: Schedule) -> dict[str, Any]:
@@ -88,6 +135,9 @@ def _snapshot(schedule: Schedule) -> dict[str, Any]:
         "blackout_windows": schedule.blackout_windows,
         "misfire_policy": schedule.misfire_policy,
         "enabled": schedule.enabled,
+        "upstream_pipeline_id": str(schedule.upstream_pipeline_id)
+        if schedule.upstream_pipeline_id
+        else None,
     }
 
 
@@ -107,8 +157,29 @@ class ScheduleService:
                 end_at=data.end_at,
                 blackout_windows=data.blackout_windows,
                 misfire_policy=data.misfire_policy,
+                upstream_pipeline_id=data.upstream_pipeline_id,
             )
         )
+
+    def _check_upstream(self, pipeline: Pipeline, spec: ScheduleSpec) -> None:
+        """El pipeline anterior existe y la dependencia no cierra un ciclo."""
+        upstream_id = spec.upstream_pipeline_id
+        if upstream_id is None:
+            return
+        upstream = self.session.get(Pipeline, upstream_id)
+        if upstream is None or upstream.deleted_at is not None:
+            msg = "El pipeline tras el que se ejecuta no existe."
+            raise issue("upstream_pipeline_id", msg, "SX-SCHED-UPSTREAM-NOT-FOUND")
+        parents = upstream_ids(self.session)
+        parents.pop(pipeline.id, None)  # su dependencia actual se sustituye
+        check_dependency(pipeline.id, upstream_id, parents.get)
+
+    def upstreams(self, schedules: list[Schedule]) -> dict[uuid.UUID, Pipeline]:
+        """Pipelines anteriores de unas programaciones, por su identificador."""
+        ids = {s.upstream_pipeline_id for s in schedules if s.upstream_pipeline_id is not None}
+        if not ids:
+            return {}
+        return {p.id: p for p in self.session.scalars(select(Pipeline).where(Pipeline.id.in_(ids)))}
 
     def list_for(self, pipeline_id: uuid.UUID) -> list[Schedule]:
         stmt = (
@@ -130,10 +201,10 @@ class ScheduleService:
         request: RequestInfo,
     ) -> list[Schedule]:
         """Sustituye toda la programación del pipeline y lo deja auditado."""
-        if len(items) > MAX_SCHEDULES:
-            msg = f"Un pipeline admite como máximo {MAX_SCHEDULES} programaciones."
-            raise issue("schedules", msg, "SX-SCHED-TOO-MANY")
         specs = [(self._spec(item), item.enabled) for item in items]
+        check_schedule_set([spec for spec, _ in specs])
+        for spec, _ in specs:
+            self._check_upstream(pipeline, spec)
         now = self.tk.clock()
         before = [_snapshot(s) for s in self.list_for(pipeline.id)]
         self.session.execute(delete(Schedule).where(Schedule.pipeline_id == pipeline.id))
@@ -150,6 +221,7 @@ class ScheduleService:
                 blackout_windows=[w.to_dict() for w in spec.blackout_windows],
                 enabled=enabled,
                 misfire_policy=spec.misfire_policy.value,
+                upstream_pipeline_id=spec.upstream_pipeline_id,
                 created_at=now,
                 updated_at=now,
             )

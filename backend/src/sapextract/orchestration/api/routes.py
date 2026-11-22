@@ -352,7 +352,9 @@ def get_schedules(
     pipeline_id: uuid.UUID, _: Reader, session: SessionDep, toolkit: ToolkitDep
 ) -> list[ScheduleResponse]:
     pipeline = PipelineService(session, toolkit).get(pipeline_id)
-    return [ScheduleResponse.of(s) for s in ScheduleService(session, toolkit).list_for(pipeline.id)]
+    service = ScheduleService(session, toolkit)
+    found = service.list_for(pipeline.id)
+    return ScheduleResponse.list_of(found, service.upstreams(found))
 
 
 @pipelines.put(
@@ -370,10 +372,9 @@ def put_schedules(
     info: RequestInfoDep,
 ) -> list[ScheduleResponse]:
     pipeline = PipelineService(session, toolkit).get(pipeline_id)
-    created = ScheduleService(session, toolkit).replace(
-        pipeline, [s.to_domain() for s in body.schedules], actor, info
-    )
-    return [ScheduleResponse.of(s) for s in created]
+    service = ScheduleService(session, toolkit)
+    created = service.replace(pipeline, [s.to_domain() for s in body.schedules], actor, info)
+    return ScheduleResponse.list_of(created, service.upstreams(created))
 
 
 # ====================================================================== programación

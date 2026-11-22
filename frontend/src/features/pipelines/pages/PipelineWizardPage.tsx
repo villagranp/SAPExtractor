@@ -45,6 +45,7 @@ import {
 } from '../schemas/pipelineForm';
 import {
   fromSchedules,
+  scheduleIssue,
   schedulesValid,
   toScheduleBody,
   type ScheduleDraft,
@@ -182,7 +183,11 @@ function Wizard({ existing, existingSchedules }: WizardProps) {
     const ok = await form.trigger([...STEP_FIELDS[step]] as Path<PipelineForm>[]);
     if (!ok) return;
     if (step === 'schedule' && !schedulesValid(schedules)) {
-      setServerError(t('pipelines.wizard.scheduleInvalid'));
+      // En una dependencia no hay vista previa que marque el fallo: se dice aquí qué falta.
+      const missing = schedules.some((draft) => scheduleIssue(draft) === 'upstream');
+      setServerError(
+        missing ? t('pipelines.schedule.issues.upstream') : t('pipelines.wizard.scheduleInvalid'),
+      );
       return;
     }
     if (steps[index + 1] === 'general' && !editing && sourceData && destination.data) {
@@ -316,7 +321,9 @@ function Wizard({ existing, existingSchedules }: WizardProps) {
           {step === 'load' && (
             <LoadStep form={form} source={sourceData} supported={supported} modeLocked={locked} />
           )}
-          {step === 'schedule' && <SchedulesEditor drafts={schedules} onChange={setSchedules} />}
+          {step === 'schedule' && (
+            <SchedulesEditor drafts={schedules} onChange={setSchedules} pipelineId={existing?.id} />
+          )}
           {step === 'general' && (
             <GeneralStep form={form} editing={editing} groups={groups.data ?? []} />
           )}
@@ -368,13 +375,25 @@ function Wizard({ existing, existingSchedules }: WizardProps) {
                               {describe(draft)}
                               <br />
                               <span className="sx-muted">
-                                {draft.timezone
-                                  ? t('pipelines.schedule.previewZone', { zone: draft.timezone })
-                                  : t('pipelines.schedule.platformZoneShort')}
-                                {draft.blackouts.length > 0 &&
-                                  `, ${t('pipelines.schedule.blackoutCount', {
-                                    count: draft.blackouts.length,
-                                  })}`}
+                                {draft.mode === 'dependency'
+                                  ? draft.blackouts.length > 0 &&
+                                    t('pipelines.schedule.blackoutCount', {
+                                      count: draft.blackouts.length,
+                                    })
+                                  : [
+                                      draft.timezone
+                                        ? t('pipelines.schedule.previewZone', {
+                                            zone: draft.timezone,
+                                          })
+                                        : t('pipelines.schedule.platformZoneShort'),
+                                      ...(draft.blackouts.length > 0
+                                        ? [
+                                            t('pipelines.schedule.blackoutCount', {
+                                              count: draft.blackouts.length,
+                                            }),
+                                          ]
+                                        : []),
+                                    ].join(', ')}
                               </span>
                             </li>
                           ))}

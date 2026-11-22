@@ -3950,6 +3950,8 @@ export interface components {
             tags: string[];
             /** Next Fire At */
             next_fire_at: string | null;
+            /** @description Pipeline tras el que se ejecuta este, si depende de otro */
+            upstream: components["schemas"]["PipelineRef"] | null;
             /** @description Ejecución en cola o en curso */
             live_run: components["schemas"]["RunBrief"] | null;
             /** @description Última ejecución terminada */
@@ -4009,11 +4011,32 @@ export interface components {
              * @description Avisos y bloqueos de la configuración
              */
             findings: components["schemas"]["FindingResponse"][];
+            /**
+             * Downstream
+             * @description Pipelines que se ejecutan cuando este termina con éxito
+             */
+            downstream: components["schemas"]["PipelineRef"][];
         };
         /** PipelineReasonRequest */
         PipelineReasonRequest: {
             /** Reason */
             reason?: string | null;
+        };
+        /**
+         * PipelineRef
+         * @description Otro pipeline con el que este se encadena.
+         */
+        PipelineRef: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+            status: components["schemas"]["PipelineStatus"];
         };
         /** PipelineReviewRequest */
         PipelineReviewRequest: {
@@ -4081,6 +4104,8 @@ export interface components {
             tags: string[];
             /** Next Fire At */
             next_fire_at: string | null;
+            /** @description Pipeline tras el que se ejecuta este, si depende de otro */
+            upstream: components["schemas"]["PipelineRef"] | null;
             /** @description Ejecución en cola o en curso */
             live_run: components["schemas"]["RunBrief"] | null;
             /** @description Última ejecución terminada */
@@ -4529,6 +4554,8 @@ export interface components {
             rows_updated?: number | null;
             /** Rows Deleted */
             rows_deleted?: number | null;
+            /** @description Ejecución del pipeline anterior que lanzó esta (trigger dependency) */
+            upstream_run?: components["schemas"]["UpstreamRunRef"] | null;
         };
         /** RunLogLine */
         RunLogLine: {
@@ -4964,6 +4991,11 @@ export interface components {
              * @default true
              */
             enabled: boolean;
+            /**
+             * Upstream Pipeline Id
+             * @description Tipo dependency: el pipeline cuyas ejecuciones correctas lanzan las de este. Excluye cualquier otra programación
+             */
+            upstream_pipeline_id?: string | null;
         };
         /** SchedulePreviewRequest */
         SchedulePreviewRequest: {
@@ -4990,6 +5022,11 @@ export interface components {
              * @default true
              */
             enabled: boolean;
+            /**
+             * Upstream Pipeline Id
+             * @description Tipo dependency: el pipeline cuyas ejecuciones correctas lanzan las de este. Excluye cualquier otra programación
+             */
+            upstream_pipeline_id?: string | null;
             /**
              * Count
              * @default 10
@@ -5038,12 +5075,14 @@ export interface components {
             /** Last Skip At */
             last_skip_at: string | null;
             last_skip_reason: components["schemas"]["SkipReason"] | null;
+            /** @description Tipo dependency: pipeline tras el que se ejecuta */
+            upstream: components["schemas"]["PipelineRef"] | null;
         };
         /**
          * ScheduleType
          * @enum {string}
          */
-        ScheduleType: "cron" | "interval" | "manual_only";
+        ScheduleType: "cron" | "interval" | "manual_only" | "dependency";
         /** SchedulesPutRequest */
         SchedulesPutRequest: {
             /** Schedules */
@@ -5624,6 +5663,20 @@ export interface components {
          * @enum {string}
          */
         TrialStep: "configuration" | "read" | "load" | "cleanup";
+        /**
+         * UpstreamRunRef
+         * @description Ejecución del pipeline anterior que lanzó esta.
+         */
+        UpstreamRunRef: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            pipeline: components["schemas"]["RunPipelineRef"];
+            /** Finished At */
+            finished_at: string | null;
+        };
         /** UserCreateRequest */
         UserCreateRequest: {
             /**

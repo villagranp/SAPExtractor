@@ -99,6 +99,11 @@ class Schedule(IdMixin, TimestampMixin, Base):
     last_fire_at: Mapped[datetime | None] = _ts()
     last_skip_at: Mapped[datetime | None] = _ts()
     last_skip_reason: Mapped[str | None] = mapped_column(String(30))
+    # Tipo ``dependency``: pipeline anterior y desde cuándo cuentan sus ejecuciones correctas.
+    upstream_pipeline_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("pipeline.id", ondelete="RESTRICT")
+    )
+    upstream_cursor_at: Mapped[datetime | None] = _ts()
 
 
 class Worker(Base):
@@ -128,6 +133,10 @@ class Run(IdMixin, Base):
     triggered_by: Mapped[str | None] = mapped_column(String(100))
     schedule_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("schedule.id", ondelete="SET NULL")
+    )
+    # Ejecución del pipeline anterior que lanzó esta (``trigger = dependency``).
+    upstream_run_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("run.id", ondelete="SET NULL")
     )
     reason: Mapped[str | None] = mapped_column(Text)
     priority: Mapped[int] = mapped_column(Integer, nullable=False)

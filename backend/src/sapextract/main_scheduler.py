@@ -138,10 +138,12 @@ def build_toolkit(settings: Settings) -> OrchestrationToolkit:
 def tick(service: SchedulerService) -> TickResult:
     """Un ciclo del scheduler: programación, runs huérfanos y workers caídos."""
     result = service.tick()
-    if result.fired or result.skipped or result.reaped or result.workers_offline:
+    worked = result.fired or result.chained or result.skipped
+    if worked or result.reaped or result.workers_offline:
         log.info(
             "scheduler_tick",
             fired=result.fired,
+            chained=result.chained,
             skipped=result.skipped,
             reaped=result.reaped,
             workers_offline=result.workers_offline,

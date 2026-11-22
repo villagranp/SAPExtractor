@@ -5,6 +5,8 @@ Todo el cálculo es puro: recibe el instante de referencia y devuelve instantes 
 
 from __future__ import annotations
 
+import uuid
+from collections.abc import Callable, Hashable, Sequence
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, time, timedelta
 from enum import StrEnum
@@ -21,6 +23,8 @@ class ScheduleType(StrEnum):
     CRON = "cron"
     INTERVAL = "interval"
     MANUAL_ONLY = "manual_only"
+    # Sin reloj: se lanza cuando otro pipeline termina con éxito (plan 08 §6).
+    DEPENDENCY = "dependency"
 
 
 class MisfirePolicy(StrEnum):
@@ -160,6 +164,8 @@ class ScheduleSpec:
     end_at: datetime | None = None
     blackout_windows: tuple[BlackoutWindow, ...] = field(default_factory=tuple)
     misfire_policy: MisfirePolicy = MisfirePolicy.SKIP
+    # Tipo ``dependency``: el pipeline cuyas ejecuciones correctas lanzan las de este.
+    upstream_pipeline_id: uuid.UUID | None = None
 
     @property
     def tz(self) -> ZoneInfo:
@@ -181,6 +187,18 @@ def check_schedule(spec: ScheduleSpec) -> ScheduleSpec:
     if len(spec.blackout_windows) > MAX_BLACKOUT_WINDOWS:
         msg = f"Como máximo {MAX_BLACKOUT_WINDOWS} ventanas de exclusión."
         raise _issue("blackout_windows", msg, "SX-SCHED-BLACKOUT-INVALID")
+
+    if spec.type is ScheduleType.DEPENDENCY:
+        if spec.upstream_pipeline_id is None:
+            msg = "Elija el pipeline tras el que se ejecuta este."
+            raise _issue("upstream_pipeline_id", msg, "SX-SCHED-UPSTREAM-REQUIRED")
+        # Sin reloj: ni fechas de vigencia ni política de atraso. Las exclusiones sí valen.
+        return ScheduleSpec(
+            type=spec.type,
+            timezone=tz.key,
+            blackout_windows=spec.blackout_windows,
+            upstream_pipeline_id=spec.upstream_pipeline_id,
+        )
 
     cron: str | None = None
     interval: int | None = None
@@ -212,6 +230,46 @@ def check_schedule(spec: ScheduleSpec) -> ScheduleSpec:
         blackout_windows=spec.blackout_windows,
         misfire_policy=spec.misfire_policy,
     )
+
+
+def check_schedule_set(specs: Sequence[ScheduleSpec]) -> None:
+    """Reglas del conjunto de programaciones de un pipeline.
+
+    Depender de otro pipeline excluye cualquier otra programación: quien decide cuándo corre
+    es el pipeline anterior, y solo uno (plan 08 §6).
+    """
+    if len(specs) > MAX_SCHEDULES:
+        msg = f"Un pipeline admite como máximo {MAX_SCHEDULES} programaciones."
+        raise _issue("schedules", msg, "SX-SCHED-TOO-MANY")
+    dependent = any(s.type is ScheduleType.DEPENDENCY for s in specs)
+    if dependent and len(specs) > 1:
+        msg = (
+            "Un pipeline que se ejecuta después de otro no admite más programaciones: "
+            "deje solo esa o quítela."
+        )
+        raise _issue("schedules", msg, "SX-SCHED-DEPENDENCY-EXCLUSIVE")
+
+
+def check_dependency[K: Hashable](
+    pipeline: K, upstream: K, upstream_of: Callable[[K], K | None]
+) -> None:
+    """Un pipeline no depende de sí mismo ni cierra un ciclo (A tras B, B tras A).
+
+    ``upstream_of`` devuelve el pipeline anterior de otro, o ``None`` si no depende de nadie.
+    """
+    seen = {pipeline}
+    current: K | None = upstream
+    while current is not None:
+        if current in seen:
+            msg = (
+                "No puede ejecutarse después de sí mismo."
+                if upstream == pipeline
+                else "Esa dependencia cierra un ciclo: el pipeline elegido ya se ejecuta, "
+                "directa o indirectamente, después de este."
+            )
+            raise _issue("upstream_pipeline_id", msg, "SX-SCHED-DEPENDENCY-CYCLE")
+        seen.add(current)
+        current = upstream_of(current)
 
 
 def _fixed_hour(cron: str) -> bool:
@@ -247,7 +305,7 @@ def next_fire(spec: ScheduleSpec, after: datetime, *, anchor: datetime) -> datet
 
     ``anchor`` es el origen de los intervalos cuando no hay ``start_at`` (alta de la programación).
     """
-    if spec.type is ScheduleType.MANUAL_ONLY:
+    if spec.type in (ScheduleType.MANUAL_ONLY, ScheduleType.DEPENDENCY):
         return None
     after = after.astimezone(UTC)
     if spec.start_at and after < spec.start_at:

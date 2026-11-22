@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { weekdaySchedule } from '../test/fixtures';
+import { dependencySchedule, weekdaySchedule } from '../test/fixtures';
 import {
   ALL_DAYS,
   WORKDAYS,
@@ -7,6 +7,7 @@ import {
   cronToSimple,
   fromSchedules,
   newBlackout,
+  newDependency,
   newSchedule,
   parseCronDays,
   scheduleIssue,
@@ -149,6 +150,45 @@ describe('programaciones guardadas', () => {
     expect(drafts[0] && toScheduleBody(drafts[0])).toMatchObject({
       type: 'interval',
       interval_minutes: 45,
+    });
+  });
+});
+
+describe('después de otro pipeline', () => {
+  it('pide el pipeline anterior y se envía sin reloj', () => {
+    expect(scheduleIssue(newDependency())).toBe('upstream');
+    const chosen: ScheduleDraft = {
+      ...newDependency(),
+      upstreamId: 'p-1',
+      upstreamCode: 'GL_A_SNOWFLAKE',
+      enabled: false,
+    };
+    expect(scheduleIssue(chosen)).toBeNull();
+    expect(toPreviewRequest(chosen)).toBeNull();
+    expect(toScheduleBody(chosen)).toEqual({
+      type: 'dependency',
+      upstream_pipeline_id: 'p-1',
+      timezone: null,
+      blackout_windows: [],
+      misfire_policy: 'skip',
+      enabled: false,
+    });
+    // Las ventanas de exclusión siguen valiendo, y se validan igual.
+    const weekly = { ...newBlackout('weekly'), days: [] };
+    expect(scheduleIssue({ ...chosen, blackouts: [weekly] })).toBe('blackoutDays');
+  });
+
+  it('lee una dependencia guardada con su pipeline anterior', () => {
+    const [draft] = fromSchedules([dependencySchedule]);
+    expect(draft).toMatchObject({
+      mode: 'dependency',
+      upstreamId: dependencySchedule.upstream?.id,
+      upstreamCode: 'GL_A_SNOWFLAKE',
+    });
+    expect(draft && toScheduleBody(draft)).toMatchObject({
+      type: 'dependency',
+      upstream_pipeline_id: dependencySchedule.upstream?.id,
+      timezone: 'America/Guatemala',
     });
   });
 });

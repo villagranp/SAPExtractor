@@ -13141,6 +13141,17 @@
             ],
             "title": "Next Fire At"
           },
+          "upstream": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PipelineRef"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Pipeline tras el que se ejecuta este, si depende de otro"
+          },
           "live_run": {
             "anyOf": [
               {
@@ -13332,6 +13343,14 @@
             "type": "array",
             "title": "Findings",
             "description": "Avisos y bloqueos de la configuración"
+          },
+          "downstream": {
+            "items": {
+              "$ref": "#/components/schemas/PipelineRef"
+            },
+            "type": "array",
+            "title": "Downstream",
+            "description": "Pipelines que se ejecutan cuando este termina con éxito"
           }
         },
         "type": "object",
@@ -13351,6 +13370,7 @@
           "concurrency_group",
           "tags",
           "next_fire_at",
+          "upstream",
           "live_run",
           "last_run",
           "updated_at",
@@ -13372,7 +13392,8 @@
           "last_test_at",
           "last_test_ok",
           "test_outdated",
-          "findings"
+          "findings",
+          "downstream"
         ],
         "title": "PipelineDetail"
       },
@@ -13393,6 +13414,35 @@
         },
         "type": "object",
         "title": "PipelineReasonRequest"
+      },
+      "PipelineRef": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PipelineStatus"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "name",
+          "status"
+        ],
+        "title": "PipelineRef",
+        "description": "Otro pipeline con el que este se encadena."
       },
       "PipelineReviewRequest": {
         "properties": {
@@ -13546,6 +13596,17 @@
             ],
             "title": "Next Fire At"
           },
+          "upstream": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PipelineRef"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Pipeline tras el que se ejecuta este, si depende de otro"
+          },
           "live_run": {
             "anyOf": [
               {
@@ -13591,6 +13652,7 @@
           "concurrency_group",
           "tags",
           "next_fire_at",
+          "upstream",
           "live_run",
           "last_run",
           "updated_at"
@@ -14939,6 +15001,17 @@
               }
             ],
             "title": "Rows Deleted"
+          },
+          "upstream_run": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UpstreamRunRef"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Ejecución del pipeline anterior que lanzó esta (trigger dependency)"
           }
         },
         "type": "object",
@@ -16329,6 +16402,19 @@
             "type": "boolean",
             "title": "Enabled",
             "default": true
+          },
+          "upstream_pipeline_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Upstream Pipeline Id",
+            "description": "Tipo dependency: el pipeline cuyas ejecuciones correctas lanzan las de este. Excluye cualquier otra programación"
           }
         },
         "type": "object",
@@ -16420,6 +16506,19 @@
             "type": "boolean",
             "title": "Enabled",
             "default": true
+          },
+          "upstream_pipeline_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Upstream Pipeline Id",
+            "description": "Tipo dependency: el pipeline cuyas ejecuciones correctas lanzan las de este. Excluye cualquier otra programación"
           },
           "count": {
             "type": "integer",
@@ -16578,6 +16677,17 @@
                 "type": "null"
               }
             ]
+          },
+          "upstream": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PipelineRef"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Tipo dependency: pipeline tras el que se ejecuta"
           }
         },
         "type": "object",
@@ -16595,7 +16705,8 @@
           "next_fire_at",
           "last_fire_at",
           "last_skip_at",
-          "last_skip_reason"
+          "last_skip_reason",
+          "upstream"
         ],
         "title": "ScheduleResponse"
       },
@@ -16604,7 +16715,8 @@
         "enum": [
           "cron",
           "interval",
-          "manual_only"
+          "manual_only",
+          "dependency"
         ],
         "title": "ScheduleType"
       },
@@ -18224,6 +18336,38 @@
           "cleanup"
         ],
         "title": "TrialStep"
+      },
+      "UpstreamRunRef": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "pipeline": {
+            "$ref": "#/components/schemas/RunPipelineRef"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "pipeline",
+          "finished_at"
+        ],
+        "title": "UpstreamRunRef",
+        "description": "Ejecución del pipeline anterior que lanzó esta."
       },
       "UserCreateRequest": {
         "properties": {

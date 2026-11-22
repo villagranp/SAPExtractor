@@ -654,6 +654,78 @@ def test_schedule_preview_and_replace(orch: OrchEnv, orch_admin: ApiClient) -> N
 
 
 # ====================================================================== ejecuciones
+def test_dependency_rules(orch: OrchEnv, orch_admin: ApiClient) -> None:
+    """«Después de otro pipeline»: un solo anterior, sin otra programación y sin ciclos."""
+    api = orch_admin
+    source = orch.source(api, orch.system(api)["id"])
+    destination = orch.destination(api)
+
+    def draft() -> dict[str, Any]:
+        return orch.pipeline(api, source=source, destination=destination, activate=False)
+
+    def put(pipeline: dict[str, Any], *schedules: dict[str, Any]) -> Any:
+        return api.put(f"/pipelines/{pipeline['id']}/schedules", {"schedules": list(schedules)})
+
+    def after(upstream: dict[str, Any]) -> dict[str, Any]:
+        return {"type": "dependency", "upstream_pipeline_id": upstream["id"]}
+
+    first, second, third = draft(), draft(), draft()
+    saved = put(second, after(first))
+    assert saved.status_code == 200, saved.text
+    schedule = saved.json()[0]
+    assert schedule["type"] == "dependency"
+    assert schedule["upstream"] == {
+        "id": first["id"],
+        "code": first["code"],
+        "name": first["name"],
+        "status": "draft",
+    }
+    assert schedule["next_fire_at"] is None
+    assert (
+        api.get(f"/pipelines/{second['id']}/schedules").json()[0]["upstream"]["id"] == (first["id"])
+    )
+    # Cada pipeline dice tras cuál se ejecuta y cuáles se ejecutan tras él.
+    assert api.get(f"/pipelines/{second['id']}").json()["upstream"]["code"] == first["code"]
+    upstream_view = api.get(f"/pipelines/{first['id']}").json()
+    assert upstream_view["upstream"] is None
+    assert [d["code"] for d in upstream_view["downstream"]] == [second["code"]]
+    listed = api.get("/pipelines", params={"q": second["code"]}).json()["items"][0]
+    assert listed["upstream"]["code"] == first["code"]
+    event = next(
+        e for e in audit_actions(api, resource_id=second["id"]) if e["action"] == "schedule.updated"
+    )
+    assert event["changes"]["schedules"]["after"][0]["upstream_pipeline_id"] == first["id"]
+
+    # Una cadena más larga vale; cerrar el ciclo, no.
+    assert put(third, after(second)).status_code == 200
+    for pipeline, upstream in ((first, first), (first, second), (first, third)):
+        cycle = put(pipeline, after(upstream))
+        assert cycle.status_code == 422, cycle.text
+        assert cycle.json()["code"] == "SX-SCHED-DEPENDENCY-CYCLE"
+    assert put(second, after(first)).status_code == 200  # guardar la misma no es un ciclo
+
+    cron = {"type": "cron", "cron_expression": "0 2 * * *"}
+    mixed = put(second, after(first), cron)
+    assert mixed.status_code == 422
+    assert mixed.json()["code"] == "SX-SCHED-DEPENDENCY-EXCLUSIVE"
+    assert put(second, {"type": "dependency"}).json()["code"] == "SX-SCHED-UPSTREAM-REQUIRED"
+    unknown = put(second, {"type": "dependency", "upstream_pipeline_id": str(uuid.uuid4())})
+    assert unknown.json()["code"] == "SX-SCHED-UPSTREAM-NOT-FOUND"
+    assert len(api.get(f"/pipelines/{second['id']}/schedules").json()) == 1  # nada cambió
+
+    # Un clon no hereda la dependencia; un pipeline con otros detrás no se elimina.
+    clone = api.post(f"/pipelines/{second['id']}/clone", {"code": unique("PL_")})
+    assert clone.status_code == 201, clone.text
+    assert api.get(f"/pipelines/{clone.json()['pipeline']['id']}/schedules").json() == []
+    blocked = api.delete(f"/pipelines/{first['id']}")
+    assert blocked.status_code == 409
+    assert blocked.json()["code"] == "SX-PIPE-HAS-DOWNSTREAM"
+    assert second["code"] in blocked.json()["detail"]
+    assert put(second, cron).status_code == 200
+    assert put(third).status_code == 200
+    assert api.delete(f"/pipelines/{first['id']}").status_code == 204
+
+
 def test_run_now_cancel_and_backfill_rules(orch: OrchEnv, orch_admin: ApiClient) -> None:
     api = orch_admin
     system = orch.system(api)

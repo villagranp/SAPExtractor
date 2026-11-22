@@ -33,6 +33,11 @@ export function daysText(days: readonly number[], t: TFunction, language: string
 
 /** La programación dicha en una frase: «Cada 30 minutos, de lunes a viernes». */
 export function scheduleText(draft: ScheduleDraft, t: TFunction, language: string): string {
+  if (draft.mode === 'dependency') {
+    return draft.upstreamCode
+      ? t('pipelines.schedule.text.dependency', { pipeline: draft.upstreamCode })
+      : t('pipelines.schedule.text.dependencyUnset');
+  }
   if (draft.mode === 'cron') {
     return t('pipelines.schedule.text.cron', { expression: draft.cron.trim() });
   }
@@ -54,7 +59,7 @@ export function scheduleText(draft: ScheduleDraft, t: TFunction, language: strin
 
 /** Expresión cron que se enviará, para mostrarla junto a la frase. */
 export function cronOf(draft: ScheduleDraft): string | null {
-  if (draft.mode === 'interval') return null;
+  if (draft.mode === 'interval' || draft.mode === 'dependency') return null;
   return draft.mode === 'cron' ? draft.cron.trim() : simpleToCron(draft);
 }
 

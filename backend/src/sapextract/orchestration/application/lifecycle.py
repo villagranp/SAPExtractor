@@ -74,6 +74,7 @@ def enqueue_run(
     now: datetime,
     schedule_id: uuid.UUID | None = None,
     reason: str | None = None,
+    upstream_run_id: uuid.UUID | None = None,
 ) -> Run | None:
     """Deja un run en la cola. ``None`` si el pipeline ya tiene uno en cola o en curso."""
     if live_run(session, pipeline.id) is not None:
@@ -85,6 +86,7 @@ def enqueue_run(
         trigger=trigger.value,
         triggered_by=triggered_by,
         schedule_id=schedule_id,
+        upstream_run_id=upstream_run_id,
         reason=reason,
         priority=priority,
         available_at=now,

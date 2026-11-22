@@ -19,7 +19,7 @@ export type DeltaStatus = S['DeltaStatus'];
 export type Worker = S['WorkerResponse'];
 
 export const RUN_STATUSES: RunStatus[] = ['queued', 'running', 'succeeded', 'failed', 'cancelled'];
-export const RUN_TRIGGERS: RunTrigger[] = ['schedule', 'manual', 'api'];
+export const RUN_TRIGGERS: RunTrigger[] = ['schedule', 'manual', 'api', 'dependency'];
 const ACTIVE: RunStatus[] = ['queued', 'running'];
 /** La pantalla consulta cada segundo mientras el run sigue vivo (plan 03 §2: menos de 2 s). */
 const LIVE_MS = 1_000;

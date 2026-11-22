@@ -63,6 +63,8 @@ class RunView:
     run: Run
     pipeline: Pipeline
     attempts: list[RunAttempt]
+    # Ejecución del pipeline anterior que lanzó esta, con su pipeline (plan 08 §6).
+    upstream: tuple[Run, Pipeline] | None = None
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -118,7 +120,17 @@ class RunService:
                 select(RunAttempt).where(RunAttempt.run_id == run.id).order_by(RunAttempt.number)
             )
         )
-        return RunView(run=run, pipeline=pipeline, attempts=attempts)
+        return RunView(run=run, pipeline=pipeline, attempts=attempts, upstream=self._upstream(run))
+
+    def _upstream(self, run: Run) -> tuple[Run, Pipeline] | None:
+        if run.upstream_run_id is None:
+            return None
+        row = self.session.execute(
+            select(Run, Pipeline)
+            .join(Pipeline, Pipeline.id == Run.pipeline_id)
+            .where(Run.id == run.upstream_run_id)
+        ).first()
+        return (row[0], row[1]) if row is not None else None
 
     # -------------------------------------------------------------- ejecutar ahora
     def trigger(

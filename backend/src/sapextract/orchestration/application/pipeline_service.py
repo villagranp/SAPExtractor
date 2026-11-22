@@ -40,7 +40,11 @@ from sapextract.destinations.domain.model import (
 from sapextract.destinations.infrastructure.models import Destination
 from sapextract.identity.domain.model import Principal
 from sapextract.orchestration.application.lifecycle import live_run
-from sapextract.orchestration.application.schedule_service import reset_next_fire
+from sapextract.orchestration.application.schedule_service import (
+    downstream_of,
+    reset_next_fire,
+    upstream_pipelines,
+)
 from sapextract.orchestration.application.toolkit import OrchestrationToolkit
 from sapextract.orchestration.application.trial import trial_outdated
 from sapextract.orchestration.domain.model import (
@@ -61,6 +65,7 @@ from sapextract.orchestration.domain.model import (
     normalize_pool,
     review,
 )
+from sapextract.orchestration.domain.schedule import ScheduleType
 from sapextract.orchestration.infrastructure.models import (
     ConcurrencyGroup,
     Pipeline,
@@ -176,6 +181,9 @@ class PipelineView:
     live_run: Run | None = None
     last_run: Run | None = None
     findings: list[Finding] = field(default_factory=list)
+    # Dependencias (plan 08 §6): tras cuál se ejecuta y cuáles se ejecutan tras este.
+    upstream: Pipeline | None = None
+    downstream: list[Pipeline] = field(default_factory=list)
 
     @property
     def cross_environment(self) -> bool:
@@ -247,6 +255,7 @@ class PipelineService:
         rows = self.session.execute(stmt.offset(page.offset).limit(page.page_size)).all()
         ids = [p.id for p, *_ in rows]
         next_fires, lives, lasts = self._next_fires(ids), self._live_runs(ids), self._last_runs(ids)
+        upstreams = upstream_pipelines(self.session, ids)
         views = [
             PipelineView(
                 pipeline=p,
@@ -256,6 +265,7 @@ class PipelineService:
                 next_fire_at=next_fires.get(p.id),
                 live_run=lives.get(p.id),
                 last_run=lasts.get(p.id),
+                upstream=upstreams.get(p.id),
             )
             for p, s, y, d in rows
         ]
@@ -281,6 +291,8 @@ class PipelineService:
             live_run=self._live_runs(ids).get(pipeline.id),
             last_run=self._last_runs(ids).get(pipeline.id),
             findings=self._findings(pipeline, source, system, destination),
+            upstream=upstream_pipelines(self.session, ids).get(pipeline.id),
+            downstream=downstream_of(self.session, pipeline.id),
         )
 
     def _next_fires(self, ids: list[uuid.UUID]) -> dict[uuid.UUID, datetime]:
@@ -798,6 +810,14 @@ class PipelineService:
         if live_run(self.session, pipeline.id) is not None:
             msg = "El pipeline tiene un run en cola o en curso: cancélelo antes de eliminarlo."
             raise ConflictError(msg, code="SX-PIPE-RUN-LIVE")
+        followers = [p.code for p in downstream_of(self.session, pipeline.id)]
+        if followers:
+            # Sin este pipeline los que le siguen no volverían a ejecutarse, y sin avisar.
+            msg = (
+                f"No se puede eliminar: {', '.join(followers[:5])} se ejecuta después de este "
+                "pipeline. Cambie antes su programación."
+            )
+            raise ConflictError(msg, code="SX-PIPE-HAS-DOWNSTREAM")
         self._audit(
             "pipeline.deleted",
             pipeline,
@@ -831,7 +851,12 @@ class PipelineService:
         if destination is None or destination.deleted_at is not None:
             raise issue("destination_id", "El destino no existe.", "SX-DST-NOT-FOUND")
         origin_schema = self._schema(source)
-        schedules = [_copy_schedule(s) for s in self._schedules(original.id)]
+        # Una dependencia no se copia: en otro entorno apuntaría al pipeline equivocado.
+        schedules = [
+            _copy_schedule(s)
+            for s in self._schedules(original.id)
+            if s.type != ScheduleType.DEPENDENCY.value
+        ]
         fields = {
             "name": (data.name or "").strip() or f"{original.name} (copia)"[:200],
             "description": original.description,

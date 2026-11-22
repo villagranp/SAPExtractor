@@ -189,6 +189,169 @@ def test_leader_failover_does_not_duplicate_runs(orch: OrchEnv, orch_admin: ApiC
         standby.close()
 
 
+# ====================================================================== dependencias
+def _after(api: ApiClient, pipeline_id: str, upstream_id: str, **extra: Any) -> dict[str, Any]:
+    return _schedule(api, pipeline_id, type="dependency", upstream_pipeline_id=upstream_id, **extra)
+
+
+def _succeed(orch: OrchEnv, api: ApiClient, pipeline_id: str, worker: WorkerRuntime) -> Run:
+    """Ejecuta a mano un pipeline hasta terminar bien; devuelve su run."""
+    orch.clock.advance(seconds=1)
+    run = orch.run_now(api, pipeline_id)
+    assert worker.poll_once() is True
+    done = orch.run(run["id"])
+    assert done.status == "succeeded"
+    return done
+
+
+def test_dependency_runs_the_follower_after_the_upstream_succeeds(
+    orch: OrchEnv, orch_admin: ApiClient
+) -> None:
+    api = orch_admin
+    up_pool, down_pool = _pool(), _pool()
+    upstream = orch.pipeline(api, worker_pool=up_pool)
+    follower = orch.pipeline(api, worker_pool=down_pool, priority=4)
+    uid, fid = upstream["id"], follower["id"]
+    schedule = _after(api, fid, uid)
+    assert schedule["upstream"]["code"] == upstream["code"]
+    executor = ScriptedExecutor()
+    up_worker, down_worker = orch.worker(executor, up_pool), orch.worker(executor, down_pool)
+    scheduler = orch.scheduler()
+
+    scheduler.fire_dependencies()
+    assert orch.runs_of(fid) == []  # el anterior aún no ha terminado ninguna ejecución
+
+    first = _succeed(orch, api, uid, up_worker)
+    assert scheduler.fire_dependencies() == (1, 0)
+    assert scheduler.fire_dependencies() == (0, 0)  # otro ciclo (u otro líder) no duplica
+    runs = orch.runs_of(fid)
+    assert [(r.status, r.trigger, r.triggered_by, r.mode, r.priority) for r in runs] == [
+        ("queued", "dependency", "scheduler", "FULL", 4)
+    ]
+    assert runs[0].upstream_run_id == first.id
+    saved = orch.schedules_of(fid)[0]
+    assert runs[0].schedule_id == saved.id
+    assert saved.last_fire_at == orch.clock.now
+    assert saved.upstream_cursor_at == first.finished_at
+    detail = api.get(f"/runs/{runs[0].id}").json()
+    assert detail["trigger"] == "dependency"
+    assert detail["upstream_run"]["id"] == str(first.id)
+    assert detail["upstream_run"]["pipeline"]["code"] == upstream["code"]
+    assert api.get(f"/runs/{first.id}").json()["upstream_run"] is None
+    listed = api.get("/runs", params={"pipeline": fid, "trigger": "dependency"}).json()
+    assert [r["id"] for r in listed["items"]] == [str(runs[0].id)]
+
+    # Ya atendida: mientras el anterior no vuelva a terminar bien, no hay más ejecuciones.
+    assert down_worker.poll_once() is True
+    orch.clock.advance(minutes=5)
+    assert scheduler.fire_dependencies() == (0, 0)
+    assert len(orch.runs_of(fid)) == 1
+
+    # Una ejecución del anterior que falla no lanza nada; la reintentada que acaba bien, sí.
+    executor.steps.append(_config_error)
+    orch.clock.advance(seconds=1)
+    failed = orch.run_now(api, uid)
+    assert up_worker.poll_once() is True
+    assert orch.run(failed["id"]).status == "failed"
+    assert scheduler.fire_dependencies() == (0, 0)
+    orch.clock.advance(seconds=1)
+    assert api.post(f"/runs/{failed['id']}/retry").status_code == 200
+    assert up_worker.poll_once() is True
+    assert scheduler.fire_dependencies() == (1, 0)
+    assert orch.runs_of(fid)[-1].upstream_run_id == uuid.UUID(failed["id"])
+
+
+def test_dependency_chain_waits_for_a_live_run_and_fires_once(
+    orch: OrchEnv, orch_admin: ApiClient
+) -> None:
+    """A lanza B y B lanza C; si B está ocupado, varias ejecuciones de A lanzan una sola."""
+    api = orch_admin
+    pools = [_pool(), _pool(), _pool()]
+    a, b, c = (orch.pipeline(api, worker_pool=pool) for pool in pools)
+    _after(api, b["id"], a["id"])
+    _after(api, c["id"], b["id"])
+    executor = ScriptedExecutor()
+    worker_a, worker_b, worker_c = (orch.worker(executor, pool) for pool in pools)
+    scheduler = orch.scheduler()
+
+    busy = orch.run_now(api, b["id"])  # B ya tiene una ejecución en cola
+    _succeed(orch, api, a["id"], worker_a)
+    latest = _succeed(orch, api, a["id"], worker_a)
+    assert scheduler.fire_dependencies() == (0, 0)  # B espera: no se omite ni se duplica
+    assert [str(r.id) for r in orch.runs_of(b["id"])] == [busy["id"]]
+    assert orch.schedules_of(b["id"])[0].last_skip_reason is None
+
+    orch.clock.advance(seconds=1)
+    assert worker_b.poll_once() is True  # termina la ejecución manual de B
+    # Esa ejecución de B lanza C, y las dos de A que esperaban lanzan B una sola vez.
+    assert scheduler.fire_dependencies() == (2, 0)
+    chained = orch.runs_of(b["id"])[-1]
+    assert (chained.trigger, chained.upstream_run_id) == ("dependency", latest.id)
+    assert len(orch.runs_of(b["id"])) == 2
+    after_manual = orch.runs_of(c["id"])
+    assert [(r.trigger, str(r.upstream_run_id)) for r in after_manual] == [
+        ("dependency", busy["id"])
+    ]
+
+    # La cadena sigue: la ejecución de B lanzada por A vuelve a lanzar C cuando C queda libre.
+    orch.clock.advance(seconds=1)
+    assert worker_c.poll_once() is True
+    assert worker_b.poll_once() is True
+    assert scheduler.tick().chained == 1
+    assert orch.runs_of(c["id"])[-1].upstream_run_id == chained.id
+    assert worker_c.poll_once() is True
+
+
+def test_dependency_ignores_what_finished_while_it_was_off(
+    orch: OrchEnv, orch_admin: ApiClient
+) -> None:
+    api = orch_admin
+    up_pool = _pool()
+    upstream = orch.pipeline(api, worker_pool=up_pool)
+    paused = orch.pipeline(api, worker_pool=_pool())
+    blocked = orch.pipeline(api, worker_pool=_pool())
+    disabled = orch.pipeline(api, worker_pool=_pool())
+    draft = orch.pipeline(api, worker_pool=_pool(), activate=False)
+    uid = upstream["id"]
+    window = {
+        "kind": "range",
+        "label": "Cierre contable",
+        "start_at": orch.clock.now.isoformat(),
+        "end_at": (orch.clock.now + timedelta(hours=1)).isoformat(),
+    }
+    _after(api, paused["id"], uid)
+    _after(api, blocked["id"], uid, blackout_windows=[window])
+    _after(api, disabled["id"], uid, enabled=False)
+    _after(api, draft["id"], uid)
+    assert orch.schedules_of(draft["id"])[0].upstream_cursor_at is None
+    assert orch.schedules_of(disabled["id"])[0].upstream_cursor_at is None
+    assert api.post(f"/pipelines/{paused['id']}/pause", {}).status_code == 200
+    assert orch.schedules_of(paused["id"])[0].upstream_cursor_at is None
+    worker = orch.worker(ScriptedExecutor(), up_pool)
+    scheduler = orch.scheduler()
+
+    done = _succeed(orch, api, uid, worker)
+    assert scheduler.fire_dependencies() == (0, 1)  # solo la ventana de exclusión se anota
+    assert scheduler.fire_dependencies() == (0, 0)
+    for pipeline in (paused, blocked, disabled, draft):
+        assert orch.runs_of(pipeline["id"]) == []
+    skipped = orch.schedules_of(blocked["id"])[0]
+    assert skipped.last_skip_reason == "blackout"
+    assert skipped.upstream_cursor_at == done.finished_at
+
+    # Al reanudar solo cuentan las ejecuciones del anterior que terminen desde entonces.
+    orch.clock.advance(hours=2)
+    assert api.post(f"/pipelines/{paused['id']}/resume").status_code == 200
+    assert scheduler.fire_dependencies() == (0, 0)
+    assert orch.runs_of(paused["id"]) == []
+    _succeed(orch, api, uid, worker)
+    assert scheduler.fire_dependencies() == (2, 0)  # el reanudado y el que salió de la ventana
+    assert len(orch.runs_of(paused["id"])) == 1
+    assert len(orch.runs_of(blocked["id"])) == 1
+    assert orch.runs_of(disabled["id"]) == []
+    assert orch.runs_of(draft["id"]) == []
+
+
 # ====================================================================== worker: resultados
 def test_worker_runs_a_queued_run_to_success(orch: OrchEnv, orch_admin: ApiClient) -> None:
     pool = _pool()

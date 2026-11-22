@@ -566,6 +566,7 @@
       "route": "Route",
       "nextFire": "Next run",
       "lastRun": "Last run",
+      "downstream": "Runs after this one",
       "sapEnvironment": "SAP environment",
       "extractionMode": "Extraction mode",
       "targetName": "Destination table or file",
@@ -707,6 +708,7 @@
     },
     "crossEnvironment": "Different environments",
     "neverRun": "No runs",
+    "afterPipeline": "When {{code}} finishes",
     "onlyDestination": "Only the pipelines that load into the chosen destination.",
     "onlySource": "Only the pipelines that read from the chosen source.",
     "seeAll": "See all",
@@ -863,11 +865,13 @@
       "launch": "Launch",
       "launches": {
         "scheduled": "On a schedule",
-        "manual": "By hand only"
+        "manual": "By hand only",
+        "after": "After another pipeline"
       },
       "launchHints": {
         "scheduled": "The platform launches the pipeline when due. It can also be launched by hand.",
-        "manual": "The pipeline only runs when someone presses “Run now”."
+        "manual": "The pipeline only runs when someone presses “Run now”.",
+        "after": "The pipeline is launched when another one finishes successfully. It cannot also have a clock schedule."
       },
       "manualOnly": "By hand only",
       "mode": "How it is defined",
@@ -951,7 +955,8 @@
         "monthDay": "The day of the month goes from 1 to 31.",
         "blackoutDays": "Tick at least one day in each weekly window.",
         "blackoutHours": "In each weekly window, the start and end times must differ.",
-        "blackoutRange": "In each window between dates, the end must be after the start."
+        "blackoutRange": "In each window between dates, the end must be after the start.",
+        "upstream": "Choose the upstream pipeline."
       },
       "days": {
         "all": "every day",
@@ -967,7 +972,9 @@
         "monthly": "On day {{day}} of each month at {{time}}",
         "cron": "By the cron expression {{expression}}",
         "interval_one": "Every minute from activation",
-        "interval_other": "Every {{count}} minutes from activation"
+        "interval_other": "Every {{count}} minutes from activation",
+        "dependency": "When {{pipeline}} finishes successfully",
+        "dependencyUnset": "After another pipeline, not chosen yet"
       },
       "on": "Running",
       "off": "Stopped",
@@ -979,7 +986,19 @@
         "already_live": "{{date}}, because the previous run had not finished"
       },
       "bandCaption": "Hours with no launches, Monday to Sunday.",
-      "platformZoneShort": "Platform time zone"
+      "platformZoneShort": "Platform time zone",
+      "upstream": "Upstream pipeline",
+      "upstreamHint": "Each successful run of that pipeline launches one of this pipeline.",
+      "upstreamPlaceholder": "Choose a pipeline",
+      "upstreamNone": "There is no other pipeline to depend on yet. Create the upstream pipeline first.",
+      "dependencyTitle": "How the chain works",
+      "dependencyRules": {
+        "any": "Any successful run of the upstream pipeline counts: scheduled, by hand or retried.",
+        "busy": "If this pipeline is still running, it waits and is launched once when it finishes.",
+        "off": "What the upstream pipeline finishes while this one is paused or a draft does not count."
+      },
+      "dependencyEnabled": "Dependency running",
+      "dependencyZoneHint": "Weekly windows are read in this time zone."
     },
     "activate": {
       "title": "Check and activate {{code}}",
@@ -1144,6 +1163,7 @@
       "window": "Window",
       "created": "Launched",
       "trigger": "Launched by",
+      "upstreamRun": "Upstream run",
       "from": "From day",
       "to": "To day",
       "reason": "Reason",
@@ -1178,6 +1198,7 @@
       "errorTitle": "Error {{code}}",
       "timesTitle": "Times",
       "attemptsBudget": "{{used}} of {{budget}} allowed",
+      "upstreamRun": "{{code}}, finished on {{date}}",
       "failedTitle_one": "The run failed on its only attempt ({{code}})",
       "failedTitle_other": "The run failed after {{count}} attempts ({{code}})",
       "dataTitle": "Data"

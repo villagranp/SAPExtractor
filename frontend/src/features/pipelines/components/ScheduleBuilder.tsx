@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { describeError } from '@/shared/api/errors';
-import { Button, Checkbox, SegmentedControl, SelectField, TextField } from '@/shared/ui';
-import { useSchedulePreview } from '../api/queries';
+import { Alert, Button, Checkbox, SegmentedControl, SelectField, TextField } from '@/shared/ui';
+import { usePipelines, useSchedulePreview } from '../api/queries';
 import {
   ALL_DAYS,
   HOUR_STEPS,
@@ -11,7 +11,9 @@ import {
   MINUTE_STEPS,
   WORKDAYS,
   cronToSimple,
+  isDependency,
   newBlackout,
+  newDependency,
   newSchedule,
   scheduleIssue,
   simpleToCron,
@@ -330,7 +332,108 @@ function Preview({ draft }: { draft: ScheduleDraft }) {
   );
 }
 
+// ------------------------------------------------------------------ después de otro pipeline
+/** Pipelines que caben en el desplegable; con más, se elige por código en la API. */
+const UPSTREAM_PAGE_SIZE = 200;
+const DEPENDENCY_RULES = ['any', 'busy', 'off'] as const;
+
+interface DependencyBuilderProps extends ScheduleBuilderProps {
+  /** Pipeline que se está editando: no puede ir después de sí mismo. */
+  pipelineId?: string | undefined;
+}
+
+/**
+ * «Después de otro pipeline» (plan 08 §6): un solo pipeline anterior, sin reloj. Las ventanas
+ * de exclusión siguen valiendo; lo demás de una programación no aplica.
+ */
+function DependencyBuilder({ draft, onChange, pipelineId }: DependencyBuilderProps) {
+  const { t } = useTranslation();
+  const { describe } = useScheduleText();
+  const pipelines = usePipelines({ page: 1, page_size: UPSTREAM_PAGE_SIZE });
+  const set = (changes: Partial<ScheduleDraft>) => {
+    onChange({ ...draft, ...changes });
+  };
+  const others = (pipelines.data?.items ?? []).filter((p) => p.id !== pipelineId);
+  const options = others.map((p) => ({ value: p.id, label: `${p.code}, ${p.name}` }));
+  // El anterior ya guardado sigue en la lista aunque no quepa en la primera página.
+  if (draft.upstreamId && !options.some((o) => o.value === draft.upstreamId)) {
+    options.unshift({ value: draft.upstreamId, label: draft.upstreamCode || draft.upstreamId });
+  }
+  const weekly = draft.blackouts.some((window) => window.kind === 'weekly');
+  // Sin elegir pipeline la frase ya lo dice; aquí solo los fallos de las ventanas.
+  const issue = scheduleIssue(draft);
+  const windowIssue = issue !== null && issue !== 'upstream' ? issue : null;
+
+  return (
+    <div className="sx-pipelines__schedule">
+      <div className="sx-stack sx-pipelines__schedule-controls">
+        {pipelines.error && <Alert tone="danger">{describeError(pipelines.error).message}</Alert>}
+        {pipelines.data && options.length === 0 ? (
+          <Alert tone="info">{t('pipelines.schedule.upstreamNone')}</Alert>
+        ) : (
+          <SelectField
+            label={t('pipelines.schedule.upstream')}
+            placeholder={t('pipelines.schedule.upstreamPlaceholder')}
+            hint={t('pipelines.schedule.upstreamHint')}
+            value={draft.upstreamId}
+            disabled={pipelines.isPending}
+            onChange={(e) => {
+              const chosen = others.find((p) => p.id === e.target.value);
+              set({ upstreamId: e.target.value, upstreamCode: chosen?.code ?? '' });
+            }}
+            options={options}
+          />
+        )}
+        <Checkbox
+          label={t('pipelines.schedule.dependencyEnabled')}
+          description={t('pipelines.schedule.enabledHint')}
+          checked={draft.enabled}
+          onChange={(e) => {
+            set({ enabled: e.target.checked });
+          }}
+        />
+      </div>
+      <aside className="sx-pipelines__preview" aria-label={t('pipelines.schedule.dependencyTitle')}>
+        <h3 className="sx-pipelines__subtitle">{t('pipelines.schedule.dependencyTitle')}</h3>
+        <p className="sx-pipelines__sentence">{describe(draft)}</p>
+        {windowIssue && (
+          <p className="sx-field__error" role="alert">
+            {t(`pipelines.schedule.issues.${windowIssue}`)}
+          </p>
+        )}
+        <ul className="sx-pipelines__rules">
+          {DEPENDENCY_RULES.map((rule) => (
+            <li key={rule}>{t(`pipelines.schedule.dependencyRules.${rule}`)}</li>
+          ))}
+        </ul>
+      </aside>
+      <div className="sx-pipelines__schedule-blackouts sx-stack">
+        <BlackoutEditor
+          blackouts={draft.blackouts}
+          onChange={(blackouts) => {
+            set({ blackouts });
+          }}
+        />
+        {weekly && (
+          <SelectField
+            label={t('pipelines.schedule.timezone')}
+            placeholder={t('pipelines.schedule.platformZone')}
+            hint={t('pipelines.schedule.dependencyZoneHint')}
+            value={draft.timezone}
+            onChange={(e) => {
+              set({ timezone: e.target.value });
+            }}
+            options={timezoneOptions().map((zone) => ({ value: zone, label: zone }))}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ------------------------------------------------------------------ una programación
+type ClockMode = Exclude<ScheduleMode, 'dependency'>;
+
 export interface ScheduleBuilderProps {
   draft: ScheduleDraft;
   onChange: (draft: ScheduleDraft) => void;
@@ -342,18 +445,19 @@ export function ScheduleBuilder({ draft, onChange }: ScheduleBuilderProps) {
   const set = (changes: Partial<ScheduleDraft>) => {
     onChange({ ...draft, ...changes });
   };
-  const modes: ScheduleMode[] =
+  const modes: ClockMode[] =
     draft.mode === 'interval' ? ['simple', 'cron', 'interval'] : ['simple', 'cron'];
+  const mode: ClockMode = draft.mode === 'dependency' ? 'simple' : draft.mode;
 
-  const changeMode = (mode: ScheduleMode) => {
-    if (mode === 'cron' && draft.mode === 'simple') {
+  const changeMode = (next: ClockMode) => {
+    if (next === 'cron' && draft.mode === 'simple') {
       // Parte de lo que ya estaba elegido en frases.
-      set({ mode, cron: simpleToCron(draft) });
-    } else if (mode === 'simple' && draft.mode === 'cron') {
+      set({ mode: next, cron: simpleToCron(draft) });
+    } else if (next === 'simple' && draft.mode === 'cron') {
       const simple = cronToSimple(draft.cron);
-      set(simple ? { mode, ...simple } : { mode });
+      set(simple ? { mode: next, ...simple } : { mode: next });
     } else {
-      set({ mode });
+      set({ mode: next });
     }
   };
 
@@ -362,12 +466,12 @@ export function ScheduleBuilder({ draft, onChange }: ScheduleBuilderProps) {
       <div className="sx-stack sx-pipelines__schedule-controls">
         <SegmentedControl
           label={t('pipelines.schedule.mode')}
-          value={draft.mode}
+          value={mode}
           options={modes.map((value) => ({
             value,
             label: t(`pipelines.schedule.modes.${value}`),
           }))}
-          hint={t(`pipelines.schedule.modeHints.${draft.mode}`)}
+          hint={t(`pipelines.schedule.modeHints.${mode}`)}
           onChange={changeMode}
         />
 
@@ -528,28 +632,50 @@ export function ScheduleBuilder({ draft, onChange }: ScheduleBuilderProps) {
 export interface SchedulesEditorProps {
   drafts: ScheduleDraft[];
   onChange: (drafts: ScheduleDraft[]) => void;
+  /** Pipeline que se edita (sin él, es uno nuevo): se excluye al elegir el pipeline anterior. */
+  pipelineId?: string | undefined;
 }
 
-/** Sin programaciones el pipeline solo se lanza a mano; admite hasta cinco. */
-export function SchedulesEditor({ drafts, onChange }: SchedulesEditorProps) {
+type Launch = 'scheduled' | 'after' | 'manual';
+const LAUNCHES: Launch[] = ['scheduled', 'after', 'manual'];
+
+/**
+ * Sin programaciones el pipeline solo se lanza a mano; con reloj admite hasta cinco; después
+ * de otro pipeline, solo esa.
+ */
+export function SchedulesEditor({ drafts, onChange, pipelineId }: SchedulesEditorProps) {
   const { t } = useTranslation();
-  const scheduled = drafts.length > 0;
+  const dependency = isDependency(drafts) ? drafts[0] : undefined;
+  const launch: Launch = dependency ? 'after' : drafts.length > 0 ? 'scheduled' : 'manual';
+  const scheduled = launch === 'scheduled';
   return (
     <div className="sx-stack">
       <SegmentedControl
         label={t('pipelines.schedule.launch')}
-        value={scheduled ? 'scheduled' : 'manual'}
-        options={[
-          { value: 'scheduled', label: t('pipelines.schedule.launches.scheduled') },
-          { value: 'manual', label: t('pipelines.schedule.launches.manual') },
-        ]}
-        hint={t(`pipelines.schedule.launchHints.${scheduled ? 'scheduled' : 'manual'}`)}
+        value={launch}
+        options={LAUNCHES.map((value) => ({
+          value,
+          label: t(`pipelines.schedule.launches.${value}`),
+        }))}
+        hint={t(`pipelines.schedule.launchHints.${launch}`)}
         onChange={(value) => {
+          if (value === launch) return;
           if (value === 'manual') onChange([]);
-          else if (!scheduled) onChange([newSchedule()]);
+          else onChange([value === 'after' ? newDependency() : newSchedule()]);
         }}
       />
-      {drafts.map((draft, index) => (
+      {dependency && (
+        <section className="sx-pipelines__schedule-card">
+          <DependencyBuilder
+            draft={dependency}
+            pipelineId={pipelineId}
+            onChange={(next) => {
+              onChange([next]);
+            }}
+          />
+        </section>
+      )}
+      {(dependency ? [] : drafts).map((draft, index) => (
         <section key={draft.key} className="sx-pipelines__schedule-card">
           {drafts.length > 1 && (
             <header className="sx-row sx-pipelines__schedule-head">
