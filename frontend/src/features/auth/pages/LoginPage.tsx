@@ -209,7 +209,7 @@ export function LoginPage() {
       <div className="sx-login__frame">
         <section className="sx-login__side" aria-labelledby="sx-login-title">
           <p className="sx-login__brand">
-            <BrandMark size={28} />
+            <BrandMark size={41} />
             <span>{t('app.name')}</span>
           </p>
 

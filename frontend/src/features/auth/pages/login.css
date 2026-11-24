@@ -43,7 +43,8 @@
   gap: var(--sx-space-2);
   margin: 0;
   font-family: var(--sx-font-display);
-  font-size: var(--sx-text-md);
+  /* Un 20 % sobre el texto base, a juego con el logo de 41 px. */
+  font-size: calc(var(--sx-text-md) * 1.2);
   font-weight: 700;
   letter-spacing: var(--sx-track-display);
   color: var(--sx-color-text);
