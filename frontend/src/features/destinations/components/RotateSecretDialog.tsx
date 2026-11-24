@@ -12,9 +12,9 @@ import { SchemaForm } from './SchemaForm';
 import {
   initialValues,
   missingFields,
+  secretSchemaFor,
   toPayload,
   type FormValues,
-  type JsonObjectSchema,
 } from './schemaValues';
 
 interface Props {
@@ -23,12 +23,16 @@ interface Props {
   onClose: () => void;
 }
 
-/** Sustituye el par de claves; la API prueba el destino enseguida y devuelve el resultado. */
+/** Sustituye la credencial; la API prueba el destino enseguida y devuelve el resultado. */
 export function RotateSecretDialog({ destination, open, onClose }: Props) {
   const { t } = useTranslation();
   const typeSchema = useDestinationTypeSchema(open ? destination.type : null);
   const rotate = useRotateDestinationSecret(destination.id);
-  const schema = (typeSchema.data?.secret_schema ?? {}) as JsonObjectSchema;
+  const schema = secretSchemaFor(
+    destination.type,
+    typeSchema.data?.secret_schema ?? {},
+    destination.config,
+  );
   const [values, setValues] = useState<FormValues | null>(null);
   const current = values ?? initialValues(schema);
   const error = rotate.error ? describeError(rotate.error) : null;

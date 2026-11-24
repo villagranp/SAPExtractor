@@ -31,6 +31,36 @@ function unwrap(prop: JsonSchemaProperty): JsonSchemaProperty {
   return merged;
 }
 
+/**
+ * Campos de la credencial que no aplican al método de autenticación elegido en la configuración.
+ * Snowflake: con PAT solo el token; con par de claves, la clave y su contraseña.
+ */
+const HIDDEN_SECRET_FIELDS: Record<string, Record<string, string[]>> = {
+  snowflake: {
+    pat: ['private_key_pem', 'private_key_passphrase'],
+    key_pair: ['token'],
+  },
+};
+
+/** Esquema de la credencial con solo los campos del método de autenticación elegido. */
+export function secretSchemaFor(
+  type: string | null | undefined,
+  schema: JsonObjectSchema,
+  config: Record<string, unknown> = {},
+): JsonObjectSchema {
+  const auth = config.authentication;
+  const hidden =
+    (type && HIDDEN_SECRET_FIELDS[type]?.[typeof auth === 'string' ? auth : 'key_pair']) ?? [];
+  if (hidden.length === 0 || !schema.properties) return schema;
+  return {
+    ...schema,
+    properties: Object.fromEntries(
+      Object.entries(schema.properties).filter(([key]) => !hidden.includes(key)),
+    ),
+    required: (schema.required ?? []).filter((key) => !hidden.includes(key)),
+  };
+}
+
 export function properties(schema: JsonObjectSchema): [string, JsonSchemaProperty][] {
   return Object.entries(schema.properties ?? {}).map(([k, p]) => [k, unwrap(p)]);
 }

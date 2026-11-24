@@ -659,7 +659,7 @@
     "types": {
       "snowflake": {
         "label": "Snowflake",
-        "description": "Carga en tablas de Snowflake con par de claves: Parquet a un stage temporal, COPY y MERGE en una transacción."
+        "description": "Carga en tablas de Snowflake con par de claves o token de acceso (PAT): Parquet a un stage temporal, COPY y MERGE en una transacción."
       },
       "csv": {
         "label": "Archivos CSV",
@@ -724,7 +724,9 @@
         "crlf": "CRLF (Windows)",
         "none": "Sin compresión",
         "sql": "Usuario SQL",
-        "entra_service_principal": "Service principal de Entra ID"
+        "entra_service_principal": "Service principal de Entra ID",
+        "key_pair": "Par de claves RSA",
+        "pat": "Token de acceso programático (PAT)"
       }
     },
     "config": {
@@ -782,8 +784,8 @@
       "noCsvRoots": "El servidor no tiene carpetas raíz para CSV (SX_CSV_ROOTS). Pida al administrador que configure al menos una.",
       "credentials": {
         "snowflake": {
-          "title": "Autenticación con par de claves",
-          "help": "Genere un par RSA, registre la clave pública en el usuario de servicio de Snowflake (ALTER USER … SET RSA_PUBLIC_KEY) y pegue aquí la clave privada."
+          "title": "Par de claves o token de acceso (PAT)",
+          "help": "Con par de claves, registre la clave pública en el usuario de Snowflake (ALTER USER … SET RSA_PUBLIC_KEY) y pegue aquí la clave privada. Con PAT, pegue el token que Snowflake muestra al crearlo; caduca, y la cuenta puede exigir una network policy al usuario. Ambos se guardan cifrados y no se vuelven a mostrar."
         },
         "sqlserver": {
           "title": "Usuario SQL o service principal",
@@ -811,7 +813,7 @@
     "rotate": {
       "title": "Cambiar credenciales de {{code}}",
       "help": {
-        "snowflake": "Registre primero la nueva clave pública en Snowflake (puede tener dos activas: RSA_PUBLIC_KEY_2). Al guardar se prueba el destino con la clave nueva.",
+        "snowflake": "Con par de claves, registre primero la nueva clave pública en Snowflake (puede tener dos activas: RSA_PUBLIC_KEY_2). Con PAT, genere el token nuevo antes de que caduque el anterior. Al guardar se prueba el destino con la credencial nueva.",
         "sqlserver": "Cambie primero la contraseña o el secreto de cliente en SQL Server o en Entra ID. Al guardar se prueba el destino con la credencial nueva."
       },
       "submit": "Guardar y probar",

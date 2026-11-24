@@ -161,9 +161,13 @@ def test_destination_types_publish_their_form_schema(client: ApiClient, csv_root
     assert csv["config_schema"]["properties"]["root"]["enum"] == [str(csv_root)]
     assert csv["secret_schema"] is None
     snow = client.get("/destination-types/snowflake/schema").json()
-    pem = snow["secret_schema"]["properties"]["private_key_pem"]
-    assert pem["writeOnly"] is True
-    assert pem["format"] == "password"
+    assert snow["config_schema"]["properties"]["authentication"]["enum"] == ["key_pair", "pat"]
+    # Clave privada y PAT son opcionales (uno u otro según el método): van dentro de anyOf.
+    for field in ("private_key_pem", "token"):
+        prop = snow["secret_schema"]["properties"][field]
+        secret = next(p for p in prop["anyOf"] if p.get("type") == "string")
+        assert secret["writeOnly"] is True
+        assert secret["format"] == "password"
 
 
 # ================================================================== CSV

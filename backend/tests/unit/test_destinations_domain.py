@@ -24,7 +24,9 @@ from sapextract.destinations.domain.model import (
 from sapextract.destinations.infrastructure import snowflake_sql as sql
 from sapextract.destinations.infrastructure.snowflake_plugin import (
     SnowflakeConfig,
+    SnowflakePlugin,
     SnowflakeSecret,
+    _credentials,
     map_error,
     public_key_fingerprint,
 )
@@ -269,8 +271,70 @@ class _FakeSnowflakeError(Exception):
             "SX-DST-DATA",
         ),
         (_FakeSnowflakeError("Connection reset", 250003), ErrorKind.TRANSIENT, "SX-DST-SNOWFLAKE"),
+        (
+            _FakeSnowflakeError("Programmatic access token is invalid", 394400),
+            ErrorKind.CONFIGURATION,
+            "SX-DST-AUTH",
+        ),
     ],
 )
 def test_snowflake_errors_are_classified(error: Exception, kind: ErrorKind, code: str) -> None:
     mapped = map_error(error, "la carga")
     assert (mapped.kind, mapped.code) == (kind, code)
+
+
+def _config(authentication: str) -> SnowflakeConfig:
+    return SnowflakeConfig.model_validate(
+        {
+            "account": "org-acc",
+            "authentication": authentication,
+            "user": "svc",
+            "role": "loader",
+            "warehouse": "wh",
+            "database": "db",
+            "schema_name": "raw",
+        }
+    )
+
+
+def test_snowflake_pat_authentication() -> None:
+    assert _config("key_pair").authentication == "key_pair"
+    # Destinos guardados antes del PAT: sin el campo, siguen con par de claves.
+    legacy = SnowflakeConfig(
+        account="org-acc", user="svc", role="r", warehouse="w", database="d", schema_name="s"
+    )
+    assert legacy.authentication == "key_pair"
+
+    secret = SnowflakeSecret(token=SecretStr("  pat-de-prueba  "))
+    assert _credentials(_config("pat"), secret) == {
+        "authenticator": "PROGRAMMATIC_ACCESS_TOKEN",
+        "token": "pat-de-prueba",
+    }
+    # El token no deja huella ni rastro en la información de la credencial.
+    assert SnowflakePlugin().credential_info(secret) == {}
+
+    # Método de la configuración y credencial guardada no coinciden: error en el campo.
+    with pytest.raises(BusinessRuleError) as exc:
+        _credentials(_config("key_pair"), secret)
+    assert _code(exc) == "SX-DST-CREDENTIAL-MISMATCH"
+    assert exc.value.errors[0].field == "secret.private_key_pem"
+
+
+def test_snowflake_secret_needs_exactly_one_credential() -> None:
+    key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    pem = key.private_bytes(
+        serialization.Encoding.PEM,
+        serialization.PrivateFormat.PKCS8,
+        serialization.NoEncryption(),
+    ).decode()
+    with pytest.raises(ValidationError):
+        SnowflakeSecret()
+    with pytest.raises(ValidationError):
+        SnowflakeSecret(token=SecretStr("   "))
+    with pytest.raises(ValidationError):
+        SnowflakeSecret(private_key_pem=SecretStr(pem), token=SecretStr("pat"))
+    with_key = SnowflakeSecret(private_key_pem=SecretStr(pem))
+    assert "private_key" in _credentials(_config("key_pair"), with_key)
+    with pytest.raises(BusinessRuleError) as exc:
+        _credentials(_config("pat"), with_key)
+    assert exc.value.errors[0].field == "secret.token"

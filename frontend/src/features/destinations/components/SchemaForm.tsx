@@ -16,6 +16,8 @@ const ENUM_LABELS: Record<string, string> = {
   none: 'enumLabels.none',
   sql: 'enumLabels.sql',
   entra_service_principal: 'enumLabels.entra_service_principal',
+  key_pair: 'enumLabels.key_pair',
+  pat: 'enumLabels.pat',
 };
 
 interface SchemaFormProps {

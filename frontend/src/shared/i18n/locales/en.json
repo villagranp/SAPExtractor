@@ -133,7 +133,7 @@
     "types": {
       "snowflake": {
         "label": "Snowflake",
-        "description": "Loads into Snowflake tables with key-pair auth: Parquet to a temporary stage, COPY and MERGE in one transaction."
+        "description": "Loads into Snowflake tables with key-pair or programmatic access token (PAT) auth: Parquet to a temporary stage, COPY and MERGE in one transaction."
       },
       "csv": {
         "label": "CSV files",
@@ -198,7 +198,9 @@
         "crlf": "CRLF (Windows)",
         "none": "No compression",
         "sql": "SQL login",
-        "entra_service_principal": "Entra ID service principal"
+        "entra_service_principal": "Entra ID service principal",
+        "key_pair": "RSA key pair",
+        "pat": "Programmatic access token (PAT)"
       }
     },
     "config": {
@@ -256,8 +258,8 @@
       "noCsvRoots": "The server has no CSV root folders (SX_CSV_ROOTS). Ask the administrator to configure at least one.",
       "credentials": {
         "snowflake": {
-          "title": "Key-pair authentication",
-          "help": "Generate an RSA key pair, register the public key on the Snowflake service user (ALTER USER … SET RSA_PUBLIC_KEY) and paste the private key here."
+          "title": "Key pair or programmatic access token (PAT)",
+          "help": "With a key pair, register the public key on the Snowflake user (ALTER USER … SET RSA_PUBLIC_KEY) and paste the private key here. With a PAT, paste the token Snowflake shows when you create it; it expires, and the account may require a network policy on the user. Both are stored encrypted and never shown again."
         },
         "sqlserver": {
           "title": "SQL login or service principal",
@@ -285,7 +287,7 @@
     "rotate": {
       "title": "Change credentials of {{code}}",
       "help": {
-        "snowflake": "Register the new public key in Snowflake first (two can be active: RSA_PUBLIC_KEY_2). Saving tests the destination with the new key.",
+        "snowflake": "With a key pair, register the new public key in Snowflake first (two can be active: RSA_PUBLIC_KEY_2). With a PAT, generate the new token before the old one expires. Saving tests the destination with the new credential.",
         "sqlserver": "First change the password or client secret in SQL Server or Entra ID. Saving tests the destination with the new credential."
       },
       "submit": "Save and test",

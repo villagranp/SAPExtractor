@@ -18,11 +18,11 @@ import uuid
 from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
 from datetime import UTC
-from typing import Any, ClassVar
+from typing import Any, ClassVar, Literal
 
 import structlog
 from cryptography.hazmat.primitives import serialization
-from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator
+from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator, model_validator
 
 from sapextract.core.clock import utcnow
 from sapextract.core.exceptions import BusinessRuleError, FieldIssue
@@ -57,6 +57,8 @@ from sapextract.destinations.infrastructure import snowflake_sql as sql
 
 ACCOUNT_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,254}(\.[A-Za-z0-9_-]{1,63}){0,3}$")
 STEPS = ("network", "authentication", "context", "privileges")
+KEY_PAIR: Literal["key_pair"] = "key_pair"
+PAT: Literal["pat"] = "pat"
 # Errores de Snowflake que significan credenciales o clave incorrectas.
 _AUTH_ERRNOS = frozenset({250001, 251005, 390100, 390144, 394304})
 
@@ -68,6 +70,11 @@ class SnowflakeConfig(BaseModel):
 
     account: str = Field(
         title="Cuenta", description="Identificador <organización>-<cuenta>", max_length=255
+    )
+    authentication: Literal["key_pair", "pat"] = Field(
+        KEY_PAIR,
+        title="Autenticación",
+        description="Par de claves RSA o token de acceso programático (PAT)",
     )
     user: str = Field(title="Usuario de servicio", max_length=255)
     role: str = Field(title="Rol", max_length=255)
@@ -102,24 +109,57 @@ class SnowflakeConfig(BaseModel):
 
 
 class SnowflakeSecret(BaseModel):
-    model_config = ConfigDict(extra="forbid", title="Par de claves")
+    """Una de las dos credenciales: clave privada (par de claves) o token (PAT)."""
 
-    private_key_pem: SecretStr = Field(
-        title="Clave privada (PEM)", description="-----BEGIN PRIVATE KEY-----"
+    model_config = ConfigDict(extra="forbid", title="Credencial")
+
+    private_key_pem: SecretStr | None = Field(
+        None,
+        title="Clave privada (PEM)",
+        description="Solo con par de claves: -----BEGIN PRIVATE KEY-----",
     )
     private_key_passphrase: SecretStr | None = Field(None, title="Contraseña de la clave")
+    token: SecretStr | None = Field(
+        None,
+        title="Token de acceso programático (PAT)",
+        description="Solo con PAT: el token que muestra Snowflake al crearlo",
+        max_length=4096,
+    )
+
+    @model_validator(mode="after")
+    def _one_credential(self) -> SnowflakeSecret:
+        has_key = bool(self.private_key_pem and self.private_key_pem.get_secret_value().strip())
+        has_token = bool(self.token and self.token.get_secret_value().strip())
+        if has_key == has_token:
+            msg = "Indique la clave privada (par de claves) o el token (PAT), solo uno de los dos."
+            raise ValueError(msg)
+        return self
+
+
+def _require(value: SecretStr | None, field: str, message: str) -> str:
+    """Credencial que exige el método de autenticación elegido en la configuración."""
+    if value is None or not value.get_secret_value().strip():
+        raise BusinessRuleError(
+            message,
+            code="SX-DST-CREDENTIAL-MISMATCH",
+            errors=[FieldIssue(f"secret.{field}", message, "SX-DST-CREDENTIAL-MISMATCH")],
+        )
+    return value.get_secret_value().strip()
 
 
 def _load_key(secret: SnowflakeSecret) -> Any:
+    pem = _require(
+        secret.private_key_pem,
+        "private_key_pem",
+        "La autenticación es por par de claves: pegue la clave privada (PEM).",
+    )
     password = (
         secret.private_key_passphrase.get_secret_value().encode()
         if secret.private_key_passphrase
         else None
     )
     try:
-        return serialization.load_pem_private_key(
-            secret.private_key_pem.get_secret_value().encode(), password=password
-        )
+        return serialization.load_pem_private_key(pem.encode(), password=password)
     except (ValueError, TypeError) as exc:
         msg = "La clave privada no es válida o su contraseña no es correcta."
         raise BusinessRuleError(
@@ -145,7 +185,7 @@ def map_error(exc: Exception, what: str) -> DataflowError:
     sqlstate = str(getattr(exc, "sqlstate", "") or "")
     detail = str(getattr(exc, "msg", "") or exc)[:500]
     message = f"Snowflake rechazó {what}: {detail}"
-    if errno in _AUTH_ERRNOS or "JWT" in detail:
+    if errno in _AUTH_ERRNOS or "JWT" in detail or "programmatic access token" in detail.lower():
         return DataflowError(message, kind=ErrorKind.CONFIGURATION, code="SX-DST-AUTH")
     if sqlstate.startswith("42") or "does not exist or not authorized" in detail:
         return DataflowError(message, kind=ErrorKind.CONFIGURATION, code="SX-DST-PRIVILEGES")
@@ -157,15 +197,10 @@ def map_error(exc: Exception, what: str) -> DataflowError:
 def _connect(config: SnowflakeConfig, secret: SnowflakeSecret) -> Any:
     import snowflake.connector  # noqa: PLC0415 - carga perezosa: el conector es pesado
 
-    der = _load_key(secret).private_bytes(
-        serialization.Encoding.DER,
-        serialization.PrivateFormat.PKCS8,
-        serialization.NoEncryption(),
-    )
     return snowflake.connector.connect(
+        **_credentials(config, secret),
         account=config.account,
         user=config.user,
-        private_key=der,
         role=config.role,
         warehouse=config.warehouse,
         database=config.database,
@@ -177,6 +212,28 @@ def _connect(config: SnowflakeConfig, secret: SnowflakeSecret) -> Any:
         autocommit=True,
         client_session_keep_alive=False,
     )
+
+
+def _credentials(config: SnowflakeConfig, secret: SnowflakeSecret) -> dict[str, Any]:
+    """Argumentos de autenticación del conector según el método elegido. Contienen el secreto."""
+    if config.authentication == PAT:
+        token = _require(
+            secret.token, "token", "La autenticación es por PAT: pegue el token de acceso."
+        )
+        return {"authenticator": "PROGRAMMATIC_ACCESS_TOKEN", "token": token}
+    der = _load_key(secret).private_bytes(
+        serialization.Encoding.DER,
+        serialization.PrivateFormat.PKCS8,
+        serialization.NoEncryption(),
+    )
+    return {"private_key": der}
+
+
+def _auth_label(config: SnowflakeConfig, secret: SnowflakeSecret) -> tuple[str, dict[str, Any]]:
+    if config.authentication == PAT:
+        return f"Autenticado como {config.user} con token de acceso (PAT).", {}
+    details = {"public_key_fingerprint": public_key_fingerprint(secret)}
+    return f"Autenticado como {config.user} con par de claves.", details
 
 
 class SnowflakeWriter:
@@ -414,15 +471,8 @@ def _session_steps(config: SnowflakeConfig, secret: SnowflakeSecret) -> list[Che
         err = map_error(exc, "la conexión")
         return [_step("authentication", t0, CheckStatus.FAILED, err.message, error_code=err.code)]
     try:
-        steps = [
-            _step(
-                "authentication",
-                t0,
-                CheckStatus.OK,
-                f"Autenticado como {config.user} con par de claves.",
-                details={"public_key_fingerprint": public_key_fingerprint(secret)},
-            )
-        ]
+        message, details = _auth_label(config, secret)
+        steps = [_step("authentication", t0, CheckStatus.OK, message, details=details)]
         t0 = time.perf_counter()
         role, warehouse, database, schema, version = (
             conn.cursor().execute(_CONTEXT_QUERY).fetchone()
@@ -491,12 +541,13 @@ class SnowflakePlugin:
             ) from exc
 
     def credential_info(self, secret: BaseModel | None) -> dict[str, Any]:
-        if not isinstance(secret, SnowflakeSecret):
+        """Huella de la clave pública con par de claves; nada del PAT (es el propio secreto)."""
+        if not isinstance(secret, SnowflakeSecret) or secret.private_key_pem is None:
             return {}
         return {"public_key_fingerprint": public_key_fingerprint(secret)}
 
     def test(self, config: BaseModel, secret: BaseModel | None, ctx: PluginContext) -> CheckReport:
-        """Red → autenticación (par de claves) → contexto (rol, warehouse, base) → privilegios."""
+        """Red → autenticación (claves o PAT) → contexto (rol, warehouse, base) → privilegios."""
         if not isinstance(config, SnowflakeConfig):
             raise wrong_model(config, SnowflakeConfig)
         if not isinstance(secret, SnowflakeSecret):

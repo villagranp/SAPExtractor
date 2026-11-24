@@ -36,6 +36,7 @@ import { SchemaForm } from '../components/SchemaForm';
 import {
   initialValues,
   missingFields,
+  secretSchemaFor,
   toPayload,
   type FormValues,
   type JsonObjectSchema,
@@ -137,9 +138,10 @@ function Wizard({ existing, initialType }: WizardProps) {
   const step = steps[index] ?? 'general';
 
   const configSchema = (info?.config_schema ?? {}) as JsonObjectSchema;
-  const secretSchema = (info?.secret_schema ?? {}) as JsonObjectSchema;
   // Los valores se inicializan cuando llega el esquema del tipo elegido.
   const configValues = config ?? (info ? initialValues(configSchema, existing?.config) : {});
+  // Solo los campos de la credencial que pide el método de autenticación elegido.
+  const secretSchema = secretSchemaFor(type, info?.secret_schema ?? {}, configValues);
   const secretValues = secret ?? (info ? initialValues(secretSchema) : {});
 
   const invalidateTest = () => {
