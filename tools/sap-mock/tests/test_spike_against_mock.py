@@ -99,7 +99,16 @@ def _add_subscription_functions(app: FastAPI) -> None:
 
     def subscribed() -> dict[str, Any]:
         alive = any(int(t["DeltaToken"][1:]) > svc.invalidated_before for t in svc.issued_tokens)
-        return {"d": {f"SubscribedTo{ENTITY_SET}": alive}}
+        # Formato real del S/4HANA de AG (23.11.2026): tipo complejo ChangeTrackingDetails anidado
+        # bajo el nombre de la función.
+        return {
+            "d": {
+                f"SubscribedTo{ENTITY_SET}": {
+                    "__metadata": {"type": "ChangeTrackingDetails"},
+                    "SubscribedFlag": alive,
+                }
+            }
+        }
 
     def terminate() -> Response:
         svc.invalidated_before = svc.seq

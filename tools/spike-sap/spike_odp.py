@@ -309,6 +309,27 @@ def token_of(link: str | None) -> str | None:
     return values[0].strip("'") if values else None
 
 
+def first_flag(value: Any) -> bool | None:
+    """Indicador booleano de la respuesta de una función (SubscribedFlag, ResultFlag…).
+
+    SAP la devuelve plana (``{"d": {"SubscribedFlag": false}}``) o, cuando el tipo de retorno es
+    un tipo complejo, anidada bajo el nombre de la función (``{"d": {"SubscribedTo…":
+    {"SubscribedFlag": false}}}``, visto en el S/4HANA de AG).
+    """
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str) and value.lower() in {"true", "false", "x", ""}:
+        return value.lower() in {"true", "x"}
+    if isinstance(value, dict):
+        for key, item in value.items():
+            if key == "__metadata":
+                continue
+            flag = first_flag(item)
+            if flag is not None:
+                return flag
+    return None
+
+
 def sap_error_of(response: httpx.Response) -> tuple[str, str]:
     try:
         error = response.json().get("error", {})
@@ -586,13 +607,7 @@ class Spike:
         r = self.call_function(fn)
         if r.status_code >= 400:
             return None
-        values = list(r.json().get("d", {}).values())
-        for value in values:
-            if isinstance(value, bool):
-                return value
-            if isinstance(value, str) and value.lower() in {"true", "false", "x", ""}:
-                return value.lower() in {"true", "x"}
-        return None
+        return first_flag(r.json().get("d", {}))
 
     # ------------------------------------------------------------------ interacción
     def make_changes(self, prompt: str, mock_body: dict[str, int]) -> bool | None:
@@ -1088,6 +1103,11 @@ class Spike:
             return
         r = self.call_function(term_fn)
         evidence["terminate"] = {"status": r.status_code}
+        if r.status_code < 400 and r.content:
+            try:
+                evidence["terminate"]["result_flag"] = first_flag(r.json().get("d", {}))
+            except ValueError:
+                evidence["terminate"]["result_flag"] = None
         if r.status_code >= 400:
             code, message = sap_error_of(r)
             evidence["terminate"] |= {"code": code, "message": message}
