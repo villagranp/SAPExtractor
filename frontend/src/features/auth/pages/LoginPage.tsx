@@ -31,22 +31,46 @@ function PasswordStep() {
   const [password, setPassword] = useState('');
   // Rechazos seguidos: desde el segundo se avisa de que la cuenta puede bloquearse.
   const [rejections, setRejections] = useState(0);
+  // Campos vacíos al pulsar «Entrar»; se marca cada uno con su error.
+  const [missing, setMissing] = useState<{ username: boolean; password: boolean }>({
+    username: false,
+    password: false,
+  });
   const { ref: credentialsRef, shake } = useShake<HTMLDivElement>();
+
+  const focusField = (name: 'username' | 'password') => {
+    credentialsRef.current?.querySelector<HTMLInputElement>(`input[name="${name}"]`)?.focus();
+  };
 
   const submit = (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
+    // Se lee del formulario, no del estado: el autorrelleno del navegador escribe los campos
+    // sin avisar a React hasta que el usuario interactúa con la página.
+    const data = new FormData(e.currentTarget);
+    const field = (name: string) => {
+      const value = data.get(name);
+      return typeof value === 'string' ? value : '';
+    };
+    const typedUsername = field('username').trim();
+    const typedPassword = field('password');
+    setUsername(typedUsername);
+    setPassword(typedPassword);
+    const empty = { username: !typedUsername, password: !typedPassword };
+    setMissing(empty);
+    if (empty.username || empty.password) {
+      focusField(empty.username ? 'username' : 'password');
+      return;
+    }
     login.mutate(
-      { username: username.trim(), password },
+      { username: typedUsername, password: typedPassword },
       {
         onError: (error) => {
           setPassword('');
           if (describeError(error).code !== INVALID_CREDENTIALS) return;
           setRejections((n) => n + 1);
           shake();
-          // El botón se desactiva al vaciar la contraseña: el foco vuelve al campo a corregir.
-          credentialsRef.current
-            ?.querySelector<HTMLInputElement>('input[name="password"]')
-            ?.focus();
+          // La contraseña se vacía: el foco vuelve al campo a corregir.
+          focusField('password');
         },
       },
     );
@@ -71,7 +95,9 @@ function PasswordStep() {
           value={username}
           onChange={(e) => {
             setUsername(e.target.value);
+            setMissing((m) => ({ ...m, username: false }));
           }}
+          error={missing.username ? t('login.usernameRequired') : undefined}
           autoFocus
           required
         />
@@ -83,14 +109,17 @@ function PasswordStep() {
           value={password}
           onChange={(e) => {
             setPassword(e.target.value);
+            setMissing((m) => ({ ...m, password: false }));
           }}
-          error={rejection}
+          error={missing.password ? t('login.passwordRequired') : rejection}
           required
         />
       </div>
       <Button
         type="submit"
-        disabled={login.isPending || !username || !password}
+        // Nunca desactivado por campos vacíos: con autorrelleno el navegador no expone los
+        // valores hasta el primer clic y el botón parecería roto.
+        disabled={login.isPending}
         style={{ width: '100%', justifyContent: 'center' }}
       >
         {login.isPending ? t('login.signingIn') : t('login.submit')}

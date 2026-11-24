@@ -11,7 +11,7 @@ import {
   DataTable,
   FilterBar,
   PageHeader,
-  Pagination,
+  usePageState,
   SelectField,
   StatusPill,
   TextField,
@@ -20,8 +20,6 @@ import {
 import { useUsers, type AuthSource, type UserStatus, type UserSummary } from '../api/queries';
 import { CreateUserDialog } from '../components/CreateUserDialog';
 import { UserStatusPill } from '../components/UserStatus';
-
-const PAGE_SIZE = 25;
 
 export function UsersPage() {
   const { t } = useTranslation();
@@ -32,12 +30,12 @@ export function UsersPage() {
   const [status, setStatus] = useState<UserStatus | ''>('');
   const [authSource, setAuthSource] = useState<AuthSource | ''>('');
   const [roleId, setRoleId] = useState('');
-  const [page, setPage] = useState(1);
+  const { page, setPage, pageSize, setPageSize } = usePageState();
   const [creating, setCreating] = useState(false);
 
   const users = useUsers({
     page,
-    page_size: PAGE_SIZE,
+    page_size: pageSize,
     ...(q.trim() ? { q: q.trim() } : {}),
     ...(status ? { status } : {}),
     ...(authSource ? { auth_source: authSource } : {}),
@@ -160,20 +158,14 @@ export function UsersPage() {
         loading={users.isPending}
         empty={t('users.empty')}
         onRowClick={(u) => void navigate(`/admin/users/${u.id}`)}
+        pagination={{
+          page,
+          pageSize,
+          total: users.data?.total ?? 0,
+          onPageChange: setPage,
+          onPageSizeChange: setPageSize,
+        }}
       />
-      {users.data && (
-        <Pagination
-          page={page}
-          pageSize={PAGE_SIZE}
-          total={users.data.total}
-          onPageChange={setPage}
-          labels={{
-            previous: t('common.previous'),
-            next: t('common.next'),
-            summary: t('common.pageSummary'),
-          }}
-        />
-      )}
       <CreateUserDialog
         open={creating}
         onClose={() => {

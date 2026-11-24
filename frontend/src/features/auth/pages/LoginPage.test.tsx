@@ -11,6 +11,55 @@ import { LoginPage } from './LoginPage';
 const destination = [{ path: '/admin/users', element: <p>Pantalla de destino</p> }];
 
 describe('LoginPage', () => {
+  it('con campos vacíos el botón sigue activo y marca qué falta', async () => {
+    let calls = 0;
+    server.use(
+      http.get('*/api/v1/me', () => problem(401, 'SX-AUTH-UNAUTHENTICATED', 'x')),
+      http.post('*/api/v1/auth/login', () => {
+        calls += 1;
+        return HttpResponse.json({ stage: 'active' });
+      }),
+    );
+    const user = userEvent.setup();
+    renderWithProviders(<LoginPage />, { route: '/login' });
+    const submit = await screen.findByRole('button', { name: 'Entrar' });
+    expect(submit).toBeEnabled();
+
+    await user.click(submit);
+    expect(screen.getByLabelText('Usuario')).toHaveAccessibleDescription('Escriba su usuario.');
+    expect(screen.getByLabelText('Contraseña')).toHaveAccessibleDescription(
+      'Escriba su contraseña.',
+    );
+    expect(screen.getByLabelText('Usuario')).toHaveFocus();
+    expect(calls).toBe(0);
+
+    await user.type(screen.getByLabelText('Usuario'), 'root');
+    expect(screen.getByLabelText('Usuario')).not.toHaveAccessibleDescription();
+  });
+
+  it('envía lo que dejó el autorrelleno aunque React no lo haya visto', async () => {
+    let sent: unknown = null;
+    server.use(
+      http.get('*/api/v1/me', () => problem(401, 'SX-AUTH-UNAUTHENTICATED', 'x')),
+      http.post('*/api/v1/auth/login', async ({ request }) => {
+        sent = await request.json();
+        return problem(401, 'SX-AUTH-INVALID-CREDENTIALS', 'x');
+      }),
+    );
+    const user = userEvent.setup();
+    renderWithProviders(<LoginPage />, { route: '/login' });
+    const username = await screen.findByLabelText<HTMLInputElement>('Usuario');
+    const password = screen.getByLabelText<HTMLInputElement>('Contraseña');
+    // El navegador escribe el valor sin disparar eventos de entrada.
+    username.value = 'root';
+    password.value = 'Guardada.123';
+
+    await user.click(screen.getByRole('button', { name: 'Entrar' }));
+    await waitFor(() => {
+      expect(sent).toEqual({ username: 'root', password: 'Guardada.123' });
+    });
+  });
+
   it('guía por contraseña temporal → cambio obligatorio → destino', async () => {
     let stage: string | null = null;
     server.use(

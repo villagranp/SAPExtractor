@@ -70,6 +70,7 @@ Opcional (v1.1): **ámbito por etiqueta/área** (p. ej. un rol "Operador FI" sol
 - **Política de contraseñas** configurable: longitud mínima 12, comprobación contra lista de contraseñas comprometidas, historial (no repetir las últimas 5), caducidad opcional.
 - **Bloqueo**: N intentos fallidos → bloqueo temporal con retardo progresivo; aviso en auditoría.
 - **MFA local (TOTP)**: obligatorio para el administrador local en producción (configurable).
+  - *Decisión (23.11.2026)*: no se invierte más en MFA propio. El segundo factor lo exige Microsoft Entra ID (acceso condicional) en el inicio de sesión SSO; la plataforma no pide MFA a los usuarios de Entra. El TOTP local ya construido se mantiene tal cual para el administrador de emergencia, sin pantallas ni opciones nuevas.
 - **Usuarios locales adicionales**: permitidos pero deshabilitables por política (`local_login_enabled_for = break_glass_only | all`) para forzar Entra ID al resto.
 - **Recuperación**: no hay "olvidé mi contraseña" por correo para el admin local; se restablece por CLI en el servidor (auditado).
 

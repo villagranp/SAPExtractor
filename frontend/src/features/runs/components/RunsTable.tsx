@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { formatDateTime } from '@/shared/format';
-import { Alert, DataTable, type Column } from '@/shared/ui';
+import { Alert, DataTable, type Column, type PaginationProps } from '@/shared/ui';
 import { useWorkers, type RunSummary } from '../api/queries';
 import { formatDuration, useNumbers } from '../format';
 import { RunStatusPill } from './RunParts';
@@ -13,10 +13,19 @@ export interface RunsTableProps {
   empty: string;
   /** En la ficha de un pipeline la columna del pipeline sobra. */
   showPipeline?: boolean;
+  /** Página pedida a la API; sin ella, la tabla pagina en el navegador. */
+  pagination?: PaginationProps;
 }
 
 /** Tabla de ejecuciones; la fecha de cada fila enlaza con su detalle. */
-export function RunsTable({ runs, loading, caption, empty, showPipeline = true }: RunsTableProps) {
+export function RunsTable({
+  runs,
+  loading,
+  caption,
+  empty,
+  showPipeline = true,
+  pagination,
+}: RunsTableProps) {
   const { t } = useTranslation();
   const { rows } = useNumbers();
   const columns: Column<RunSummary>[] = [
@@ -77,6 +86,7 @@ export function RunsTable({ runs, loading, caption, empty, showPipeline = true }
       loading={loading}
       empty={empty}
       stacked
+      {...(pagination ? { pagination } : {})}
     />
   );
 }

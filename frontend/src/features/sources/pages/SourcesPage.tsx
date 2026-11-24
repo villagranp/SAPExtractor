@@ -11,7 +11,7 @@ import {
   EmptyState,
   FilterBar,
   PageHeader,
-  Pagination,
+  usePageState,
   SelectField,
   TextField,
   type Column,
@@ -31,8 +31,6 @@ import {
   SourceTypeLabel,
 } from '../components/SourcePills';
 
-const PAGE_SIZE = 25;
-
 export function SourcesPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -40,12 +38,12 @@ export function SourcesPage() {
   const [q, setQ] = useState('');
   const [type, setType] = useState<SourceType | ''>('');
   const [status, setStatus] = useState<SourceStatus | ''>('');
-  const [page, setPage] = useState(1);
+  const { page, setPage, pageSize, setPageSize } = usePageState();
   const filtered = Boolean(q.trim() || type || status);
 
   const sources = useSources({
     page,
-    page_size: PAGE_SIZE,
+    page_size: pageSize,
     ...(q.trim() ? { q: q.trim() } : {}),
     ...(type ? { type } : {}),
     ...(status ? { status } : {}),
@@ -173,20 +171,14 @@ export function SourcesPage() {
             loading={sources.isPending}
             empty={t('sources.empty')}
             onRowClick={(s) => void navigate(`/sources/${s.id}`)}
+            pagination={{
+              page,
+              pageSize,
+              total: sources.data?.total ?? 0,
+              onPageChange: setPage,
+              onPageSizeChange: setPageSize,
+            }}
           />
-          {sources.data && (
-            <Pagination
-              page={page}
-              pageSize={PAGE_SIZE}
-              total={sources.data.total}
-              onPageChange={setPage}
-              labels={{
-                previous: t('common.previous'),
-                next: t('common.next'),
-                summary: t('common.pageSummary'),
-              }}
-            />
-          )}
         </>
       )}
     </>

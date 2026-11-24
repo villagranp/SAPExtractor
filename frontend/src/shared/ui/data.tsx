@@ -1,4 +1,6 @@
-import type { ReactNode } from 'react';
+import { useId, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
+import { PAGE_SIZE_OPTIONS, usePageState } from './pagination';
 
 /* Componentes de datos del design system (tabla, paginación, lista de detalle). */
 
@@ -24,9 +26,42 @@ export interface DataTableProps<T> {
    * delante. Sin esto la tabla se desplaza en horizontal dentro de su tarjeta.
    */
   stacked?: boolean;
+  /**
+   * Paginación en el servidor: `rows` ya es la página pedida. Sin ella, la tabla pagina en
+   * el navegador: muestra 20 filas (`DEFAULT_PAGE_SIZE`) y deja elegir cuántas ver.
+   */
+  pagination?: PaginationProps;
 }
 
-export function DataTable<T>({
+export function DataTable<T>({ rows, pagination, ...rest }: DataTableProps<T>) {
+  const local = usePageState();
+  if (pagination) {
+    return (
+      <>
+        <TableView rows={rows} {...rest} />
+        <Pagination {...pagination} />
+      </>
+    );
+  }
+  const pages = Math.max(1, Math.ceil(rows.length / local.pageSize));
+  // Si las filas cambian (un filtro), la página actual puede quedar fuera de rango.
+  const page = Math.min(local.page, pages);
+  const visible = rows.slice((page - 1) * local.pageSize, page * local.pageSize);
+  return (
+    <>
+      <TableView rows={visible} {...rest} />
+      <Pagination
+        page={page}
+        pageSize={local.pageSize}
+        total={rows.length}
+        onPageChange={local.setPage}
+        onPageSizeChange={local.setPageSize}
+      />
+    </>
+  );
+}
+
+function TableView<T>({
   columns,
   rows,
   rowKey,
@@ -35,7 +70,7 @@ export function DataTable<T>({
   empty,
   onRowClick,
   stacked = false,
-}: DataTableProps<T>) {
+}: Omit<DataTableProps<T>, 'pagination'>) {
   const group = stacked ? { role: 'rowgroup' } : {};
   const rowRole = stacked ? { role: 'row' } : {};
   return (
@@ -116,21 +151,59 @@ export interface PaginationProps {
   pageSize: number;
   total: number;
   onPageChange: (page: number) => void;
-  labels: { previous: string; next: string; summary: string };
+  /** Si se indica, se puede elegir cuántas filas ver por página. */
+  onPageSizeChange?: (size: number) => void;
+  pageSizeOptions?: readonly number[];
+  /** Textos propios; por defecto, los comunes de la aplicación. */
+  labels?: Partial<{ previous: string; next: string; summary: string; pageSize: string }>;
 }
 
-/** `labels.summary` admite los marcadores {from}, {to} y {total}. */
-export function Pagination({ page, pageSize, total, onPageChange, labels }: PaginationProps) {
+/**
+ * `labels.summary` admite los marcadores {from}, {to} y {total}. No se pinta si todo cabe
+ * en una página del tamaño más pequeño: no hay nada que paginar ni que ampliar.
+ */
+export function Pagination({
+  page,
+  pageSize,
+  total,
+  onPageChange,
+  onPageSizeChange,
+  pageSizeOptions = PAGE_SIZE_OPTIONS,
+  labels,
+}: PaginationProps) {
+  const { t } = useTranslation();
+  const sizeId = useId();
+  const smallest = Math.min(pageSize, ...(onPageSizeChange ? pageSizeOptions : []));
+  if (total <= smallest) return null;
   const pages = Math.max(1, Math.ceil(total / pageSize));
   const from = total === 0 ? 0 : (page - 1) * pageSize + 1;
   const to = Math.min(total, page * pageSize);
-  const summary = labels.summary
+  const summary = (labels?.summary ?? t('common.pageSummary'))
     .replace('{from}', String(from))
     .replace('{to}', String(to))
     .replace('{total}', String(total));
   return (
     <nav className="sx-pagination" aria-label={summary}>
       <span>{summary}</span>
+      {onPageSizeChange && (
+        <span className="sx-pagination__size">
+          <label htmlFor={sizeId}>{labels?.pageSize ?? t('common.pageSize')}</label>
+          <select
+            id={sizeId}
+            className="sx-input"
+            value={pageSize}
+            onChange={(e) => {
+              onPageSizeChange(Number(e.target.value));
+            }}
+          >
+            {pageSizeOptions.map((size) => (
+              <option key={size} value={size}>
+                {size}
+              </option>
+            ))}
+          </select>
+        </span>
+      )}
       <div>
         <button
           type="button"
@@ -140,7 +213,7 @@ export function Pagination({ page, pageSize, total, onPageChange, labels }: Pagi
             onPageChange(page - 1);
           }}
         >
-          {labels.previous}
+          {labels?.previous ?? t('common.previous')}
         </button>
         <button
           type="button"
@@ -150,7 +223,7 @@ export function Pagination({ page, pageSize, total, onPageChange, labels }: Pagi
             onPageChange(page + 1);
           }}
         >
-          {labels.next}
+          {labels?.next ?? t('common.next')}
         </button>
       </div>
     </nav>

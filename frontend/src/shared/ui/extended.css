@@ -198,6 +198,17 @@ select.sx-input {
   display: flex;
   gap: var(--sx-space-2);
 }
+/* Junto a las teclas en pantallas anchas; en estrechas baja a su propia línea. */
+.sx-pagination__size {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sx-space-2);
+  margin-inline-start: auto;
+}
+.sx-pagination__size .sx-input {
+  width: auto;
+  min-height: 38px; /* misma altura que las teclas vecinas */
+}
 
 /* ---------- Dialog */
 .sx-dialog {
