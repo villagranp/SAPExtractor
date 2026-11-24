@@ -4,7 +4,7 @@ import { Link } from 'react-router';
 import { useCan } from '@/features/auth/api/queries';
 import { describeError } from '@/shared/api/errors';
 import { formatDateTime } from '@/shared/format';
-import { Alert, Button, ConfirmDialog, DataTable, Pagination, type Column } from '@/shared/ui';
+import { Alert, Button, ConfirmDialog, DataTable, usePageState, type Column } from '@/shared/ui';
 import {
   useAckAlert,
   useAlerts,
@@ -13,8 +13,6 @@ import {
   type AlertStatus,
 } from '../api/queries';
 import { AlertStatusPill, SeverityPill } from './MonitoringParts';
-
-const PAGE_SIZE = 25;
 
 function resourceLink(alert: AlertRow): string | null {
   if (typeof alert.details.run_id === 'string') return `/runs/${alert.details.run_id}`;
@@ -28,11 +26,11 @@ function resourceLink(alert: AlertRow): string | null {
 export function AlertsTable({ live, status }: { live: boolean; status?: AlertStatus }) {
   const { t } = useTranslation();
   const canAck = useCan('alert:ack');
-  const [page, setPage] = useState(1);
+  const { page, setPage, pageSize, setPageSize } = usePageState();
   const [closing, setClosing] = useState<AlertRow | null>(null);
   const alerts = useAlerts({
     page,
-    page_size: PAGE_SIZE,
+    page_size: pageSize,
     ...(live ? { live: true } : {}),
     ...(status ? { status } : {}),
   });
@@ -130,20 +128,14 @@ export function AlertsTable({ live, status }: { live: boolean; status?: AlertSta
         rowKey={(a) => a.id}
         loading={alerts.isPending}
         empty={live ? t('monitoring.alerts.emptyLive') : t('monitoring.alerts.emptyHistory')}
+        pagination={{
+          page,
+          pageSize,
+          total: alerts.data?.total ?? 0,
+          onPageChange: setPage,
+          onPageSizeChange: setPageSize,
+        }}
       />
-      {alerts.data && alerts.data.total > PAGE_SIZE && (
-        <Pagination
-          page={page}
-          pageSize={PAGE_SIZE}
-          total={alerts.data.total}
-          onPageChange={setPage}
-          labels={{
-            previous: t('common.previous'),
-            next: t('common.next'),
-            summary: t('common.pageSummary'),
-          }}
-        />
-      )}
       <ConfirmDialog
         key={closing?.id ?? 'none'}
         open={closing !== null}

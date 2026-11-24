@@ -16,7 +16,8 @@ describe('UsersPage', () => {
     expect(cells.getByText('Visualizador')).toBeInTheDocument();
     expect(cells.getByText('Activo')).toBeInTheDocument();
     expect(cells.getByText('MFA')).toBeInTheDocument();
-    expect(screen.getByText('1–1 de 1')).toBeInTheDocument();
+    // Todo cabe en una página: no hay paginación que mostrar.
+    expect(screen.queryByText('1–1 de 1')).not.toBeInTheDocument();
   });
 
   it('filtra por estado enviando el parámetro a la API', async () => {

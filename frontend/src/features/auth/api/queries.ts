@@ -1,4 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { hashKey, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router';
 import { api, unwrap } from '@/shared/api/client';
 import type { components } from '@/shared/api/schema';
 import { enterApp } from '@/shared/motion/enterApp';
@@ -71,15 +72,24 @@ export function useLogin() {
   });
 }
 
+/**
+ * Cierra la sesión en el servidor y vuelve al login. No usa `queryClient.clear()`: dejaría a
+ * los observadores de /me (RequireAuth) colgados de una consulta ya borrada, sin enterarse
+ * de que la sesión terminó, y la aplicación seguiría en pantalla.
+ */
 export function useLogout() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   return useMutation({
     mutationFn: async () => {
       await api.POST('/api/v1/auth/logout');
     },
-    onSettled: () => {
-      queryClient.clear();
+    onSettled: async () => {
+      await queryClient.cancelQueries();
+      const meHash = hashKey(authKeys.me);
+      queryClient.removeQueries({ predicate: (query) => query.queryHash !== meHash });
       queryClient.setQueryData(authKeys.me, null);
+      await navigate('/login', { replace: true });
     },
   });
 }

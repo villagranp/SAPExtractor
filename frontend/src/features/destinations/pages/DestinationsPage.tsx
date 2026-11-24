@@ -12,7 +12,7 @@ import {
   EmptyState,
   FilterBar,
   PageHeader,
-  Pagination,
+  usePageState,
   SelectField,
   StatusPill,
   TextField,
@@ -29,8 +29,6 @@ import {
   type DestinationType,
 } from '../api/queries';
 import { DestinationStatusPill, LastTestPill } from '../components/DestinationPills';
-
-const PAGE_SIZE = 25;
 
 /** Tarjetas de los tipos disponibles: describen cada destino y abren el asistente. */
 function TypeCards({ canManage }: { canManage: boolean }) {
@@ -80,12 +78,12 @@ export function DestinationsPage() {
   const [type, setType] = useState<DestinationType | ''>('');
   const [environment, setEnvironment] = useState<DestinationEnvironment | ''>('');
   const [status, setStatus] = useState<DestinationStatus | ''>('');
-  const [page, setPage] = useState(1);
+  const { page, setPage, pageSize, setPageSize } = usePageState();
   const filtered = Boolean(q.trim() || type || environment || status);
 
   const destinations = useDestinations({
     page,
-    page_size: PAGE_SIZE,
+    page_size: pageSize,
     ...(q.trim() ? { q: q.trim() } : {}),
     ...(type ? { type } : {}),
     ...(environment ? { environment } : {}),
@@ -224,20 +222,14 @@ export function DestinationsPage() {
             loading={destinations.isPending}
             empty={t('destinations.empty')}
             onRowClick={(d) => void navigate(`/destinations/${d.id}`)}
+            pagination={{
+              page,
+              pageSize,
+              total: destinations.data?.total ?? 0,
+              onPageChange: setPage,
+              onPageSizeChange: setPageSize,
+            }}
           />
-          {destinations.data && (
-            <Pagination
-              page={page}
-              pageSize={PAGE_SIZE}
-              total={destinations.data.total}
-              onPageChange={setPage}
-              labels={{
-                previous: t('common.previous'),
-                next: t('common.next'),
-                summary: t('common.pageSummary'),
-              }}
-            />
-          )}
         </>
       )}
     </>

@@ -13,7 +13,7 @@ import {
   EmptyState,
   FilterBar,
   PageHeader,
-  Pagination,
+  usePageState,
   SelectField,
   StatusPill,
   TextField,
@@ -30,8 +30,6 @@ import {
 import { PipelineStatusPill } from '../components/PipelinePills';
 import '../pipelines.css';
 
-const PAGE_SIZE = 25;
-
 export function PipelinesPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -42,12 +40,12 @@ export function PipelinesPage() {
   const [q, setQ] = useState('');
   const [status, setStatus] = useState<PipelineStatus | ''>('');
   const [environment, setEnvironment] = useState<SapEnvironment | ''>('');
-  const [page, setPage] = useState(1);
+  const { page, setPage, pageSize, setPageSize } = usePageState();
   const filtered = Boolean(q.trim() || status || environment || destination || source);
 
   const pipelines = usePipelines({
     page,
-    page_size: PAGE_SIZE,
+    page_size: pageSize,
     ...(q.trim() ? { q: q.trim() } : {}),
     ...(status ? { status } : {}),
     ...(environment ? { environment } : {}),
@@ -217,21 +215,15 @@ export function PipelinesPage() {
               loading={pipelines.isPending}
               empty={t('pipelines.empty')}
               stacked
-            />
-          </div>
-          {pipelines.data && (
-            <Pagination
-              page={page}
-              pageSize={PAGE_SIZE}
-              total={pipelines.data.total}
-              onPageChange={setPage}
-              labels={{
-                previous: t('common.previous'),
-                next: t('common.next'),
-                summary: t('common.pageSummary'),
+              pagination={{
+                page,
+                pageSize,
+                total: pipelines.data?.total ?? 0,
+                onPageChange: setPage,
+                onPageSizeChange: setPageSize,
               }}
             />
-          )}
+          </div>
         </>
       )}
     </>

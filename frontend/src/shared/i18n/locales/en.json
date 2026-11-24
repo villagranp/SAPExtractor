@@ -24,6 +24,7 @@
     "previous": "Previous",
     "next": "Next",
     "pageSummary": "{from}–{to} of {total}",
+    "pageSize": "Rows per page",
     "choose": "Choose…"
   },
   "nav": {
@@ -91,7 +92,9 @@
     "environment": "Environment",
     "version": "Version {{version}}",
     "invalidCredentials": "Incorrect username or password.",
-    "lockoutHint": "After several failed attempts, the account is locked for a while."
+    "lockoutHint": "After several failed attempts, the account is locked for a while.",
+    "usernameRequired": "Enter your username.",
+    "passwordRequired": "Enter your password."
   },
   "password": {
     "current": "Current password",

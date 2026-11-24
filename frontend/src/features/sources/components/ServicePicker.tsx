@@ -15,7 +15,7 @@ import {
   Button,
   DataTable,
   FilterBar,
-  Pagination,
+  usePageState,
   SegmentedControl,
   SelectField,
   StatusPill,
@@ -24,7 +24,6 @@ import {
 import { SOURCE_TYPES, type SourceType } from '../api/queries';
 import type { SourceForm } from '../schemas/sourceForm';
 
-const PAGE_SIZE = 10;
 const KINDS_FOR: Record<SourceType, ServiceKind[]> = {
   ODP_EXTRACTOR: ['odp'],
   CDS_ODP: ['odp'],
@@ -46,12 +45,12 @@ export function ServicePicker({ form }: { form: UseFormReturn<SourceForm> }) {
     name: ['sap_system_id', 'source_type', 'service_name', 'service_version', 'entity_set'],
   });
   const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
+  const { page, setPage, pageSize, setPageSize } = usePageState();
 
   const systems = useSapSystems({ status: 'active', page: 1, page_size: 100 });
   const catalog = useCatalog(systemId, {
     page,
-    page_size: PAGE_SIZE,
+    page_size: pageSize,
     type: KINDS_FOR[type],
     ...(search.trim() ? { search: search.trim() } : {}),
   });
@@ -171,20 +170,14 @@ export function ServicePicker({ form }: { form: UseFormReturn<SourceForm> }) {
                 },
               },
             ]}
+            pagination={{
+              page,
+              pageSize,
+              total: catalog.data?.total ?? 0,
+              onPageChange: setPage,
+              onPageSizeChange: setPageSize,
+            }}
           />
-          {catalog.data && catalog.data.total > PAGE_SIZE && (
-            <Pagination
-              page={page}
-              pageSize={PAGE_SIZE}
-              total={catalog.data.total}
-              onPageChange={setPage}
-              labels={{
-                previous: t('common.previous'),
-                next: t('common.next'),
-                summary: t('common.pageSummary'),
-              }}
-            />
-          )}
           {formState.errors.service_name && (
             <Alert tone="danger">{t('sources.errors.serviceRequired')}</Alert>
           )}

@@ -6,6 +6,7 @@ import { resetPreferencesCache } from '@/shared/theme/preferences';
 import { adminMe } from '@/test/handlers';
 import { renderWithProviders } from '@/test/render';
 import { server } from '@/test/setup';
+import { RequireAuth } from '../guards';
 import { AppShell } from './AppShell';
 import { locate, navigation } from './navigation';
 
@@ -67,5 +68,34 @@ describe('locate', () => {
     expect(locate('/admin/users/42')?.item.to).toBe('/admin/users');
     expect(locate('/admin/userss')).toBeNull();
     expect(locate('/sap-systems/new', navigation)?.section.titleKey).toBe('nav.sectionData');
+  });
+
+  it('cerrar sesión llama a la API y vuelve al login', async () => {
+    let loggedOut = false;
+    server.use(
+      http.post('*/api/v1/auth/logout', () => {
+        loggedOut = true;
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+    const { router } = renderWithProviders(<p>Otra</p>, {
+      route: '/sap-systems',
+      routes: [
+        { path: '/login', element: <p>Pantalla de login</p> },
+        {
+          path: '/',
+          element: (
+            <RequireAuth>
+              <AppShell />
+            </RequireAuth>
+          ),
+          children: [{ path: '*', element: <p>Contenido</p> }],
+        },
+      ],
+    });
+    await userEvent.click(await screen.findByRole('button', { name: 'Cerrar sesión' }));
+    expect(await screen.findByText('Pantalla de login')).toBeInTheDocument();
+    expect(loggedOut).toBe(true);
+    expect(router.state.location.pathname).toBe('/login');
   });
 });

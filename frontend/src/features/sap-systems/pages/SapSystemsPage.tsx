@@ -11,7 +11,7 @@ import {
   EmptyState,
   FilterBar,
   PageHeader,
-  Pagination,
+  usePageState,
   SelectField,
   StatusPill,
   TextField,
@@ -26,8 +26,6 @@ import {
 } from '../api/queries';
 import { LastTestPill, SystemStatusPill } from '../components/SystemPills';
 
-const PAGE_SIZE = 25;
-
 export function SapSystemsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -35,12 +33,12 @@ export function SapSystemsPage() {
   const [q, setQ] = useState('');
   const [environment, setEnvironment] = useState<SapEnvironment | ''>('');
   const [status, setStatus] = useState<SystemStatus | ''>('');
-  const [page, setPage] = useState(1);
+  const { page, setPage, pageSize, setPageSize } = usePageState();
   const filtered = Boolean(q.trim() || environment || status);
 
   const systems = useSapSystems({
     page,
-    page_size: PAGE_SIZE,
+    page_size: pageSize,
     ...(q.trim() ? { q: q.trim() } : {}),
     ...(environment ? { environment } : {}),
     ...(status ? { status } : {}),
@@ -172,20 +170,14 @@ export function SapSystemsPage() {
             loading={systems.isPending}
             empty={t('sapSystems.empty')}
             onRowClick={(s) => void navigate(`/sap-systems/${s.id}`)}
+            pagination={{
+              page,
+              pageSize,
+              total: systems.data?.total ?? 0,
+              onPageChange: setPage,
+              onPageSizeChange: setPageSize,
+            }}
           />
-          {systems.data && (
-            <Pagination
-              page={page}
-              pageSize={PAGE_SIZE}
-              total={systems.data.total}
-              onPageChange={setPage}
-              labels={{
-                previous: t('common.previous'),
-                next: t('common.next'),
-                summary: t('common.pageSummary'),
-              }}
-            />
-          )}
         </>
       )}
     </>

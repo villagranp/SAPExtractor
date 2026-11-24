@@ -7,7 +7,7 @@ import {
   EmptyState,
   FilterBar,
   PageHeader,
-  Pagination,
+  usePageState,
   SelectField,
   TextField,
 } from '@/shared/ui';
@@ -19,8 +19,6 @@ import {
   type RunTrigger,
 } from '../api/queries';
 import { IdleWorkersNotice, RunsTable } from '../components/RunsTable';
-
-const PAGE_SIZE = 25;
 
 /** Día elegido (zona del navegador) → instante ISO de su comienzo o de su final. */
 function dayBoundary(day: string, end: boolean): string | undefined {
@@ -37,14 +35,14 @@ export function RunsPage() {
   const [trigger, setTrigger] = useState<RunTrigger | ''>('');
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
-  const [page, setPage] = useState(1);
+  const { page, setPage, pageSize, setPageSize } = usePageState();
   const fromIso = dayBoundary(from, false);
   const toIso = dayBoundary(to, true);
   const filtered = Boolean(status || trigger || from || to || pipeline);
 
   const runs = useRuns({
     page,
-    page_size: PAGE_SIZE,
+    page_size: pageSize,
     ...(pipeline ? { pipeline } : {}),
     ...(status ? { status } : {}),
     ...(trigger ? { trigger } : {}),
@@ -126,20 +124,14 @@ export function RunsPage() {
             loading={runs.isPending}
             caption={t('runs.title')}
             empty={t('runs.empty')}
+            pagination={{
+              page,
+              pageSize,
+              total: runs.data?.total ?? 0,
+              onPageChange: setPage,
+              onPageSizeChange: setPageSize,
+            }}
           />
-          {runs.data && (
-            <Pagination
-              page={page}
-              pageSize={PAGE_SIZE}
-              total={runs.data.total}
-              onPageChange={setPage}
-              labels={{
-                previous: t('common.previous'),
-                next: t('common.next'),
-                summary: t('common.pageSummary'),
-              }}
-            />
-          )}
         </>
       )}
     </>

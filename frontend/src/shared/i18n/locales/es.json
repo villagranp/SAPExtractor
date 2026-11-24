@@ -24,6 +24,7 @@
     "previous": "Anterior",
     "next": "Siguiente",
     "pageSummary": "{from}–{to} de {total}",
+    "pageSize": "Filas por página",
     "choose": "Seleccione…",
     "back": "Atrás",
     "actions": "Acciones"
@@ -140,7 +141,9 @@
     "environment": "Entorno",
     "version": "Versión {{version}}",
     "invalidCredentials": "Usuario o contraseña incorrectos.",
-    "lockoutHint": "Tras varios intentos fallidos, la cuenta se bloquea temporalmente."
+    "lockoutHint": "Tras varios intentos fallidos, la cuenta se bloquea temporalmente.",
+    "usernameRequired": "Escriba su usuario.",
+    "passwordRequired": "Escriba su contraseña."
   },
   "password": {
     "current": "Contraseña actual",

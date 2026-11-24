@@ -8,3 +8,4 @@ export * from './feedback';
 export * from './form';
 export * from './icons';
 export * from './overlay';
+export * from './pagination';

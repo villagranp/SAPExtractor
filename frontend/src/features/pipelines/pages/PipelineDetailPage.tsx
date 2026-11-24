@@ -15,7 +15,7 @@ import {
   ConfirmDialog,
   DetailList,
   PageHeader,
-  Pagination,
+  usePageState,
   Spinner,
   StatusPill,
   Tabs,
@@ -47,7 +47,6 @@ import '../pipelines.css';
 
 type Tab = 'summary' | 'runs' | 'delta' | 'schedule' | 'activity';
 type Opened = 'run' | 'activate' | 'clone' | 'trial' | null;
-const RUNS_PAGE_SIZE = 10;
 /** Con el motivo confirmado, el cruce de entornos ya se explica en su propio aviso. */
 const CROSS_ENVIRONMENT = 'SX-PIPE-CROSS-ENVIRONMENT';
 
@@ -189,8 +188,8 @@ function SummaryTab({ pipeline: p }: { pipeline: PipelineDetail }) {
 // ------------------------------------------------------------------ ejecuciones
 function RunsTab({ pipeline }: { pipeline: PipelineDetail }) {
   const { t } = useTranslation();
-  const [page, setPage] = useState(1);
-  const runs = useRuns({ pipeline: pipeline.id, page, page_size: RUNS_PAGE_SIZE });
+  const { page, setPage, pageSize, setPageSize } = usePageState();
+  const runs = useRuns({ pipeline: pipeline.id, page, page_size: pageSize });
   return (
     <>
       {runs.error && <Alert tone="danger">{describeError(runs.error).message}</Alert>}
@@ -201,20 +200,14 @@ function RunsTab({ pipeline }: { pipeline: PipelineDetail }) {
         caption={t('pipelines.detail.tabs.runs')}
         empty={t('pipelines.detail.noRuns')}
         showPipeline={false}
+        pagination={{
+          page,
+          pageSize,
+          total: runs.data?.total ?? 0,
+          onPageChange: setPage,
+          onPageSizeChange: setPageSize,
+        }}
       />
-      {runs.data && runs.data.total > RUNS_PAGE_SIZE && (
-        <Pagination
-          page={page}
-          pageSize={RUNS_PAGE_SIZE}
-          total={runs.data.total}
-          onPageChange={setPage}
-          labels={{
-            previous: t('common.previous'),
-            next: t('common.next'),
-            summary: t('common.pageSummary'),
-          }}
-        />
-      )}
     </>
   );
 }

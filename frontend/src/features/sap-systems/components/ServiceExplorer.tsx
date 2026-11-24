@@ -10,7 +10,7 @@ import {
   DataTable,
   Dialog,
   FilterBar,
-  Pagination,
+  usePageState,
   SelectField,
   StatusPill,
   TextField,
@@ -27,7 +27,6 @@ import {
   type ServiceKind,
 } from '../api/queries';
 
-const PAGE_SIZE = 25;
 const KIND_TONES: Record<ServiceKind, StatusTone> = {
   odp: 'success',
   cds: 'info',
@@ -217,12 +216,12 @@ export function ServiceExplorer({ systemId }: { systemId: string }) {
   const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const [kind, setKind] = useState<ServiceKind | ''>('');
-  const [page, setPage] = useState(1);
+  const { page, setPage, pageSize, setPageSize } = usePageState();
   const [open, setOpen] = useState<CatalogService | null>(null);
   const refresh = useRefreshCatalog(systemId);
   const catalog = useCatalog(systemId, {
     page,
-    page_size: PAGE_SIZE,
+    page_size: pageSize,
     ...(search.trim() ? { search: search.trim() } : {}),
     ...(kind ? { type: [kind] } : {}),
   });
@@ -331,20 +330,14 @@ export function ServiceExplorer({ systemId }: { systemId: string }) {
           catalog.isPending ? t('sapSystems.explorer.reading') : t('sapSystems.explorer.empty')
         }
         onRowClick={setOpen}
+        pagination={{
+          page,
+          pageSize,
+          total: data?.total ?? 0,
+          onPageChange: setPage,
+          onPageSizeChange: setPageSize,
+        }}
       />
-      {data && data.total > PAGE_SIZE && (
-        <Pagination
-          page={page}
-          pageSize={PAGE_SIZE}
-          total={data.total}
-          onPageChange={setPage}
-          labels={{
-            previous: t('common.previous'),
-            next: t('common.next'),
-            summary: t('common.pageSummary'),
-          }}
-        />
-      )}
       <ServiceDialog
         systemId={systemId}
         service={open}
