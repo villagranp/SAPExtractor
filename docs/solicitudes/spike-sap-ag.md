@@ -4,6 +4,16 @@ Guía de la sesión con el equipo de desarrollo SAP de AG (primera fecha: lunes 
 
 Comprobado el 22.11.2026: el script corre de punta a punta contra el mock actual (todas las hipótesis salvo H13, que necesita la ejecución del día anterior).
 
+**Estado (24.11.2026).** La primera sesión se hizo en **DEV** el 23.11.2026 con `ZMM_WS_MAT_ODP_SRV` (0MATERIAL_ATTR): conexión, `$metadata`, H4 confirmada, H12 y H16 en parte, y una carga FULL de punta a punta hasta Snowflake con la plataforma. DEV tiene un solo material, así que **el resto se hace en QAS**, donde hay volumen y se pueden crear y modificar registros. Resultados y observaciones (TLS de HEC, red desde Docker) en el [ADR 0002](../adr/0002-extraccion-sap-odp-odata.md#sesión-1--dev-de-ag-23112026).
+
+**Antes de la sesión en QAS:**
+
+- Transportar a QAS el proyecto SEGW de `ZMM_WS_MAT_ODP_SRV` y activar el servicio en `/IWFND/MAINT_SERVICE`.
+- Confirmar que los punteros de modificación de material están activos (BD61 y BD50).
+- Elegir dos valores de filtro (p. ej. dos `MATKL` o dos rangos de `MATNR`) donde se puedan crear y modificar materiales durante la sesión (H6, H18).
+- Pedir a Basis los límites de la sección 1, punto 7 (H8).
+- Usuario: el mismo de DEV (aceptado por AG para DEV y QAS); PRD necesita usuario técnico.
+
 **Reglas de la sesión**
 
 - Solo en **DEV o QAS**, nunca en PRD: las pruebas abren suscripciones en la ODQ y H12 las cierra.

@@ -104,7 +104,8 @@ GET    /api/v1/sap-systems/{id}/services/{service}/metadata
 - Usuario técnico de comunicación (tipo *System*, sin diálogo) con roles que incluyan `S_SERVICE` para los servicios publicados y autorizaciones de lectura ODP/ODQ. Por decisión del 19.11.2026 su autorización de lectura es amplia, para poder extraer cualquier origen; sigue siendo de solo lectura. El acceso a los datos se controla con los permisos de la plataforma, no en SAP.
 - Si el spike muestra que dos suscripciones de delta no conviven sobre el mismo entity set y usuario (H6, H18), puede hacer falta un usuario técnico por pipeline o un segundo servicio: se decide con el equipo SAP (plan 06 §3.3).
 - Servicios activados en `/IWFND/MAINT_SERVICE` y alcanzables desde el servidor de la plataforma (firewall/puertos HTTPS).
-- Certificado TLS del Gateway (o CA interna) para cargarlo en la plataforma.
+- Certificado TLS del Gateway (o CA interna) para cargarlo en la plataforma. En AG (SAP HEC) el Gateway presenta el comodín `*.us1.hec.sap.biz`, que no cubre el nombre `*.sap.corporacionag.com`: en DEV se trabajó sin verificar TLS; para PRD, que exige verificación, hace falta un certificado con el nombre correcto en el SAN o un nombre que el certificado cubra (ADR 0002, sesión 1).
+- Red: el servidor de la plataforma necesita ruta al Gateway. Con la VPN de un equipo, los contenedores de Docker no llegan al Gateway por TCP aunque resuelvan el nombre.
 
 ## Tareas
 

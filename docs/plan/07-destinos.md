@@ -138,7 +138,7 @@ Código: `backend/src/sapextract/dataflow/` (contratos del ADR 0006), `backend/s
 |---|---|---|---|
 | Estado del destino | `status` | `draft` → `active` ↔ `inactive`, `last_test_ok`, `test_outdated` y `credential_info`, como los sistemas SAP (plan 04) | Activar exige una prueba correcta con la configuración y las credenciales actuales |
 | Credenciales | Clave privada en `secret` | Igual (AES-GCM envelope, `aad = secret:<id>`). Edición solo por `credentials/rotate`, que prueba enseguida | El PATCH nunca transporta secretos; la rotación se audita como `SECURITY` |
-| Autenticación Snowflake | Key-pair u OAuth | Solo key-pair (PKCS#8, con o sin contraseña) | Es lo recomendado para usuarios de servicio; OAuth se añadirá si un cliente lo exige |
+| Autenticación Snowflake | Key-pair u OAuth | Key-pair (PKCS#8, con o sin contraseña) o **PAT** (token de acceso programático, desde el 23.11.2026); el campo `authentication` de la configuración elige cuál, y el secreto exige exactamente una de las dos credenciales | Key-pair es lo recomendado para usuarios de servicio; PAT lo pidió la primera cuenta real (exige *network policy* en el usuario y caduca). OAuth se añadirá si un cliente lo exige |
 | Organización CSV | `{source}/{yyyy}/{MM}/{dd}/…_{batch_id}_{part}.csv` | `<destino>/<target>/batches/<batch_id>/part-NNNNN.csv[.gz]` (append) y `<target>/current/` (replace) | La ruta solo depende del `batch_id`: repetir el lote siempre cae en la misma carpeta (idempotencia sin fechas) |
 | Formato CSV | Comillas, escape, formato de fecha/decimal | Separador, codificación (`utf-8`/`utf-8-sig`), encabezado, fin de línea, gzip y filas por archivo | Fechas ISO 8601 y decimales con `.` fijos (tabla §6); el resto, cuando un consumidor lo pida |
 | Tabla de control CSV | `_manifest.json` + `_SUCCESS` | Además `<target>/_sx_load_state/<batch_id>.json`, escrito tras publicar | `applied_batch` lee un archivo pequeño sin recorrer carpetas |
@@ -151,7 +151,7 @@ Código: `backend/src/sapextract/dataflow/` (contratos del ADR 0006), `backend/s
 **Prueba de conexión por pasos:**
 
 - *CSV*: `path` (la carpeta queda dentro de una raíz permitida, sin `..`, rutas absolutas ni enlaces que salgan de ella) y `write` (crea, lee y borra un archivo; aviso con menos de 1 GB libre).
-- *Snowflake*: `network` (host permitido y resolución), `authentication` (par de claves; códigos `SX-DST-AUTH`), `context` (`CURRENT_ROLE/WAREHOUSE/DATABASE/SCHEMA`) y `privileges` (crear tabla y stage temporales; `SX-DST-PRIVILEGES`).
+- *Snowflake*: `network` (host permitido y resolución), `authentication` (par de claves o PAT; códigos `SX-DST-AUTH`), `context` (`CURRENT_ROLE/WAREHOUSE/DATABASE/SCHEMA`) y `privileges` (crear tabla y stage temporales; `SX-DST-PRIVILEGES`).
 
 **Carga en Snowflake** (`snowflake_plugin.py`, SQL en `snowflake_sql.py`, probado sin conexión):
 
@@ -212,6 +212,7 @@ Código: `destinations/infrastructure/sqlserver_plugin.py` (configuración, prue
 - [x] Lista de hosts permitidos, `SX_CSV_ROOTS` y validación de identificadores, con sus pruebas.
 - [x] Plugin **CSV** (primero: el más simple, permite probar el motor de punta a punta).
 - [x] Plugin **Snowflake** (key-pair, `PUT`/`COPY`/`MERGE`, `INSERT OVERWRITE`, tabla de control).
+- [x] Autenticación con PAT en Snowflake (23.11.2026). Primera carga real el mismo día: pipeline FULL desde el SAP DEV de AG, 1 fila, con PAT.
 - [x] Mapeo de tipos con pruebas unitarias exhaustivas.
 - [ ] Pruebas de integración de Snowflake contra la cuenta de pruebas: job de CI con secretos, obligatorio en los PR que toquen `destinations/` o `extraction/`. La generación de SQL se prueba sin conexión. *La batería ya existe (`TestSnowflakeDestination`) y se activa con `SX_TEST_SNOWFLAKE_*`; falta ejecutarla con la cuenta de pruebas y crear el job de CI con sus secretos.*
 - [x] Pantallas 1–3.
